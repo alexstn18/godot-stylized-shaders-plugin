@@ -7,7 +7,7 @@ sources = Glob("include/*.cpp")
 folder = "build/addons/GodotStylizedShadersPlugin"
 
 if env["platform"] == "macos":
-	file_name = "libGodotCppPlugin.{}.{}".format(env["platform"], env["target"])
+	file_name = "libGodotStylizedShadersPlugin.{}.{}".format(env["platform"], env["target"])
 
 	library = env.SharedLibrary(
 		"{}/{}.framework/{}".format(folder, file_name, file_name),

@@ -5,6 +5,9 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
+#include "godot_stylized_shaders_plugin.hpp"
+#include "screensaver.hpp"
+
 using namespace godot;
 
 void initialize_shader_plugin(ModuleInitializationLevel p_level)
@@ -13,6 +16,10 @@ void initialize_shader_plugin(ModuleInitializationLevel p_level)
     {
         return;
     }
+
+    GDREGISTER_VIRTUAL_CLASS(godot_stylized_shaders_plugin);
+
+    GDREGISTER_RUNTIME_CLASS(Screensaver);
 }
 
 void uninitialize_shader_plugin(ModuleInitializationLevel p_level)
