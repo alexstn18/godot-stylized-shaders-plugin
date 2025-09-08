@@ -18,7 +18,7 @@ Requirements:
 
 Commands for cloning the repository (with the `godot-cpp` submodule included) and building the plugin with **SCons**:
 ```
-git clone --recursive https://github.com/alexstn18/godot-stylized-shaders-plugin/`
+git clone --recursive https://github.com/alexstn18/godot-stylized-shaders-plugin/
 cd godot-stylized-shaders-plugin/
 scons
 ```
