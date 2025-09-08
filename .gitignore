@@ -2,6 +2,7 @@
 
 .sconsign.dblite
 
-build/
+demo/addons/
 
 include/*.os
+include/*.obj

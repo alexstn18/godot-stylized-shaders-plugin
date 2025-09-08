@@ -4,7 +4,7 @@ env.Append(CPPPATH=["include/"])
 
 sources = Glob("include/*.cpp")
 
-folder = "build/addons/GodotStylizedShadersPlugin"
+folder = "demo/addons/GodotStylizedShadersPlugin"
 
 if env["platform"] == "macos":
 	file_name = "libGodotStylizedShadersPlugin.{}.{}".format(env["platform"], env["target"])
