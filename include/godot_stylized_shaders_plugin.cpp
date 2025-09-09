@@ -3,6 +3,8 @@
 #include "mathf.hpp"
 #include "convert.hpp"
 
+#include <godot_cpp/classes/viewport.hpp>
+
 void godot_stylized_shaders_plugin::_bind_methods()
 {
     // GodotCon Scott Doxey examples
@@ -12,12 +14,11 @@ void godot_stylized_shaders_plugin::_bind_methods()
     ClassDB::bind_static_method("godot_stylized_shaders_plugin", D_METHOD("get_key_values", "values", "key"), &godot_stylized_shaders_plugin::get_key_values);
     
     // My implementations
-    ClassDB::bind_method("godot_stylized_shaders_plugin", D_METHOD("setup"), &godot_stylized_shaders_plugin::setup);
+    // ClassDB::bind_method("godot_stylized_shaders_plugin", D_METHOD("setup"), &godot_stylized_shaders_plugin::setup);
 }
 
 void godot_stylized_shaders_plugin::_ready()
 {
-    call_deferred("setup");
 }
 
 void godot_stylized_shaders_plugin::_process(double delta)
@@ -32,7 +33,6 @@ void godot_stylized_shaders_plugin::_notification(int what)
 
 void godot_stylized_shaders_plugin::setup()
 {
-    Ref<Viewport> viewport = get_viewport();
 }
 
 float godot_stylized_shaders_plugin::lerp(float a, float b, float t)

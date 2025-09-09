@@ -1,3 +1,5 @@
+import shutil
+
 env = SConscript("godot-cpp/SConstruct")
 
 env.Append(CPPPATH=["include/"])
@@ -25,6 +27,8 @@ gdextension_copy = env.Command(
 	source="GodotStylizedShadersPlugin.gdextension",
 	action=Copy("$TARGET", "$SOURCE")
 )
+
+shutil.copytree("include/shaders/", "{}/shaders/".format(folder), dirs_exist_ok=True)
 
 env.Depends(gdextension_copy, library)
 

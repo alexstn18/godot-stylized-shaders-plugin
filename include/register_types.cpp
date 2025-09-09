@@ -19,7 +19,7 @@ void initialize_shader_plugin(ModuleInitializationLevel p_level)
     }
 
     GDREGISTER_VIRTUAL_CLASS(godot_stylized_shaders_plugin);
-    GDREGISTER_VIRTUAL_CLASS(Stylized::GrayscaleEffect);
+    GDREGISTER_VIRTUAL_CLASS(GrayscaleEffect);
 
     GDREGISTER_RUNTIME_CLASS(Screensaver);
 }
