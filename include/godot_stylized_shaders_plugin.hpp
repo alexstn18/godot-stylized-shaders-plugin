@@ -5,7 +5,7 @@
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/classes/compositor.hpp>
 
-#include "grayscale_effect.hpp"
+#include "post_process_shader.hpp"
 
 using namespace godot;
 
@@ -17,7 +17,6 @@ class godot_stylized_shaders_plugin : public Node
     GDCLASS(godot_stylized_shaders_plugin, Node);
 
 private:
-    Ref<GrayscaleEffect> m_grayscaleEffect;
     Compositor* m_compositor = nullptr;
 
     void setup();

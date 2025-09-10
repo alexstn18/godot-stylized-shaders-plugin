@@ -7,7 +7,7 @@
 
 #include "godot_stylized_shaders_plugin.hpp"
 #include "screensaver.hpp"
-#include "grayscale_effect.hpp"
+#include "post_process_shader.hpp"
 
 using namespace godot;
 
@@ -19,8 +19,8 @@ void initialize_shader_plugin(ModuleInitializationLevel p_level)
     }
 
     GDREGISTER_VIRTUAL_CLASS(godot_stylized_shaders_plugin);
-    GDREGISTER_VIRTUAL_CLASS(GrayscaleEffect);
-
+    
+    GDREGISTER_RUNTIME_CLASS(PostProcessShader);
     GDREGISTER_RUNTIME_CLASS(Screensaver);
 }
 
