@@ -13,6 +13,7 @@ class PostProcessShader : public CompositorEffect
     GDCLASS(PostProcessShader, CompositorEffect);
     
 private:
+    void setup();
 	String m_shader_template;
 
     String m_shader_code;
@@ -20,7 +21,7 @@ private:
     RID m_shader;
     RID m_pipeline;
     
-    Mutex m_mutex;
+    Ref<Mutex> m_mutex;
 
     bool m_shader_dirty = false;
 protected:
