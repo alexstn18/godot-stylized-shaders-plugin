@@ -1,18 +1,46 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
-        "label": "build",
-        "group": "build",
-        "type": "shell",
-        "command": "scons",
-        "args": [
-            // enable for debugging with breakpoints
-            "dev_build=yes",
-        ],
-        "problemMatcher": "$msCompile"
+            "label": "build",
+            "group": "build",
+            "type": "shell",
+            "command": "scons",
+            "args": [
+                "dev_build=yes",
+                "debug_symbols=yes",
+                "target=template_debug"
+            ],
+            "presentation": {
+                "echo": true,
+                "revealProblems": "onProblem",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "remove-dev-suffix",
+            "group": "build",
+            "type": "shell",
+            "command": "py rename.py",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
+        {
+            "label": "full-build",
+            "dependsOn": ["build", "remove-dev-suffix"],
+            "dependsOrder": "sequence",
+            "type": "shell",
+            "command": "echo Running full build..."
         }
     ]
 }

@@ -1,7 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://dh8gw4tma8afb"]
+[gd_scene load_steps=3 format=3 uid="uid://dh8gw4tma8afb"]
+
+[sub_resource type="PostProcessShader" id="PostProcessShader_mf4mk"]
+m_shader_code = "color.rgb = vec3(1.0f);"
 
 [sub_resource type="Compositor" id="Compositor_mf4mk"]
-compositor_effects = Array[CompositorEffect]([null, null])
+compositor_effects = Array[CompositorEffect]([SubResource("PostProcessShader_mf4mk"), null])
 
 [node name="Node3D" type="Node3D"]
 
