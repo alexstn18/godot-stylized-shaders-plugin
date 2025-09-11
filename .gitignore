@@ -1,5 +1,5 @@
 .scons_cache/
-
+.cache/
 .sconsign.dblite
 
 demo/addons/
