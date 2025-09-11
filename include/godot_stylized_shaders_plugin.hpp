@@ -17,8 +17,6 @@ class godot_stylized_shaders_plugin : public Node
     GDCLASS(godot_stylized_shaders_plugin, Node);
 
 private:
-    Compositor* m_compositor = nullptr;
-
     void setup();
 
 protected:

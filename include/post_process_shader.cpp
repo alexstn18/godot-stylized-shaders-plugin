@@ -18,13 +18,15 @@ void PostProcessShader::_bind_methods()
 {
     ClassDB::bind_method(D_METHOD("set_shader_code", "value"), &PostProcessShader::set_shader_code);
     ClassDB::bind_method(D_METHOD("get_shader_code"), &PostProcessShader::get_shader_code);
-    ADD_PROPERTY(PropertyInfo(Variant::STRING, "m_shader_code", PROPERTY_HINT_MULTILINE_TEXT),
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "m_shader_code"),
                 "set_shader_code", "get_shader_code");
 }
 
 PostProcessShader::PostProcessShader()
 {
     set_effect_callback_type(CompositorEffect::EFFECT_CALLBACK_TYPE_POST_TRANSPARENT);
+
+    m_shader_template = FileAccess::get_file_as_string("res://addons/GodotStylizedShadersPlugin/shaders/compute_template.gdshader");
 }
 
 PostProcessShader::~PostProcessShader()
@@ -68,8 +70,10 @@ void PostProcessShader::_notification(int what)
         }
         else
         {
-            m_shader = RID();
-            m_pipeline = RID();
+            if(!m_shader.is_valid())
+                m_shader = RID();
+            if(!m_pipeline.is_valid())
+                m_pipeline = RID();
         }
     }
 }
@@ -77,7 +81,6 @@ void PostProcessShader::_notification(int what)
 
 bool PostProcessShader::_check_shader()
 {
-
     if (!m_device)
     {
         if (RenderingServer::get_singleton())
@@ -85,17 +88,30 @@ bool PostProcessShader::_check_shader()
             m_device = RenderingServer::get_singleton()->get_rendering_device();
         }
     }
-    if (!m_device) return false;
-
-    String new_shader_code = "";
-
-    m_mutex.lock();
-    if (m_shader_dirty)
+    if (!m_device)
     {
-        new_shader_code = m_shader_code;
-        m_shader_dirty = false;
+        godot::UtilityFunctions::print("crash");
+        call_deferred("_check_shader()");
+        return false;
     }
-    m_mutex.unlock();
+
+    String new_shader_code;
+
+    if(m_mutex.try_lock())
+    {
+        if (m_shader_dirty)
+        {
+            new_shader_code = m_shader_code;
+            m_shader_dirty = false;
+        }
+        m_mutex.unlock();
+    }
+    else 
+    {
+        godot::UtilityFunctions::print("crash");
+        call_deferred("_check_shader()");
+        return false;
+    }
 
     if (new_shader_code.is_empty()) return m_pipeline.is_valid();
     new_shader_code = m_shader_template.replace("#COMPUTE_CODE", new_shader_code);
@@ -141,13 +157,14 @@ bool PostProcessShader::_check_shader()
 void PostProcessShader::_render_callback(int32_t p_effect_callback_type,
                                          RenderData *p_render_data)
 {
-    if(m_device && p_effect_callback_type == EFFECT_CALLBACK_TYPE_POST_TRANSPARENT && _check_shader())
+    if(m_device && 
+        p_effect_callback_type == EFFECT_CALLBACK_TYPE_POST_TRANSPARENT &&
+       _check_shader())
     {
         Ref<RenderSceneBuffersRD> buffers = p_render_data->get_render_scene_buffers();
         if(buffers.is_valid())
         {
             Vector2i size = buffers->get_internal_size();
-            if(size.x == 0 && size.y == 0) return;
 
             int x_groups = (size.x - 1) / 8 + 1;
             int y_groups = (size.y - 1) / 8 + 1;
@@ -160,7 +177,7 @@ void PostProcessShader::_render_callback(int32_t p_effect_callback_type,
             push_constant.push_back(0);
 
             uint32_t view_count = buffers->get_view_count();
-            for(uint32_t i = 0; i < view_count; i++)
+            for(auto i = 0; i < view_count; i++)
             {
                 RID input_image = buffers->get_color_layer(i);
                 Ref<RDUniform> uniform;
@@ -183,10 +200,16 @@ void PostProcessShader::_render_callback(int32_t p_effect_callback_type,
 
 void PostProcessShader::set_shader_code(const String& value)
 {
-    m_mutex.lock();
-    m_shader_code = value;
-    m_shader_dirty = true;
-    m_mutex.unlock();
+    if(m_mutex.try_lock())
+    {
+        m_shader_code = value;
+        m_shader_dirty = true;
+        m_mutex.unlock();
+    }
+    else 
+    {
+        call_deferred("set_shader_code");
+    }
 }
 
 String PostProcessShader::get_shader_code() const { return m_shader_code; }

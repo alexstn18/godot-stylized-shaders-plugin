@@ -1,0 +1,22 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+        "name": "Launch Project",
+        "type": "cppvsdbg",
+        "request": "launch",
+        "program": "C:/godot/bin/godot.windows.editor.dev.x86_64.exe",
+        "args": [ "--editor", "--path", "C:/Users/stain/godot-stylized-shaders-plugin/demo" ],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "console": "internalConsole",
+        "visualizerFile": "${workspaceFolder}/platform/windows/godot.natvis",
+        "preLaunchTask": "build"
+        }
+
+    ]
+}
