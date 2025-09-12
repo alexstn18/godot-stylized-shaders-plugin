@@ -9,7 +9,7 @@
         "type": "cppvsdbg",
         "request": "launch",
         "program": "C:/godot/bin/godot.windows.editor.dev.x86_64.exe",
-        "args": [ "--editor", "--path", "C:/Users/stain/godot-stylized-shaders-plugin/demo", "--verbose", "--debug", "--stdout" ],
+        "args": [ "--editor", "--path", "C:/Users/stain/Documents/GitHub/godot-stylized-shaders-plugin/demo", "--verbose", "--debug", "--stdout" ],
         "stopAtEntry": false,
         "cwd": "${workspaceFolder}",
         "environment": [],

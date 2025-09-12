@@ -6,3 +6,5 @@ demo/addons/
 
 include/*.os
 include/*.obj
+
+*.pdb
