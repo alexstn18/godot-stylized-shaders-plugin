@@ -1,15 +1,17 @@
-[gd_scene load_steps=6 format=3 uid="uid://dh8gw4tma8afb"]
+[gd_scene load_steps=7 format=3 uid="uid://dh8gw4tma8afb"]
 
 [ext_resource type="PackedScene" uid="uid://do3x8lwjs8lu4" path="res://BoxAndCylinder.gltf" id="1_8uh7m"]
 [ext_resource type="PackedScene" uid="uid://h8brldrrayxf" path="res://Plane.gltf" id="2_6uqi0"]
 
 [sub_resource type="Environment" id="Environment_ppyta"]
 
+[sub_resource type="PostProcessShader" id="PostProcessShader_8uh7m"]
+
 [sub_resource type="PostProcessShader" id="PostProcessShader_ykrsh"]
-m_shader_code = "color.rgb = vec3(1.0f);"
+m_shader_code = "color.rgb = vec3(0.0f);"
 
 [sub_resource type="Compositor" id="Compositor_g14j6"]
-compositor_effects = Array[CompositorEffect]([SubResource("PostProcessShader_ykrsh")])
+compositor_effects = Array[CompositorEffect]([SubResource("PostProcessShader_8uh7m"), SubResource("PostProcessShader_ykrsh")])
 
 [node name="Node3D" type="Node3D"]
 

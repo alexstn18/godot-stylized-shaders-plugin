@@ -15,6 +15,8 @@ for filename in os.listdir(folder):
 	if os.path.isfile(file_path):
 		os.remove(file_path)
 
+# env["PDB"] = "{}/libGodotStylizedShadersPlugin{}{}".format(folder, env["suffix"], env["SHLIBSUFFIX"])
+
 if env["platform"] == "macos":
 	file_name = "libGodotStylizedShadersPlugin.{}.{}".format(env["platform"], env["target"])
 
@@ -35,15 +37,8 @@ gdextension_copy = env.Command(
 	action=Copy("$TARGET", "$SOURCE")
 )
 
-# pdb_copy = env.Command(
-# 	target="{}/libGodotStylizedShadersPlugin.{}.{}".format(folder, env["platform"], env["target"]),
-# 	source="vc140.pdb",
-# 	action=Copy("$TARGET", "$SOURCE")
-# )
-
 shutil.copytree("include/shaders/", "{}/shaders/".format(folder), dirs_exist_ok=True)
 
-# env.AddPostAction(pdb_copy, library)
 env.Depends(gdextension_copy, library)
 
 CacheDir(".scons_cache/")

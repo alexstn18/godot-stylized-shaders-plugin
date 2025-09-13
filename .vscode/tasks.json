@@ -9,7 +9,9 @@
             "args": [
                 "dev_build=yes",
                 "debug_symbols=yes",
-                "target=template_debug"
+                "target=template_debug",
+                "verbose=yes",
+                "optimize=debug" 
             ],
             "presentation": {
                 "echo": true,
@@ -22,10 +24,10 @@
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "remove-dev-suffix",
+            "label": "post-build",
             "group": "build",
             "type": "shell",
-            "command": "py rename.py",
+            "command": "py post_build.py",
             "presentation": {
                 "echo": true,
                 "reveal": "always",
@@ -37,7 +39,7 @@
         },
         {
             "label": "full-build",
-            "dependsOn": ["build", "remove-dev-suffix"],
+            "dependsOn": ["build", "post-build"],
             "dependsOrder": "sequence",
             "type": "shell",
             "command": "echo Running full build..."
