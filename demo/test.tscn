@@ -1,17 +1,13 @@
-[gd_scene load_steps=7 format=3 uid="uid://dh8gw4tma8afb"]
+[gd_scene load_steps=5 format=3 uid="uid://dh8gw4tma8afb"]
 
 [ext_resource type="PackedScene" uid="uid://do3x8lwjs8lu4" path="res://BoxAndCylinder.gltf" id="1_8uh7m"]
 [ext_resource type="PackedScene" uid="uid://h8brldrrayxf" path="res://Plane.gltf" id="2_6uqi0"]
 
-[sub_resource type="Environment" id="Environment_ppyta"]
-
 [sub_resource type="PostProcessShader" id="PostProcessShader_8uh7m"]
+shader_code = "color.rgb = 1.0f - color.rgb;"
 
-[sub_resource type="PostProcessShader" id="PostProcessShader_ykrsh"]
-m_shader_code = "color.rgb = vec3(0.0f);"
-
-[sub_resource type="Compositor" id="Compositor_g14j6"]
-compositor_effects = Array[CompositorEffect]([SubResource("PostProcessShader_8uh7m"), SubResource("PostProcessShader_ykrsh")])
+[sub_resource type="Compositor" id="Compositor_8uh7m"]
+compositor_effects = Array[CompositorEffect]([SubResource("PostProcessShader_8uh7m")])
 
 [node name="Node3D" type="Node3D"]
 
@@ -25,6 +21,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.285528, -1.19209e-07, -1.6
 [node name="Plane2" parent="." instance=ExtResource("2_6uqi0")]
 transform = Transform3D(1, 0, 0, 0, 0.515816, 0.8567, 0, -0.8567, 0.515816, 3.87613, -4.76837e-07, 3.03259)
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_ppyta")
-compositor = SubResource("Compositor_g14j6")
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.07767, 2.26777, 7.13669)
+compositor = SubResource("Compositor_8uh7m")

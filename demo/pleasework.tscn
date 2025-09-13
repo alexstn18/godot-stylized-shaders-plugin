@@ -1,0 +1,14 @@
+[gd_scene load_steps=4 format=3 uid="uid://b43wpbgibl34m"]
+
+[sub_resource type="Environment" id="Environment_3d84t"]
+
+[sub_resource type="PostProcessShader" id="PostProcessShader_3d84t"]
+
+[sub_resource type="Compositor" id="Compositor_3d84t"]
+compositor_effects = Array[CompositorEffect]([SubResource("PostProcessShader_3d84t")])
+
+[node name="Node3D" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_3d84t")
+compositor = SubResource("Compositor_3d84t")

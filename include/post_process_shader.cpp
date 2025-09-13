@@ -9,164 +9,63 @@
 #include <godot_cpp/classes/render_scene_data_rd.hpp>
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/rd_uniform.hpp>
+#include <godot_cpp/classes/rd_shader_file.hpp>
 #include <godot_cpp/classes/uniform_set_cache_rd.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
 
 // Converted to C++ GDExtension from:
 // https://docs.godotengine.org/en/latest/tutorials/rendering/compositor.html
 
 void PostProcessShader::_bind_methods()
 {
-    ClassDB::bind_method(D_METHOD("set_shader_code", "value"), &PostProcessShader::set_shader_code);
-    ClassDB::bind_method(D_METHOD("get_shader_code"), &PostProcessShader::get_shader_code);
-    ADD_PROPERTY(PropertyInfo(Variant::STRING, "m_shader_code"),
-                "set_shader_code", "get_shader_code");
-    ClassDB::bind_method(D_METHOD("setup"), &PostProcessShader::setup);
-    // ClassDB::bind_method(D_METHOD("_check_shader"), &PostProcessShader::_check_shader);
+    ClassDB::bind_method(D_METHOD("init_compute"), &PostProcessShader::init_compute);
 }
 
 PostProcessShader::PostProcessShader()
 {
-    call_deferred("setup");
-}
+    set_effect_callback_type(CompositorEffect::EFFECT_CALLBACK_TYPE_POST_TRANSPARENT);
 
-PostProcessShader::~PostProcessShader()
-{
-    if (m_device)
+    m_mutex.instantiate();
+
+    if (auto *rs = RenderingServer::get_singleton())
     {
-        if (m_shader.is_valid())
-        {
-            m_device->free_rid(m_shader);
-            m_shader = RID();
-        }
-        if (m_pipeline.is_valid())
-        {
-            m_device->free_rid(m_pipeline);
-            m_pipeline = RID();
-        }
-    } 
-    else 
-    {
-        m_shader = RID();
-        m_pipeline = RID();
+        auto c = Callable(this, "init_compute");
+        rs->call_on_render_thread(c);
     }
 }
+
+PostProcessShader::~PostProcessShader() {}
 
 void PostProcessShader::_notification(int what)
 {
-    if (what == NOTIFICATION_PREDELETE)
+    if (what == NOTIFICATION_PREDELETE && m_device)
     {
-        if (m_device)
+        if (m_shader.is_valid())
         {
-            if (m_shader.is_valid())
-            {
-                m_device->free_rid(m_shader);
-                m_shader = RID();
-            }
-            if (m_pipeline.is_valid())
-            {
-                m_device->free_rid(m_pipeline);
-                m_pipeline = RID();
-            }
-        }
-        else
-        {
-            if(!m_shader.is_valid())
-                m_shader = RID();
-            if(!m_pipeline.is_valid())
-                m_pipeline = RID();
+            m_device->free_rid(m_shader); // supposedly frees pipeline too?
+            m_shader = RID();
+            m_pipeline = RID();
         }
     }
-}
-
-
-bool PostProcessShader::_check_shader()
-{
-    if (!m_device)
-    {
-        if (RenderingServer::get_singleton())
-        {
-            m_device = RenderingServer::get_singleton()->get_rendering_device();
-        }
-    }
-    if (!m_device)
-    {
-        godot::UtilityFunctions::print("crash");
-        return false;
-    }
-
-    String new_shader_code;
-
-    if(m_mutex->try_lock())
-    {
-        if (m_shader_dirty)
-        {
-            new_shader_code = m_shader_code;
-            m_shader_dirty = false;
-        }
-        m_mutex->unlock();
-    }
-    else 
-    {
-        godot::UtilityFunctions::print("crash");
-        return false;
-    }
-
-    if (new_shader_code.is_empty()) return m_pipeline.is_valid();
-    new_shader_code = m_shader_template.replace("#COMPUTE_CODE", new_shader_code);
-
-    if (m_shader.is_valid())
-    {
-        if (m_device)
-        {
-            m_device->free_rid(m_shader);
-        }
-        m_shader = RID();
-
-        if (m_device && m_pipeline.is_valid()) {
-            m_device->free_rid(m_pipeline);
-        }
-        m_pipeline = RID();
-    }
-
-    Ref<RDShaderSource> source;
-    Ref<RDShaderSPIRV> spirv;
-    source.instantiate();
-    spirv.instantiate();
-
-    source->set_language(RenderingDevice::SHADER_LANGUAGE_GLSL);
-    source->set_stage_source(RenderingDevice::ShaderStage::SHADER_STAGE_COMPUTE, 
-                             new_shader_code);
-
-    spirv = m_device->shader_compile_spirv_from_source(source);
-    if(spirv->get_stage_compile_error(RenderingDevice::ShaderStage::SHADER_STAGE_COMPUTE) != "")
-    {
-        UtilityFunctions::push_error(spirv->get_stage_compile_error(RenderingDevice::ShaderStage::SHADER_STAGE_COMPUTE));
-        UtilityFunctions::push_error("In: " + new_shader_code);
-        return false;
-    }
-
-    m_shader = m_device->shader_create_from_spirv(spirv);
-    if(!m_shader.is_valid()) return false;
-
-    m_pipeline = m_device->compute_pipeline_create(m_shader);
-    return m_pipeline.is_valid();
 }
 
 void PostProcessShader::_render_callback(int32_t p_effect_callback_type,
                                          RenderData *p_render_data)
 {
     if(m_device && 
-        p_effect_callback_type == EFFECT_CALLBACK_TYPE_POST_TRANSPARENT &&
-       _check_shader())
+        p_effect_callback_type == EFFECT_CALLBACK_TYPE_POST_TRANSPARENT)
     {
-        Ref<RenderSceneBuffersRD> buffers = p_render_data->get_render_scene_buffers();
+        Ref<RenderSceneBuffersRD> buffers;
+        buffers.instantiate();
+        buffers = p_render_data->get_render_scene_buffers();
         if(buffers.is_valid())
         {
             Vector2i size = buffers->get_internal_size();
 
-            int x_groups = (size.x - 1) / 8 + 1;
-            int y_groups = (size.y - 1) / 8 + 1;
-            int z_groups = 1;
+            if(size.x == 0 || size.y == 0) return;
+
+            const int x_groups = size.x / 16;
+            const int y_groups = size.y / 16;
 
             PackedFloat32Array push_constant = PackedFloat32Array();
             push_constant.push_back(size.x);
@@ -179,43 +78,37 @@ void PostProcessShader::_render_callback(int32_t p_effect_callback_type,
             {
                 RID input_image = buffers->get_color_layer(i);
                 Ref<RDUniform> uniform;
+                TypedArray<Ref<RDUniform>> uniform_array;
+                
                 uniform.instantiate();
                 uniform->set_uniform_type(RenderingDevice::UNIFORM_TYPE_IMAGE);
                 uniform->set_binding(0);
                 uniform->add_id(input_image);
-                RID uniform_set = UniformSetCacheRD::get_cache(m_shader, 0, {uniform});
+                uniform_array.push_back(uniform);
+                
+                RID uniform_set = UniformSetCacheRD::get_cache(m_shader, 0, uniform_array);
 
                 auto compute_list = m_device->compute_list_begin();
                 m_device->compute_list_bind_compute_pipeline(compute_list, m_pipeline);
                 m_device->compute_list_bind_uniform_set(compute_list, uniform_set, 0);
                 m_device->compute_list_set_push_constant(compute_list, push_constant.to_byte_array(), push_constant.size() * 4); // 4 = sizeof(Float32)
-                m_device->compute_list_dispatch(compute_list, x_groups, y_groups, z_groups);
+                m_device->compute_list_dispatch(compute_list, x_groups, y_groups, 1);
                 m_device->compute_list_end();
             }
         }
     }
 }
 
-void PostProcessShader::setup()
+void PostProcessShader::init_compute()
 {
-    set_effect_callback_type(CompositorEffect::EFFECT_CALLBACK_TYPE_POST_TRANSPARENT);
+    m_device = RenderingServer::get_singleton()->get_rendering_device();
+    if(!m_device) return;
+    
+    Ref<RDShaderFile> glsl_file;
+    glsl_file.instantiate();
+    glsl_file = ResourceLoader::get_singleton()->load("res://addons/GodotStylizedShadersPlugin/shaders/compute_template.glsl");
+    // UtilityFunctions::push_error(glsl_file->get_base_error());
 
-    m_shader_template = FileAccess::get_file_as_string("res://addons/GodotStylizedShadersPlugin/shaders/compute_template.gdshader");
-    m_mutex.instantiate();
+    m_shader = m_device->shader_create_from_spirv(glsl_file->get_spirv());
+    m_pipeline = m_device->compute_pipeline_create(m_shader);
 }
-
-void PostProcessShader::set_shader_code(const String& value)
-{
-    if(m_mutex->try_lock())
-    {
-        m_shader_code = value;
-        m_shader_dirty = true;
-        m_mutex->unlock();
-    }
-    else 
-    {
-        call_deferred("set_shader_code");
-    }
-}
-
-String PostProcessShader::get_shader_code() const { return m_shader_code; }

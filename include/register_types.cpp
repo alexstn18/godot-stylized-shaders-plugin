@@ -21,6 +21,8 @@ void initialize_shader_plugin(ModuleInitializationLevel p_level)
     GDREGISTER_VIRTUAL_CLASS(godot_stylized_shaders_plugin);
     
     GDREGISTER_RUNTIME_CLASS(PostProcessShader);
+
+    // GDREGISTER_RUNTIME_CLASS(PostProcessShader);
     GDREGISTER_RUNTIME_CLASS(Screensaver);
 }
 

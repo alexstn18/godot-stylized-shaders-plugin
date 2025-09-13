@@ -13,11 +13,10 @@ class PostProcessShader : public CompositorEffect
     GDCLASS(PostProcessShader, CompositorEffect);
     
 private:
-    void setup();
-	String m_shader_template;
+    void init_compute();
 
-    String m_shader_code;
-    RenderingDevice* m_device = nullptr;
+	String m_shader_template = "";
+    RenderingDevice *m_device = nullptr;
     RID m_shader;
     RID m_pipeline;
     
@@ -28,13 +27,8 @@ protected:
     static void _bind_methods();
 public:
     PostProcessShader();
-    ~PostProcessShader();
+    virtual ~PostProcessShader();
 
     void _render_callback(int32_t p_effect_callback_type, RenderData *p_render_data) override;
     void _notification(int what);
-
-    void set_shader_code(const String& value);
-    String get_shader_code() const;
-
-    bool _check_shader();
 };
