@@ -7,7 +7,8 @@ layout(rgba16f, set = 0, binding = 0) uniform image2D color_image;
 
 layout(push_constant, std430) uniform Params
 {
-	vec2 raster_size;	
+	vec2 raster_size;
+	vec2 reserved;
 } params;
 
 void main()

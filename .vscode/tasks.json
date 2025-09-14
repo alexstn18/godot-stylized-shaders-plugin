@@ -37,9 +37,23 @@
                 "clear": false
             }
         },
+                {
+            "label": "postest-of-builds",
+            "group": "build",
+            "type": "shell",
+            "command": "py clear_cache.py",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
         {
             "label": "full-build",
-            "dependsOn": ["build", "post-build"],
+            "dependsOn": ["build", "post-build", "postest-of-builds"],
             "dependsOrder": "sequence",
             "type": "shell",
             "command": "echo Running full build..."
