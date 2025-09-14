@@ -27,7 +27,7 @@ protected:
     static void _bind_methods();
 public:
     PostProcessShader();
-    virtual ~PostProcessShader();
+    ~PostProcessShader();
 
     void _render_callback(int32_t p_effect_callback_type, RenderData *p_render_data) override;
     void _notification(int what);

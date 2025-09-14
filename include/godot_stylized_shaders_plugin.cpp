@@ -3,7 +3,12 @@
 #include "mathf.hpp"
 #include "convert.hpp"
 
-// #include <godot_cpp/classes/viewport.hpp>
+
+#include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/viewport.hpp>
+#include <godot_cpp/classes/window.hpp>
+#include <godot_cpp/classes/camera3d.hpp>
+#include <godot_cpp/classes/scene_tree.hpp>
 // #include <godot_cpp/classes/file_access.hpp>
 // #include <godot_cpp/variant/string.hpp>
 
@@ -13,8 +18,7 @@ void godot_stylized_shaders_plugin::_bind_methods()
     ClassDB::bind_static_method("godot_stylized_shaders_plugin", D_METHOD("lerp", "a", "b", "t"), &godot_stylized_shaders_plugin::lerp);
     ClassDB::bind_static_method("godot_stylized_shaders_plugin", D_METHOD("inverse_lerp", "a", "b", "v"), &godot_stylized_shaders_plugin::inverse_lerp);
     ClassDB::bind_static_method("godot_stylized_shaders_plugin", D_METHOD("sum", "values"), &godot_stylized_shaders_plugin::sum);
-    ClassDB::bind_static_method("godot_stylized_shaders_plugin", D_METHOD("get_key_values", "values", "key"), &godot_stylized_shaders_plugin::get_key_values);
-    
+    ClassDB::bind_static_method("godot_stylized_shaders_plugin", D_METHOD("get_key_values", "values", "key"), &godot_stylized_shaders_plugin::get_key_values);    
     // My implementations
     ClassDB::bind_method(D_METHOD("setup"), &godot_stylized_shaders_plugin::setup);
 }
