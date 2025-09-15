@@ -20,8 +20,6 @@ private:
     RID m_shader;
     RID m_pipeline;
     
-    Ref<Mutex> m_mutex;
-
     bool m_shader_dirty = false;
 protected:
     static void _bind_methods();

@@ -12,6 +12,8 @@
 #include <godot_cpp/classes/rd_shader_file.hpp>
 #include <godot_cpp/classes/uniform_set_cache_rd.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/editor_plugin.hpp>
+#include <godot_cpp/classes/v_box_container.hpp>
 
 // Converted to C++ GDExtension from:
 // https://docs.godotengine.org/en/latest/tutorials/rendering/compositor.html
@@ -24,8 +26,6 @@ void PostProcessShader::_bind_methods()
 PostProcessShader::PostProcessShader()
 {
     set_effect_callback_type(CompositorEffect::EFFECT_CALLBACK_TYPE_POST_TRANSPARENT);
-
-    m_mutex.instantiate();
 
     m_shader = RID();
     m_pipeline = RID();

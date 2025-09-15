@@ -8,11 +8,20 @@
 #include "godot_stylized_shaders_plugin.hpp"
 #include "screensaver.hpp"
 #include "post_process_shader.hpp"
+#include "plugin_ui.hpp"
+#include "tool_panel.hpp"
 
 using namespace godot;
 
 void initialize_shader_plugin(ModuleInitializationLevel p_level)
 {
+    if(p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
+    {
+        GDREGISTER_RUNTIME_CLASS(ToolPanel);
+        GDREGISTER_INTERNAL_CLASS(PluginUI);
+        EditorPlugins::add_by_type<PluginUI>();
+    }
+
     if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)
     {
         return;
