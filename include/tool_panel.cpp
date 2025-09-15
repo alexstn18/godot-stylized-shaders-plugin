@@ -50,7 +50,6 @@ void ToolPanel::_on_apply_button_pressed()
         }
     }
 
-
-    UtilityFunctions::print("ni ma ca mere");
+    UtilityFunctions::print("This works!");
 }
 
