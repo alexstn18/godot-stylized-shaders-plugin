@@ -1,5 +1,6 @@
 #include "post_process_shader.hpp"
 #include "godot_cpp/classes/compositor_effect.hpp"
+#include "godot_cpp/core/error_macros.hpp"
 #include "godot_cpp/variant/packed_float32_array.hpp"
 #include "godot_cpp/variant/utility_functions.hpp"
 #include <godot_cpp/classes/rendering_device.hpp>
@@ -72,17 +73,8 @@ void PostProcessShader::_render_callback(int32_t p_effect_callback_type,
         p_effect_callback_type == EFFECT_CALLBACK_TYPE_POST_TRANSPARENT)
     {
         // Check if shader and pipeline are valid before proceeding
-        if (!m_shader.is_valid())
-         {
-            UtilityFunctions::push_error("Shader is invalid in render callback!");
-            return;
-        }
-        
-        if (!m_pipeline.is_valid()) 
-        {
-            UtilityFunctions::push_error("Pipeline is invalid in render callback!");
-            return;
-        }
+        ERR_FAIL_COND_MSG(!m_shader.is_valid(), "Shader is invalid in render callback!");
+        ERR_FAIL_COND_MSG(!m_pipeline.is_valid(), "Pipeline is invalid in render callback!");
         
         Ref<RenderSceneBuffersRD> buffers;
         buffers.instantiate();
@@ -90,34 +82,20 @@ void PostProcessShader::_render_callback(int32_t p_effect_callback_type,
         if(buffers.is_valid())
         {
             Vector2i size = buffers->get_internal_size();
-
-            if(size.x == 0 || size.y == 0) 
-            {
-                UtilityFunctions::print("size is 0");
-                return;
-            }
+            ERR_FAIL_COND_MSG(size.x == 0 || size.y == 0, "size is 0");
             
             const int x_groups = (size.x + 15) / 16;
             const int y_groups = (size.y + 15) / 16;
 
             PackedFloat32Array push_constant = {(float)size.x, (float)size.y, 0, 0};
-
-            if(push_constant.is_empty())
-            {
-                UtilityFunctions::push_error("push constant is empty");
-                return;
-            } 
+            ERR_FAIL_COND_MSG(push_constant.is_empty(), "push constant is empty");
 
             uint32_t view_count = buffers->get_view_count();
             
             for(auto i = 0; i < view_count; i++)
             {
                 RID input_image = buffers->get_color_layer(i);
-                if (!input_image.is_valid()) 
-                {
-                    UtilityFunctions::push_error("Invalid input image for view " + String::num(i));
-                    continue;
-                }
+                ERR_CONTINUE_MSG(!input_image.is_valid(), "Invalid input image for view " + String::num(i));
                 
                 Ref<RDUniform> uniform;
                 TypedArray<Ref<RDUniform>> uniform_array;
@@ -129,11 +107,7 @@ void PostProcessShader::_render_callback(int32_t p_effect_callback_type,
                 uniform_array.push_back(uniform);
                 
                 RID uniform_set = UniformSetCacheRD::get_cache(m_shader, 0, uniform_array);
-                if (!uniform_set.is_valid()) 
-                {
-                    UtilityFunctions::push_error("Failed to create uniform set for view " + String::num(i));
-                    continue;
-                }
+                ERR_CONTINUE_MSG(!uniform_set.is_valid(), "Failed to create uniform set for view " + String::num(i));
 
                 auto compute_list = m_device->compute_list_begin();
                 m_device->compute_list_bind_compute_pipeline(compute_list, m_pipeline);
@@ -149,36 +123,19 @@ void PostProcessShader::_render_callback(int32_t p_effect_callback_type,
 void PostProcessShader::init_compute()
 {
     m_device = RenderingServer::get_singleton()->get_rendering_device();
-    if(!m_device)
-    {
-        UtilityFunctions::print("No device");
-        return;
-    } 
+    ERR_FAIL_COND_MSG(!m_device, "No device");
     
     Ref<RDShaderFile> shader_file = ResourceLoader::get_singleton()->load("res://addons/GodotStylizedShadersPlugin/shaders/compute_template.glsl");
-    
-    if (!shader_file.is_valid()) {
-        UtilityFunctions::push_error("Failed to load shader file!");
-        return;
-    }
+    ERR_FAIL_COND_MSG(!shader_file.is_valid(), "Failed to load shader file!");
     
     String base_error = shader_file->get_base_error();
-    if (!base_error.is_empty()) {
-        UtilityFunctions::push_error("Shader compilation error: " + base_error);
-        return;
-    }
+    ERR_FAIL_COND_MSG(!base_error.is_empty(), "Shader compilation error: " + base_error);
 
     Ref<RDShaderSPIRV> spirv = shader_file->get_spirv();
-    if (!spirv.is_valid()) {
-        UtilityFunctions::push_error("Failed to get SPIRV from shader file!");
-        return;
-    }
-
+    ERR_FAIL_COND_MSG(!spirv.is_valid(), "Failed to get SPIRV from shader file!");
+    
     m_shader = m_device->shader_create_from_spirv(spirv);
-    if (!m_shader.is_valid()) {
-        UtilityFunctions::push_error("Failed to create shader from SPIRV!");
-        return;
-    }
+    ERR_FAIL_COND_MSG(!m_shader.is_valid(), "Failed to create shader from SPIRV!");
     
     m_pipeline = m_device->compute_pipeline_create(m_shader);
     UtilityFunctions::print("Shader and pipeline created successfully");

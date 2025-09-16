@@ -8,7 +8,8 @@
 
 using namespace godot;
 
-class PluginUI : public EditorPlugin {
+class PluginUI : public EditorPlugin
+{
     GDCLASS(PluginUI, EditorPlugin);
 
 private:
@@ -16,7 +17,7 @@ private:
 protected:
     static void _bind_methods();
 public:
-    PluginUI();
+    PluginUI() {}
     ~PluginUI();
 
     void _enter_tree() override;

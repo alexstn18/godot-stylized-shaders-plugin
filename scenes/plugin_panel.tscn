@@ -4,7 +4,7 @@
 
 [node name="Label" type="Label" parent="."]
 layout_mode = 2
-text = "test"
+text = "Random rotation between 0 and the inputted angle"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 2
@@ -14,4 +14,4 @@ layout_mode = 2
 
 [node name="Button" type="Button" parent="HBoxContainer"]
 layout_mode = 2
-text = "mata"
+text = "Apply rotation"

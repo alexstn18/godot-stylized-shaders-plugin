@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://bsr74f2a6142u"]
+
+[node name="StylizedToolbar" type="ToolPanel"]
+
+[node name="PluginLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Stylized Plugin"
+horizontal_alignment = 1
+
+[node name="ApplyToContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+alignment = 1
+
+[node name="ApplyToText" type="Label" parent="ApplyToContainer"]
+layout_mode = 2
+text = "Apply to"
+
+[node name="OptionButton" type="OptionButton" parent="ApplyToContainer"]
+layout_mode = 2
+item_count = 1
+popup/item_0/text = "None"
+popup/item_0/id = 0
+
+[node name="HSeparator" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="ToggleContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="CelToggle" type="CheckButton" parent="ToggleContainer"]
+layout_mode = 2
+text = "Cel Shader"
+
+[node name="OutlineToggle" type="CheckButton" parent="ToggleContainer"]
+layout_mode = 2
+text = "Outline Shader"
+
+[node name="InvertToggle" type="CheckButton" parent="ToggleContainer"]
+layout_mode = 2
+text = "Invert Color"
+
+[node name="PosterizeToggle" type="CheckButton" parent="ToggleContainer"]
+layout_mode = 2
+text = "Posterize"
+
+[node name="HSeparator2" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="EffectList" type="ItemList" parent="."]
+layout_mode = 2
+
+[node name="HSeparator3" type="HSeparator" parent="."]
+layout_mode = 2
