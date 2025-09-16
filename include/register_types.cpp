@@ -17,7 +17,7 @@ void initialize_shader_plugin(ModuleInitializationLevel p_level)
 {
     if(p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
     {
-        GDREGISTER_RUNTIME_CLASS(ToolPanel);
+        GDREGISTER_CLASS(ToolPanel);
         GDREGISTER_INTERNAL_CLASS(PluginUI);
         EditorPlugins::add_by_type<PluginUI>();
     }

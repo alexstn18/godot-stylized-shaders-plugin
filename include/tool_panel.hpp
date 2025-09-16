@@ -21,7 +21,7 @@ private:
 protected:
     static void _bind_methods();
 public:
-    ToolPanel();
+    ToolPanel() {};
     ~ToolPanel();
 
     void _ready() override;
