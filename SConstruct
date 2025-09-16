@@ -38,6 +38,7 @@ gdextension_copy = env.Command(
 )
 
 shutil.copytree("include/shaders/", "{}/shaders/".format(folder), dirs_exist_ok=True)
+shutil.copytree("scenes/", "{}/scenes/".format(folder), dirs_exist_ok=True)
 
 env.Depends(gdextension_copy, library)
 
