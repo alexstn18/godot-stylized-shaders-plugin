@@ -4,6 +4,7 @@
 #include <godot_cpp/classes/editor_selection.hpp>
 #include <godot_cpp/classes/node3d.hpp>
 #include <godot_cpp/classes/random_number_generator.hpp>
+#include <godot_cpp/classes/object.hpp>
 
 void ToolPanel::_bind_methods()
 {
@@ -37,10 +38,13 @@ void ToolPanel::_on_apply_button_pressed()
 {
     EditorSelection *es = EditorInterface::get_singleton()->get_selection();
     TypedArray<Node> sn = es->get_selected_nodes(); 
+    int64_t arr_size = sn.size();
     double angle = m_spin_box->get_value();
-    for (const auto &obj : sn) 
+    for(int i = 0; i < arr_size; i++)
     {
-        Object *node_obj = obj.get_validated_object();
+        Variant var = sn.get(i);
+        Object *node_obj = var.get_validated_object();
+        
         if(Node3D *n3d = Object::cast_to<Node3D>(node_obj))
         {
             Vector3 rot = n3d->get_rotation();
