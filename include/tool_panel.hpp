@@ -9,6 +9,12 @@
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/check_button.hpp>
 #include <godot_cpp/classes/item_list.hpp>
+#include <godot_cpp/classes/camera3d.hpp>
+#include <godot_cpp/classes/world_environment.hpp>
+#include <godot_cpp/classes/compositor.hpp>
+#include <godot_cpp/classes/compositor_effect.hpp>
+
+#include "post_process_shader.hpp"
 
 using namespace godot;
 
@@ -21,12 +27,26 @@ class ToolPanel : public VBoxContainer
     GDCLASS(ToolPanel, VBoxContainer);
 
 private:
+    // UI
     OptionButton *m_apply_option_btn = nullptr;
-    CheckButton  *m_cel_toggle = nullptr;
-    CheckButton  *m_outline_toggle = nullptr;
-    CheckButton  *m_invert_toggle = nullptr;
-    CheckButton  *m_posterize_toggle = nullptr;
-    ItemList     *m_effect_list = nullptr;
+    CheckButton *m_cel_toggle = nullptr;
+    CheckButton *m_outline_toggle = nullptr;
+    CheckButton *m_invert_toggle = nullptr;
+    CheckButton *m_posterize_toggle = nullptr;
+    ItemList *m_effect_list = nullptr;
+
+    // Compositor-related
+    Compositor *m_camera3d_compositor = nullptr;
+    Compositor *m_world_environment_compositor = nullptr;
+    Ref<PostProcessShader> m_pps;
+    TypedArray<Ref<CompositorEffect>> m_cmp_arr;
+
+    // Other
+    Node *m_edited_scene_root = nullptr;
+    Camera3D *m_camera3d = nullptr;
+    WorldEnvironment *m_world_environment = nullptr;
+    int32_t m_camera3d_option_index = 0;
+    int32_t m_world_environment_option_index = 0;
 protected:
     static void _bind_methods();
 public:
@@ -39,4 +59,5 @@ public:
     void _on_outline_toggled(bool toggled_on);
     void _on_invert_toggled(bool toggled_on);
     void _on_posterize_toggled(bool toggled_on);
+    void set_edited_scene_root(Node *edited_scene_root);
 };

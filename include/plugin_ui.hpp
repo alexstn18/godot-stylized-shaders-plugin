@@ -22,4 +22,5 @@ public:
 
     void _enter_tree() override;
     void _exit_tree() override;
+    void _on_scene_changed(Node* scene_root);
 };

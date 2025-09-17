@@ -1,11 +1,14 @@
 #include "plugin_ui.hpp"
+#include "godot_cpp/core/class_db.hpp"
 #include "godot_cpp/core/error_macros.hpp"
 #include <godot_cpp/classes/resource_preloader.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/editor_interface.hpp>
 
 void PluginUI::_bind_methods()
 {
+    ClassDB::bind_method(D_METHOD("_on_scene_changed"), &PluginUI::_on_scene_changed);
 }
 
 PluginUI::~PluginUI()
@@ -29,7 +32,11 @@ void PluginUI::_enter_tree()
         return;
     }
     
+    Node *edited_scene_root = EditorInterface::get_singleton()->get_edited_scene_root();
+    if(edited_scene_root) m_panel->set_edited_scene_root(edited_scene_root);
+
     add_control_to_dock(EditorPlugin::DOCK_SLOT_LEFT_BL, m_panel);
+    connect("scene_changed", Callable(this, "_on_scene_changed"));
 }
 
 void PluginUI::_exit_tree()
@@ -39,4 +46,9 @@ void PluginUI::_exit_tree()
         remove_control_from_docks(m_panel);
         m_panel->queue_free();
     }
+}
+
+void PluginUI::_on_scene_changed(Node *scene_root)
+{
+    if(m_panel && scene_root) m_panel->set_edited_scene_root(scene_root);
 }
