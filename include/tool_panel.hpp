@@ -35,5 +35,8 @@ public:
 
     void _ready() override;
     void _process(double delta) override;
-    void _on_posterize_toggled();
+    void _on_cel_toggled(bool toggled_on);
+    void _on_outline_toggled(bool toggled_on);
+    void _on_invert_toggled(bool toggled_on);
+    void _on_posterize_toggled(bool toggled_on);
 };

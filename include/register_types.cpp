@@ -5,6 +5,7 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
+#include "godot_cpp/classes/editor_plugin.hpp"
 #include "godot_stylized_shaders_plugin.hpp"
 #include "screensaver.hpp"
 #include "post_process_shader.hpp"
@@ -36,6 +37,10 @@ void initialize_shader_plugin(ModuleInitializationLevel p_level)
 
 void uninitialize_shader_plugin(ModuleInitializationLevel p_level)
 {
+    if(p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
+    {
+        EditorPlugins::remove_by_type<PluginUI>();
+    }
     if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)
     {
         return;

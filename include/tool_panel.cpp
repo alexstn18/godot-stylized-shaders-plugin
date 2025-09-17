@@ -15,6 +15,9 @@
 
 void ToolPanel::_bind_methods()
 {
+    ClassDB::bind_method(D_METHOD("_on_cel_toggled"), &ToolPanel::_on_cel_toggled);
+    ClassDB::bind_method(D_METHOD("_on_outline_toggled"), &ToolPanel::_on_outline_toggled);
+    ClassDB::bind_method(D_METHOD("_on_invert_toggled"), &ToolPanel::_on_invert_toggled);
     ClassDB::bind_method(D_METHOD("_on_posterize_toggled"), &ToolPanel::_on_posterize_toggled);
 }
 
@@ -47,7 +50,10 @@ void ToolPanel::_ready()
     ERR_FAIL_COND_MSG(!m_posterize_toggle, "ERROR: Could not find PosterizeToggle node!");
     ERR_FAIL_COND_MSG(!m_effect_list, "ERROR: Could not find EffectList node!");
 
-    // m_posterize_toggle->connect("pressed", Callable(this, "_on_posterize_toggled"));
+    m_cel_toggle->connect("toggled", Callable(this, "_on_cel_toggled"));
+    m_outline_toggle->connect("toggled", Callable(this, "_on_outline_toggled"));
+    m_invert_toggle->connect("toggled", Callable(this, "_on_invert_toggled"));
+    m_posterize_toggle->connect("toggled", Callable(this, "_on_posterize_toggled"));
 }
 
 void ToolPanel::_process(double delta)
@@ -58,7 +64,58 @@ void ToolPanel::_process(double delta)
     }
 }
 
-void ToolPanel::_on_posterize_toggled()
+void ToolPanel::_on_cel_toggled(bool toggled_on)
 {
-    UtilityFunctions::print("Posterize toggled");
+    if(toggled_on)
+    {
+        UtilityFunctions::print("Cel toggled on");
+        
+    }
+    else 
+    {
+        UtilityFunctions::print("Cel toggled off");
+    
+    }
+}
+
+void ToolPanel::_on_outline_toggled(bool toggled_on)
+{
+    if(toggled_on)
+    {
+        UtilityFunctions::print("Outline toggled on");
+        
+    }
+    else 
+    {
+        UtilityFunctions::print("Outline toggled off");
+    
+    }
+}
+
+void ToolPanel::_on_invert_toggled(bool toggled_on)
+{
+    if(toggled_on)
+    {
+        UtilityFunctions::print("Invert toggled on");
+        
+    }
+    else 
+    {
+        UtilityFunctions::print("Invert toggled off");
+    
+    }
+}
+
+void ToolPanel::_on_posterize_toggled(bool toggled_on)
+{
+    if(toggled_on)
+    {
+        UtilityFunctions::print("Posterize toggled on");
+        
+    }
+    else 
+    {
+        UtilityFunctions::print("Posterize toggled off");
+    
+    }
 }
