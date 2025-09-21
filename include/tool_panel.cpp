@@ -130,14 +130,17 @@ void ToolPanel::_process(double delta)
 
             m_edited_scene_root = nullptr;
         }
-        int32_t selected_idx = m_apply_option_btn->get_selected();
-        if(selected_idx == m_camera3d_option_index)
+        if(m_apply_option_btn)
         {
-            m_camera3d_compositor->set_compositor_effects(m_cmp_arr);
-        }
-        else if (selected_idx == m_world_environment_option_index)
-        {
-            m_world_environment_compositor->set_compositor_effects(m_cmp_arr);
+            int32_t selected_idx = m_apply_option_btn->get_selected();
+            if(selected_idx == m_camera3d_option_index)
+            {
+                if(m_camera3d_compositor) m_camera3d_compositor->set_compositor_effects(m_cmp_arr);
+            }
+            else if (selected_idx == m_world_environment_option_index)
+            {
+                if(m_world_environment_compositor) m_world_environment_compositor->set_compositor_effects(m_cmp_arr);
+            }
         }
     }
 }
