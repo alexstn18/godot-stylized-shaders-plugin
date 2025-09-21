@@ -15,8 +15,6 @@ for filename in os.listdir(folder):
 	if os.path.isfile(file_path):
 		os.remove(file_path)
 
-# env["PDB"] = "{}/libGodotStylizedShadersPlugin{}{}".format(folder, env["suffix"], env["SHLIBSUFFIX"])
-
 if env["platform"] == "macos":
 	file_name = "libGodotStylizedShadersPlugin.{}.{}".format(env["platform"], env["target"])
 

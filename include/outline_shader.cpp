@@ -1,0 +1,173 @@
+#include "outline_shader.hpp"
+#include "godot_cpp/classes/compositor_effect.hpp"
+#include "godot_cpp/core/error_macros.hpp"
+#include "godot_cpp/variant/packed_float32_array.hpp"
+#include "godot_cpp/variant/utility_functions.hpp"
+#include <godot_cpp/classes/rendering_device.hpp>
+#include <godot_cpp/classes/rd_shader_source.hpp>
+#include <godot_cpp/classes/rd_shader_spirv.hpp>
+#include <godot_cpp/classes/render_scene_buffers_rd.hpp>
+#include <godot_cpp/classes/render_scene_data_rd.hpp>
+#include <godot_cpp/classes/file_access.hpp>
+#include <godot_cpp/classes/rd_uniform.hpp>
+#include <godot_cpp/classes/rd_shader_file.hpp>
+#include <godot_cpp/classes/uniform_set_cache_rd.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/editor_plugin.hpp>
+#include <godot_cpp/classes/v_box_container.hpp>
+#include <godot_cpp/classes/render_scene_data_rd.hpp>
+#include <godot_cpp/classes/rd_sampler_state.hpp>
+#include <godot_cpp/variant/projection.hpp>
+#include <godot_cpp/variant/array.hpp>
+
+// Converted to C++ GDExtension from:
+// https://docs.godotengine.org/en/latest/tutorials/rendering/compositor.html
+
+void OutlineShader::_bind_methods()
+{
+    ClassDB::bind_method(D_METHOD("init_compute"), &OutlineShader::init_compute);
+}
+
+OutlineShader::OutlineShader()
+{
+    set_effect_callback_type(CompositorEffect::EFFECT_CALLBACK_TYPE_POST_TRANSPARENT);
+
+    m_shader = RID();
+    m_pipeline = RID();
+    m_depth_sampler = RID();
+    set_enabled(true);
+    UtilityFunctions::print("Set effect enabled to true");
+
+    if (auto *rs = RenderingServer::get_singleton())
+    {
+        auto c = Callable(this, "init_compute");
+        rs->call_on_render_thread(c);
+        UtilityFunctions::print("Queued init_compute on render thread");
+    }
+}
+
+OutlineShader::~OutlineShader() {}
+
+void OutlineShader::_notification(int what)
+{
+    UtilityFunctions::print("OutlineShader notification: " + String::num(what));
+    
+    if (what == NOTIFICATION_PREDELETE && m_device)
+    {
+        UtilityFunctions::print("NOTIFICATION_PREDELETE - cleaning up");
+        if (m_shader.is_valid())
+        {
+            m_device->free_rid(m_shader);
+            m_shader = RID();
+            UtilityFunctions::print("Freed shader");
+        }
+        
+        if (m_pipeline.is_valid()) 
+        {
+            m_device->free_rid(m_pipeline);
+            m_pipeline = RID();
+            UtilityFunctions::print("Freed pipeline");
+        }
+        
+        if (m_depth_sampler.is_valid()) 
+        {
+            m_device->free_rid(m_depth_sampler);
+            m_depth_sampler = RID();
+            UtilityFunctions::print("Freed depth sampler");
+        }
+    }
+}
+
+void OutlineShader::_render_callback(int32_t p_effect_callback_type,
+                                         RenderData *p_render_data)
+{
+    if(m_device && 
+        p_effect_callback_type == EFFECT_CALLBACK_TYPE_POST_TRANSPARENT)
+    {
+        // Check if shader and pipeline are valid before proceeding
+        ERR_FAIL_COND_MSG(!m_shader.is_valid(), "Shader is invalid in render callback!");
+        ERR_FAIL_COND_MSG(!m_pipeline.is_valid(), "Pipeline is invalid in render callback!");
+        
+        Ref<RenderSceneBuffersRD> buffers = p_render_data->get_render_scene_buffers();
+        RenderSceneData *scene_data = p_render_data->get_render_scene_data();
+        if(buffers.is_valid() || !scene_data)
+        {
+            Vector2i size = buffers->get_internal_size();
+            ERR_FAIL_COND_MSG(size.x == 0 || size.y == 0, "size is 0");
+
+            const int x_groups = (size.x + 15) / 16;
+            const int y_groups = (size.y + 15) / 16;
+
+            auto inv_proj_mat = p_render_data->get_render_scene_data()->get_cam_projection().inverse();
+            PackedFloat32Array push_constant = {(float)size.x, (float)size.y, inv_proj_mat[2].w, inv_proj_mat[3].w};
+            ERR_FAIL_COND_MSG(push_constant.is_empty(), "push constant is empty");
+
+            uint32_t view_count = buffers->get_view_count();
+            
+            for(auto i = 0; i < view_count; i++)
+            {
+                RID input_image = buffers->get_color_layer(i);
+                ERR_CONTINUE_MSG(!input_image.is_valid(), "Invalid input image for view " + String::num(i));
+                RID depth_texture = buffers->get_depth_layer(i);
+                ERR_CONTINUE_MSG(!depth_texture.is_valid(), "Invalid depth texture for view " + String::num(i));
+
+                Ref<RDUniform> uniform;
+                // TypedArray<Ref<RDUniform>> uniform_array;
+                
+                uniform.instantiate();
+                uniform->set_uniform_type(RenderingDevice::UNIFORM_TYPE_IMAGE);
+                uniform->set_binding(0);
+                uniform->add_id(input_image);
+                // uniform_array.push_back(uniform);
+                
+                RID image_uniform_set = UniformSetCacheRD::get_cache(m_shader, 0, {uniform});
+                ERR_CONTINUE_MSG(!image_uniform_set.is_valid(), "Failed to create color image uniform set for view " + String::num(i));
+
+                uniform.instantiate();
+                uniform->set_uniform_type(RenderingDevice::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE);
+                uniform->set_binding(0);
+                uniform->add_id(m_depth_sampler);
+                uniform->add_id(depth_texture);
+
+                RID depth_uniform_set = UniformSetCacheRD::get_cache(m_shader, 1, {uniform});
+                ERR_CONTINUE_MSG(!image_uniform_set.is_valid(), "Failed to create depth uniform set for view " + String::num(i));
+
+                auto compute_list = m_device->compute_list_begin();
+                m_device->compute_list_bind_compute_pipeline(compute_list, m_pipeline);
+                m_device->compute_list_bind_uniform_set(compute_list, image_uniform_set, 0);
+                m_device->compute_list_bind_uniform_set(compute_list, depth_uniform_set, 1);
+                m_device->compute_list_set_push_constant(compute_list, push_constant.to_byte_array(), push_constant.size() * 4);
+                m_device->compute_list_dispatch(compute_list, x_groups, y_groups, 1);
+                m_device->compute_list_end();
+            }
+        }
+    }
+}
+
+void OutlineShader::init_compute()
+{
+    m_device = RenderingServer::get_singleton()->get_rendering_device();
+    ERR_FAIL_COND_MSG(!m_device, "No device");
+ 
+    Ref<RDShaderFile> shader_file = ResourceLoader::get_singleton()->load("res://addons/GodotStylizedShadersPlugin/shaders/outline.glsl");
+    ERR_FAIL_COND_MSG(!shader_file.is_valid(), "Failed to load shader file!");
+    
+    String base_error = shader_file->get_base_error();
+    ERR_FAIL_COND_MSG(!base_error.is_empty(), "Shader compilation error: " + base_error);
+    
+    Ref<RDShaderSPIRV> spirv = shader_file->get_spirv();
+    ERR_FAIL_COND_MSG(!spirv.is_valid(), "Failed to get SPIRV from shader file!");
+    
+    m_shader = m_device->shader_create_from_spirv(spirv);
+    ERR_FAIL_COND_MSG(!m_shader.is_valid(), "Failed to create shader from SPIRV!");
+    
+    m_pipeline = m_device->compute_pipeline_create(m_shader);
+    UtilityFunctions::print("Shader and pipeline created successfully");
+
+    Ref<RDSamplerState> state;
+    state.instantiate();
+    state->set_min_filter(RenderingDevice::SAMPLER_FILTER_LINEAR);
+    state->set_mag_filter(RenderingDevice::SAMPLER_FILTER_LINEAR);
+    m_depth_sampler = m_device->sampler_create(state);
+    ERR_FAIL_COND_MSG(!m_depth_sampler.is_valid(), "Failed to create sampler!");
+}

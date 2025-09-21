@@ -14,7 +14,8 @@
 #include <godot_cpp/classes/compositor.hpp>
 #include <godot_cpp/classes/compositor_effect.hpp>
 
-#include "post_process_shader.hpp"
+#include "invert_shader.hpp"
+#include "outline_shader.hpp"
 
 using namespace godot;
 
@@ -38,7 +39,8 @@ private:
     // Compositor-related
     Compositor *m_camera3d_compositor = nullptr;
     Compositor *m_world_environment_compositor = nullptr;
-    Ref<PostProcessShader> m_pps;
+    Ref<InvertShader> m_invert;
+    Ref<OutlineShader> m_outline;
     TypedArray<Ref<CompositorEffect>> m_cmp_arr;
 
     // Other

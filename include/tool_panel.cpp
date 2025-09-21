@@ -35,7 +35,11 @@ ToolPanel::~ToolPanel()
 
 void ToolPanel::_ready()
 {
-    m_pps.instantiate();
+    /// Initialize effects
+    m_invert.instantiate();
+    m_outline.instantiate();
+    
+    /// Get UI nodes
     // ApplyToContainer
     m_apply_option_btn = get_node<OptionButton>("ApplyToContainer/OptionButton");
     // ToggleContainer
@@ -46,6 +50,7 @@ void ToolPanel::_ready()
     // root
     m_effect_list = get_node<ItemList>("EffectList");
     
+    /// Check if "gotten" UI nodes even exist
     ERR_FAIL_COND_MSG(!m_apply_option_btn, "ERROR: Could not find OptionButton node!");
     ERR_FAIL_COND_MSG(!m_cel_toggle, "ERROR: Could not find CelToggle node!");
     ERR_FAIL_COND_MSG(!m_outline_toggle, "ERROR: Could not find OutlineToggle node!");
@@ -53,6 +58,7 @@ void ToolPanel::_ready()
     ERR_FAIL_COND_MSG(!m_posterize_toggle, "ERROR: Could not find PosterizeToggle node!");
     ERR_FAIL_COND_MSG(!m_effect_list, "ERROR: Could not find EffectList node!");
 
+    /// Connect to signals
     m_cel_toggle->connect("toggled", Callable(this, "_on_cel_toggled"));
     m_outline_toggle->connect("toggled", Callable(this, "_on_outline_toggled"));
     m_invert_toggle->connect("toggled", Callable(this, "_on_invert_toggled"));
@@ -163,12 +169,13 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
 {
     if(toggled_on)
     {
+        m_cmp_arr.push_back(m_outline);
         UtilityFunctions::print("Outline toggled on");
     }
     else 
     {
+        m_cmp_arr.pop_back();
         UtilityFunctions::print("Outline toggled off");
-    
     }
 }
 
@@ -176,14 +183,13 @@ void ToolPanel::_on_invert_toggled(bool toggled_on)
 {
     if(toggled_on)
     {
-        m_cmp_arr.push_back(m_pps);
+        m_cmp_arr.push_back(m_invert);
         UtilityFunctions::print("Invert toggled on");        
     }
     else 
     {
         m_cmp_arr.pop_back();
         UtilityFunctions::print("Invert toggled off");
-    
     }
 }
 

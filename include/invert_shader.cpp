@@ -1,4 +1,4 @@
-#include "post_process_shader.hpp"
+#include "invert_shader.hpp"
 #include "godot_cpp/classes/compositor_effect.hpp"
 #include "godot_cpp/core/error_macros.hpp"
 #include "godot_cpp/variant/packed_float32_array.hpp"
@@ -19,12 +19,12 @@
 // Converted to C++ GDExtension from:
 // https://docs.godotengine.org/en/latest/tutorials/rendering/compositor.html
 
-void PostProcessShader::_bind_methods()
+void InvertShader::_bind_methods()
 {
-    ClassDB::bind_method(D_METHOD("init_compute"), &PostProcessShader::init_compute);
+    ClassDB::bind_method(D_METHOD("init_compute"), &InvertShader::init_compute);
 }
 
-PostProcessShader::PostProcessShader()
+InvertShader::InvertShader()
 {
     set_effect_callback_type(CompositorEffect::EFFECT_CALLBACK_TYPE_POST_TRANSPARENT);
 
@@ -41,9 +41,9 @@ PostProcessShader::PostProcessShader()
     }
 }
 
-PostProcessShader::~PostProcessShader() {}
+InvertShader::~InvertShader() {}
 
-void PostProcessShader::_notification(int what)
+void InvertShader::_notification(int what)
 {
     UtilityFunctions::print("PostProcessShader notification: " + String::num(what));
     
@@ -66,7 +66,7 @@ void PostProcessShader::_notification(int what)
     }
 }
 
-void PostProcessShader::_render_callback(int32_t p_effect_callback_type,
+void InvertShader::_render_callback(int32_t p_effect_callback_type,
                                          RenderData *p_render_data)
 {
     if(m_device && 
@@ -120,7 +120,7 @@ void PostProcessShader::_render_callback(int32_t p_effect_callback_type,
     }
 }
 
-void PostProcessShader::init_compute()
+void InvertShader::init_compute()
 {
     m_device = RenderingServer::get_singleton()->get_rendering_device();
     ERR_FAIL_COND_MSG(!m_device, "No device");

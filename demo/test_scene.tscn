@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://dho1445ky4b5h"]
+[gd_scene load_steps=9 format=3 uid="uid://dho1445ky4b5h"]
 
 [ext_resource type="PackedScene" uid="uid://do3x8lwjs8lu4" path="res://BoxAndCylinder.gltf" id="1_ia1lp"]
 [ext_resource type="PackedScene" uid="uid://h8brldrrayxf" path="res://Plane.gltf" id="2_sasra"]
@@ -12,7 +12,10 @@ sky_material = SubResource("ProceduralSkyMaterial_coq8p")
 background_mode = 2
 sky = SubResource("Sky_2nij2")
 
+[sub_resource type="OutlineShader" id="OutlineShader_ia1lp"]
+
 [sub_resource type="Compositor" id="Compositor_ia1lp"]
+compositor_effects = Array[CompositorEffect]([SubResource("OutlineShader_ia1lp")])
 
 [sub_resource type="Compositor" id="Compositor_sasra"]
 
@@ -26,7 +29,7 @@ environment = SubResource("Environment_7cbxl")
 compositor = SubResource("Compositor_ia1lp")
 
 [node name="BoxAndCylinder" parent="." instance=ExtResource("1_ia1lp")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.59215, 0, -4.54803)
+transform = Transform3D(1, 0.000137832, 1.08872e-06, -0.000137832, 0.999875, 0.015794, 1.08872e-06, -0.015794, 0.999875, -4.60509, 0, -4.55687)
 
 [node name="Plane2" parent="." instance=ExtResource("2_sasra")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.919202, 0, -0.640358)

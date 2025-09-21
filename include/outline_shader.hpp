@@ -4,14 +4,13 @@
 #include <godot_cpp/classes/compositor_effect.hpp>
 #include <godot_cpp/classes/render_data.hpp>
 #include <godot_cpp/classes/rendering_server.hpp>
-#include <godot_cpp/classes/mutex.hpp>
 
 using namespace godot;
 
-class PostProcessShader : public CompositorEffect 
+class OutlineShader : public CompositorEffect
 {
-    GDCLASS(PostProcessShader, CompositorEffect);
-    
+    GDCLASS(OutlineShader, CompositorEffect);
+
 private:
     void init_compute();
 
@@ -19,14 +18,13 @@ private:
     RenderingDevice *m_device = nullptr;
     RID m_shader;
     RID m_pipeline;
-    
-    bool m_shader_dirty = false;
+    RID m_depth_sampler;
 protected:
     static void _bind_methods();
 public:
-    PostProcessShader();
-    ~PostProcessShader();
+    OutlineShader();
+    ~OutlineShader();
 
-    void _render_callback(int32_t p_effect_callback_type, RenderData *p_render_data) override;
+    void _render_callback(int32_t, RenderData *) override;
     void _notification(int what);
 };

@@ -8,3 +8,4 @@ include/*.os
 include/*.obj
 
 *.pdb
+!vc140.pdb

@@ -5,8 +5,6 @@
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/classes/compositor.hpp>
 
-#include "post_process_shader.hpp"
-
 using namespace godot;
 
 // TODO: https://docs.godotengine.org/en/latest/tutorials/rendering/compositor.html
