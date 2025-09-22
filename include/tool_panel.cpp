@@ -224,18 +224,23 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
     else 
     {
         m_cmp_arr.pop_back();
+
         width_container->remove_child(width_label);
         width_container->remove_child(width_slider);
-        remove_child(width_container);
+        
         mul_container->remove_child(mul_label);
         mul_container->remove_child(mul_slider);
+        
+        remove_child(width_container);
         remove_child(mul_container);
+        remove_child(color_picker);
+        
         width_label->queue_free(); width_label = nullptr;
         mul_label->queue_free(); mul_label = nullptr;
         width_slider->queue_free(); width_slider = nullptr;
         mul_slider->queue_free(); mul_slider = nullptr;
-        remove_child(color_picker);
         color_picker->queue_free(); color_picker = nullptr;
+
         UtilityFunctions::print("Outline toggled off");
     }
 }
