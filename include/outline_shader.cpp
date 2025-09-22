@@ -20,12 +20,13 @@
 #include <godot_cpp/variant/projection.hpp>
 #include <godot_cpp/variant/array.hpp>
 
-// Converted to C++ GDExtension from:
-// https://docs.godotengine.org/en/latest/tutorials/rendering/compositor.html
-
 void OutlineShader::_bind_methods()
 {
     ClassDB::bind_method(D_METHOD("init_compute"), &OutlineShader::init_compute);
+    ClassDB::bind_method(D_METHOD("set_outline_width", "width"), &OutlineShader::set_outline_width);
+    ClassDB::bind_method(D_METHOD("get_outline_width"), &OutlineShader::get_outline_width);
+    ClassDB::bind_method(D_METHOD("set_outline_mul", "mul"), &OutlineShader::set_outline_mul);
+    ClassDB::bind_method(D_METHOD("get_outline_mul"), &OutlineShader::get_outline_mul);
 }
 
 OutlineShader::OutlineShader()
@@ -35,7 +36,7 @@ OutlineShader::OutlineShader()
     m_shader = RID();
     m_pipeline = RID();
     m_depth_sampler = RID();
-    set_enabled(true);
+    set_enabled(false);
     UtilityFunctions::print("Set effect enabled to true");
 
     if (auto *rs = RenderingServer::get_singleton())
@@ -99,7 +100,7 @@ void OutlineShader::_render_callback(int32_t p_effect_callback_type,
             const int y_groups = (size.y + 15) / 16;
 
             auto inv_proj_mat = p_render_data->get_render_scene_data()->get_cam_projection().inverse();
-            PackedFloat32Array push_constant = {(float)size.x, (float)size.y, inv_proj_mat[2].w, inv_proj_mat[3].w};
+            PackedFloat32Array push_constant = {(float)size.x, (float)size.y, 0.0f, 0.0f, inv_proj_mat[2].w, inv_proj_mat[3].w, m_outline_width, m_outline_mul};
             ERR_FAIL_COND_MSG(push_constant.is_empty(), "push constant is empty");
 
             uint32_t view_count = buffers->get_view_count();
@@ -112,13 +113,11 @@ void OutlineShader::_render_callback(int32_t p_effect_callback_type,
                 ERR_CONTINUE_MSG(!depth_texture.is_valid(), "Invalid depth texture for view " + String::num(i));
 
                 Ref<RDUniform> uniform;
-                // TypedArray<Ref<RDUniform>> uniform_array;
                 
                 uniform.instantiate();
                 uniform->set_uniform_type(RenderingDevice::UNIFORM_TYPE_IMAGE);
                 uniform->set_binding(0);
                 uniform->add_id(input_image);
-                // uniform_array.push_back(uniform);
                 
                 RID image_uniform_set = UniformSetCacheRD::get_cache(m_shader, 0, {uniform});
                 ERR_CONTINUE_MSG(!image_uniform_set.is_valid(), "Failed to create color image uniform set for view " + String::num(i));
@@ -171,3 +170,8 @@ void OutlineShader::init_compute()
     m_depth_sampler = m_device->sampler_create(state);
     ERR_FAIL_COND_MSG(!m_depth_sampler.is_valid(), "Failed to create sampler!");
 }
+
+void OutlineShader::set_outline_width(double width) { m_outline_width = static_cast<float>(width); }
+float OutlineShader::get_outline_width() const { return m_outline_width; }
+void OutlineShader::set_outline_mul(double mul) { m_outline_mul = static_cast<float>(mul); }
+float OutlineShader::get_outline_mul() const { return m_outline_mul; }

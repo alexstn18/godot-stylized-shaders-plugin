@@ -12,6 +12,7 @@
                 "target=template_debug",
                 "verbose=yes",
                 "optimize=debug",
+                "use_hot_reload=yes",
             ],
             "presentation": {
                 "echo": true,

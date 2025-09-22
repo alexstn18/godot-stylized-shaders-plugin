@@ -9,8 +9,11 @@ layout(binding = 0, set = 1) uniform sampler2D depth_texture;
 layout(push_constant, std430) uniform Params 
 {
 	vec2 raster_size;
+	vec2 reserved;
 	float inv_proj_2w;
     float inv_proj_3w;
+	float outline_width;
+	float outline_mul;
 } params;
 
 float linear_depth(vec2 uv)
@@ -36,12 +39,12 @@ void main()
 	
 	vec4 color = imageLoad(color_image, pixel);
     float d = linear_depth(uv);
-    vec4 b3d = vec4(linear_depth(uv + vec2(.002, 0.)), linear_depth(uv - vec2(.002, 0.)), linear_depth(uv + vec2(0., .002)), linear_depth(uv - vec2(0., .002))); 
+    vec4 b3d = vec4(linear_depth(uv + vec2(params.outline_width, 0.)), linear_depth(uv - vec2(params.outline_width, 0.)), linear_depth(uv + vec2(0., params.outline_width)), linear_depth(uv - vec2(0., params.outline_width))); 
     float outline = absdiff(b3d.x, d)
                     + absdiff(b3d.y, d)
                     + absdiff(b3d.z, d)
                     + absdiff(b3d.w, d);
-    outline = step(.01, fract(outline));
+    outline = step(params.outline_mul, fract(outline));
 
     color.rgb *= vec3(1. - outline);
     color.rgb += outline * vec3(0.);

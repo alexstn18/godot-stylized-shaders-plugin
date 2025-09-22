@@ -19,6 +19,9 @@ private:
     RID m_shader;
     RID m_pipeline;
     RID m_depth_sampler;
+
+    float m_outline_width = .002f;
+    float m_outline_mul = .01f;
 protected:
     static void _bind_methods();
 public:
@@ -27,4 +30,9 @@ public:
 
     void _render_callback(int32_t, RenderData *) override;
     void _notification(int what);
+
+    void set_outline_width(double width);
+    float get_outline_width() const;
+    void set_outline_mul(double mul);
+    float get_outline_mul() const;
 };
