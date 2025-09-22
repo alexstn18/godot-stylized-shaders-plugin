@@ -23,6 +23,8 @@
 void OutlineShader::_bind_methods()
 {
     ClassDB::bind_method(D_METHOD("init_compute"), &OutlineShader::init_compute);
+    ClassDB::bind_method(D_METHOD("set_outline_color", "color"), &OutlineShader::set_outline_color);
+    ClassDB::bind_method(D_METHOD("get_outline_color"), &OutlineShader::get_outline_color);
     ClassDB::bind_method(D_METHOD("set_outline_width", "width"), &OutlineShader::set_outline_width);
     ClassDB::bind_method(D_METHOD("get_outline_width"), &OutlineShader::get_outline_width);
     ClassDB::bind_method(D_METHOD("set_outline_mul", "mul"), &OutlineShader::set_outline_mul);
@@ -100,7 +102,18 @@ void OutlineShader::_render_callback(int32_t p_effect_callback_type,
             const int y_groups = (size.y + 15) / 16;
 
             auto inv_proj_mat = p_render_data->get_render_scene_data()->get_cam_projection().inverse();
-            PackedFloat32Array push_constant = {(float)size.x, (float)size.y, 0.0f, 0.0f, inv_proj_mat[2].w, inv_proj_mat[3].w, m_outline_width, m_outline_mul};
+            PackedFloat32Array push_constant = {(float)size.x, // 4
+                                                (float)size.y, // 8
+                                                0.0f, // 12
+                                                0.0f, // 16
+                                                inv_proj_mat[2].w, // 20 
+                                                inv_proj_mat[3].w, // 24
+                                                m_outline_width, // 28
+                                                m_outline_mul, // 32
+                                                m_outline_color.r, // 36
+                                                m_outline_color.g, // 40
+                                                m_outline_color.b, // 44
+                                                0.0f}; // 48
             ERR_FAIL_COND_MSG(push_constant.is_empty(), "push constant is empty");
 
             uint32_t view_count = buffers->get_view_count();
@@ -171,6 +184,8 @@ void OutlineShader::init_compute()
     ERR_FAIL_COND_MSG(!m_depth_sampler.is_valid(), "Failed to create sampler!");
 }
 
+void OutlineShader::set_outline_color(Color color) { m_outline_color = color; }
+Color OutlineShader::get_outline_color() const { return m_outline_color; }
 void OutlineShader::set_outline_width(double width) { m_outline_width = static_cast<float>(width); }
 float OutlineShader::get_outline_width() const { return m_outline_width; }
 void OutlineShader::set_outline_mul(double mul) { m_outline_mul = static_cast<float>(mul); }

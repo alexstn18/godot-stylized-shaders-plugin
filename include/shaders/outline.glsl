@@ -14,6 +14,8 @@ layout(push_constant, std430) uniform Params
     float inv_proj_3w;
 	float outline_width;
 	float outline_mul;
+	vec3 outline_color;
+	float padding;
 } params;
 
 float linear_depth(vec2 uv)
@@ -47,7 +49,7 @@ void main()
     outline = step(params.outline_mul, fract(outline));
 
     color.rgb *= vec3(1. - outline);
-    color.rgb += outline * vec3(0.);
+    color.rgb += outline * params.outline_color;
 
 	imageStore(color_image, pixel, color);
 }

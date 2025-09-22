@@ -15,6 +15,7 @@
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/environment.hpp>
 #include <godot_cpp/classes/h_slider.hpp>
+#include <godot_cpp/classes/color_picker.hpp>
 
 #define CONTROL_QUEUE_FREE(T) if(T) T->queue_free();
 
@@ -144,11 +145,19 @@ void ToolPanel::_process(double delta)
             int32_t selected_idx = m_apply_option_btn->get_selected();
             if(selected_idx == m_camera3d_option_index)
             {
-                if(m_camera3d_compositor) m_camera3d_compositor->set_compositor_effects(m_cmp_arr);
+                if(m_camera3d_compositor) 
+                {
+                    m_camera3d_compositor->set_compositor_effects(m_cmp_arr);
+                    if(m_world_environment_compositor) m_world_environment_compositor->set_compositor_effects({});
+                }
             }
             else if (selected_idx == m_world_environment_option_index)
             {
-                if(m_world_environment_compositor) m_world_environment_compositor->set_compositor_effects(m_cmp_arr);
+                if(m_world_environment_compositor) 
+                {
+                    m_world_environment_compositor->set_compositor_effects(m_cmp_arr);
+                    if(m_camera3d_compositor) m_camera3d_compositor->set_compositor_effects({});
+                }
             }
         }
     }
@@ -177,6 +186,7 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
     static Label *mul_label = nullptr;
     static HSlider *width_slider = nullptr;
     static HSlider *mul_slider = nullptr;
+    static ColorPicker *color_picker = nullptr;
     if(toggled_on)
     {
         m_cmp_arr.push_back(m_outline);
@@ -205,6 +215,10 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         mul_container->add_child(mul_slider);
         add_child(mul_container);
         
+        color_picker = memnew(ColorPicker);
+        color_picker->connect("color_changed", callable_mp(m_outline.ptr(), &OutlineShader::set_outline_color));
+        add_child(color_picker);
+
         UtilityFunctions::print("Outline toggled on");
     }
     else 
@@ -220,6 +234,8 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         mul_label->queue_free(); mul_label = nullptr;
         width_slider->queue_free(); width_slider = nullptr;
         mul_slider->queue_free(); mul_slider = nullptr;
+        remove_child(color_picker);
+        color_picker->queue_free(); color_picker = nullptr;
         UtilityFunctions::print("Outline toggled off");
     }
 }

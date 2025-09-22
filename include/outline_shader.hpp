@@ -20,6 +20,7 @@ private:
     RID m_pipeline;
     RID m_depth_sampler;
 
+    Color m_outline_color = Color(0.0f, 0.0f, 0.0f);
     float m_outline_width = .002f;
     float m_outline_mul = .01f;
 protected:
@@ -31,6 +32,8 @@ public:
     void _render_callback(int32_t, RenderData *) override;
     void _notification(int what);
 
+    void set_outline_color(Color color);
+    Color get_outline_color() const;
     void set_outline_width(double width);
     float get_outline_width() const;
     void set_outline_mul(double mul);
