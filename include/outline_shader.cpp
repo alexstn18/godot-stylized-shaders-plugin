@@ -118,16 +118,14 @@ void OutlineShader::_render_callback(int32_t p_effect_callback_type,
 
             uint32_t view_count = buffers->get_view_count();
             
-            for(auto i = 0; i < view_count; i++)
+            for(int32_t i = 0; i < view_count; i++)
             {
                 RID input_image = buffers->get_color_layer(i);
                 ERR_CONTINUE_MSG(!input_image.is_valid(), "Invalid input image for view " + String::num(i));
                 RID depth_texture = buffers->get_depth_layer(i);
                 ERR_CONTINUE_MSG(!depth_texture.is_valid(), "Invalid depth texture for view " + String::num(i));
 
-                Ref<RDUniform> uniform;
-                
-                uniform.instantiate();
+                Ref<RDUniform> uniform; uniform.instantiate();
                 uniform->set_uniform_type(RenderingDevice::UNIFORM_TYPE_IMAGE);
                 uniform->set_binding(0);
                 uniform->add_id(input_image);

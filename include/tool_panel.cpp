@@ -179,7 +179,6 @@ void ToolPanel::_on_cel_toggled(bool toggled_on)
 
 void ToolPanel::_on_outline_toggled(bool toggled_on)
 {
-    m_outline->set_enabled(toggled_on);
     static VBoxContainer *width_container = nullptr;
     static VBoxContainer *mul_container = nullptr;
     static Label *width_label = nullptr;
@@ -187,14 +186,23 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
     static HSlider *width_slider = nullptr;
     static HSlider *mul_slider = nullptr;
     static ColorPicker *color_picker = nullptr;
+    
+    m_outline->set_enabled(toggled_on);
     if(toggled_on)
     {
         m_cmp_arr.push_back(m_outline);
         
         width_container = memnew(VBoxContainer);
         width_label = memnew(Label);
-        width_label->set_text("Outline Width");
         width_slider = memnew(HSlider);
+        mul_container = memnew(VBoxContainer);
+        mul_label = memnew(Label);
+        mul_slider = memnew(HSlider);
+        color_picker = memnew(ColorPicker);
+        
+        width_label->set_text("Outline Width");
+        mul_label->set_text("Outline Width Step");
+
         width_slider->set_step(0.001);
         width_slider->set_min(0.0);
         width_slider->set_max(0.01);
@@ -202,11 +210,7 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         width_container->add_child(width_label);
         width_container->add_child(width_slider);
         add_child(width_container);
-        
-        mul_container = memnew(VBoxContainer);
-        mul_label = memnew(Label);
-        mul_label->set_text("Outline Width Step");
-        mul_slider = memnew(HSlider);
+
         mul_slider->set_step(0.01);
         mul_slider->set_min(0.01);
         mul_slider->set_max(1.0);
@@ -215,7 +219,6 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         mul_container->add_child(mul_slider);
         add_child(mul_container);
         
-        color_picker = memnew(ColorPicker);
         color_picker->connect("color_changed", callable_mp(m_outline.ptr(), &OutlineShader::set_outline_color));
         add_child(color_picker);
 

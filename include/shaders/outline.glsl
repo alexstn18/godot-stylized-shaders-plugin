@@ -31,22 +31,44 @@ float absdiff(float a, float b)
     return abs(abs(a) - abs(b));
 }
 
-void main() 
+float sample_edge(vec2 uv)
 {
-	ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
-	vec2 size = params.raster_size;
-	vec2 uv = pixel / size;
-	
-	if (pixel.x >= size.x || pixel.y >= size.y) return;
-	
-	vec4 color = imageLoad(color_image, pixel);
-    float d = linear_depth(uv);
+	float d = linear_depth(uv);
     vec4 b3d = vec4(linear_depth(uv + vec2(params.outline_width, 0.)), linear_depth(uv - vec2(params.outline_width, 0.)), linear_depth(uv + vec2(0., params.outline_width)), linear_depth(uv - vec2(0., params.outline_width))); 
     float outline = absdiff(b3d.x, d)
                     + absdiff(b3d.y, d)
                     + absdiff(b3d.z, d)
                     + absdiff(b3d.w, d);
-    outline = step(params.outline_mul, fract(outline));
+	return fract(outline);
+}
+
+vec2 offsets[4] = vec2[](
+    vec2(0.25, 0.25),
+    vec2(-0.25, 0.25),
+    vec2(0.25, -0.25),
+    vec2(-0.25, -0.25)
+);
+
+void main() 
+{
+	ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+	vec2 size = params.raster_size;
+	
+	if (pixel.x >= size.x || pixel.y >= size.y) return;
+	
+	vec2 uv = pixel / size;
+	vec2 texel = 1. / size;
+
+	vec4 color = imageLoad(color_image, pixel);
+	float edge_sum = 0.;
+	for(int i = 0; i < 4; i++)
+	{
+		edge_sum += sample_edge(uv + offsets[i] * texel);
+	}
+	float edge_strength = edge_sum / 4.;
+	float outline = smoothstep(params.outline_mul - 0.05,
+                           params.outline_mul + 0.05,
+                           edge_strength);
 
     color.rgb *= vec3(1. - outline);
     color.rgb += outline * params.outline_color;
