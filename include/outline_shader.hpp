@@ -23,6 +23,8 @@ private:
     Color m_outline_color = Color(0.0f, 0.0f, 0.0f);
     float m_outline_width = .002f;
     float m_outline_mul = .01f;
+    float m_dt = .0f;
+    bool m_jitter_toggle = false;
 protected:
     static void _bind_methods();
 public:
@@ -38,4 +40,8 @@ public:
     float get_outline_width() const;
     void set_outline_mul(double mul);
     float get_outline_mul() const;
+    void set_dt(double dt);
+    float get_dt() const;
+    void set_jitter(bool jitter);
+    bool get_jitter() const;
 };

@@ -19,6 +19,7 @@
 #include <godot_cpp/classes/rd_sampler_state.hpp>
 #include <godot_cpp/variant/projection.hpp>
 #include <godot_cpp/variant/array.hpp>
+#include <godot_cpp/classes/engine.hpp>
 
 void OutlineShader::_bind_methods()
 {
@@ -29,6 +30,8 @@ void OutlineShader::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_outline_width"), &OutlineShader::get_outline_width);
     ClassDB::bind_method(D_METHOD("set_outline_mul", "mul"), &OutlineShader::set_outline_mul);
     ClassDB::bind_method(D_METHOD("get_outline_mul"), &OutlineShader::get_outline_mul);
+    ClassDB::bind_method(D_METHOD("set_jitter", "jitter"), &OutlineShader::set_jitter);
+    ClassDB::bind_method(D_METHOD("get_jitter"), &OutlineShader::get_jitter);
 }
 
 OutlineShader::OutlineShader()
@@ -102,18 +105,20 @@ void OutlineShader::_render_callback(int32_t p_effect_callback_type,
             const int y_groups = (size.y + 15) / 16;
 
             auto inv_proj_mat = p_render_data->get_render_scene_data()->get_cam_projection().inverse();
-            PackedFloat32Array push_constant = {(float)size.x, // 4
-                                                (float)size.y, // 8
-                                                0.0f, // 12
-                                                0.0f, // 16
-                                                inv_proj_mat[2].w, // 20 
-                                                inv_proj_mat[3].w, // 24
-                                                m_outline_width, // 28
-                                                m_outline_mul, // 32
-                                                m_outline_color.r, // 36
-                                                m_outline_color.g, // 40
-                                                m_outline_color.b, // 44
-                                                0.0f}; // 48
+            PackedFloat32Array push_constant = {m_outline_color.r,
+                                                m_outline_color.g,
+                                                m_outline_color.b,
+                                                0.0f,
+                                                (float)size.x,
+                                                (float)size.y,
+                                                inv_proj_mat[2].w,
+                                                inv_proj_mat[3].w,
+                                                m_outline_width,
+                                                m_outline_mul,
+                                                m_dt,
+                                                (float)UtilityFunctions::randf(),
+                                                (float)m_jitter_toggle,
+                                                0.0f, 0.0f, 0.0f};
             ERR_FAIL_COND_MSG(push_constant.is_empty(), "push constant is empty");
 
             uint32_t view_count = buffers->get_view_count();
@@ -188,3 +193,7 @@ void OutlineShader::set_outline_width(double width) { m_outline_width = static_c
 float OutlineShader::get_outline_width() const { return m_outline_width; }
 void OutlineShader::set_outline_mul(double mul) { m_outline_mul = static_cast<float>(mul); }
 float OutlineShader::get_outline_mul() const { return m_outline_mul; }
+void OutlineShader::set_dt(double dt) { m_dt = (float)dt; }
+float OutlineShader::get_dt() const { return m_dt; }
+void OutlineShader::set_jitter(bool jitter) { m_jitter_toggle = jitter; }
+bool OutlineShader::get_jitter() const { return m_jitter_toggle; }

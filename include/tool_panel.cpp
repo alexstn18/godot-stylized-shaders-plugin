@@ -16,6 +16,7 @@
 #include <godot_cpp/classes/environment.hpp>
 #include <godot_cpp/classes/h_slider.hpp>
 #include <godot_cpp/classes/color_picker.hpp>
+#include <godot_cpp/classes/check_box.hpp>
 
 #define CONTROL_QUEUE_FREE(T) if(T) T->queue_free();
 
@@ -160,6 +161,7 @@ void ToolPanel::_process(double delta)
                 }
             }
         }
+        if(m_outline.is_valid()) m_outline->set_dt(delta);
     }
 }
 
@@ -186,6 +188,7 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
     static HSlider *width_slider = nullptr;
     static HSlider *mul_slider = nullptr;
     static ColorPicker *color_picker = nullptr;
+    static CheckBox *check_box = nullptr;
     
     m_outline->set_enabled(toggled_on);
     if(toggled_on)
@@ -199,9 +202,11 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         mul_label = memnew(Label);
         mul_slider = memnew(HSlider);
         color_picker = memnew(ColorPicker);
+        check_box = memnew(CheckBox);
         
         width_label->set_text("Outline Width");
         mul_label->set_text("Outline Width Step");
+        check_box->set_text("Jitter");
 
         width_slider->set_step(0.001);
         width_slider->set_min(0.0);
@@ -219,6 +224,9 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         mul_container->add_child(mul_slider);
         add_child(mul_container);
         
+        check_box->connect("toggled", callable_mp(m_outline.ptr(), &OutlineShader::set_jitter));
+        add_child(check_box);
+
         color_picker->connect("color_changed", callable_mp(m_outline.ptr(), &OutlineShader::set_outline_color));
         add_child(color_picker);
 
@@ -236,13 +244,17 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         
         remove_child(width_container);
         remove_child(mul_container);
+        remove_child(check_box);
         remove_child(color_picker);
         
         width_label->queue_free(); width_label = nullptr;
         mul_label->queue_free(); mul_label = nullptr;
         width_slider->queue_free(); width_slider = nullptr;
         mul_slider->queue_free(); mul_slider = nullptr;
+        check_box->queue_free(); check_box = nullptr;
         color_picker->queue_free(); color_picker = nullptr;
+        width_container->queue_free(); width_container = nullptr;
+        mul_container->queue_free(); mul_container = nullptr;
 
         UtilityFunctions::print("Outline toggled off");
     }
