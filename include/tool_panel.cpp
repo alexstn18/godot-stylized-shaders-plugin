@@ -19,7 +19,7 @@
 #include <godot_cpp/classes/color_picker.hpp>
 #include <godot_cpp/classes/check_box.hpp>
 
-#define CONTROL_QUEUE_FREE(T) if(T) T->queue_free();
+#define CONTROL_QUEUE_FREE(T) if(T) { T->queue_free(); T = nullptr; }
 
 void ToolPanel::_bind_methods()
 {
@@ -286,20 +286,20 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         remove_child(check_box);
         remove_child(color_picker);
         
-        width_label->queue_free(); width_label = nullptr;
-        mul_label->queue_free(); mul_label = nullptr;
-        width_slider->queue_free(); width_slider = nullptr;
-        mul_slider->queue_free(); mul_slider = nullptr;
-        amp_label->queue_free(); amp_label = nullptr;
-        freq_label->queue_free(); freq_label = nullptr;
-        amp_slider->queue_free(); amp_slider = nullptr;
-        freq_slider->queue_free(); freq_slider = nullptr;
-        check_box->queue_free(); check_box = nullptr;
-        color_picker->queue_free(); color_picker = nullptr;
-        width_container->queue_free(); width_container = nullptr;
-        mul_container->queue_free(); mul_container = nullptr;
-        amp_container->queue_free(); amp_container = nullptr;
-        freq_container->queue_free(); freq_container = nullptr;
+        CONTROL_QUEUE_FREE(width_label);
+        CONTROL_QUEUE_FREE(mul_label);
+        CONTROL_QUEUE_FREE(width_slider);
+        CONTROL_QUEUE_FREE(mul_slider);
+        CONTROL_QUEUE_FREE(amp_label);
+        CONTROL_QUEUE_FREE(freq_label);
+        CONTROL_QUEUE_FREE(amp_slider);
+        CONTROL_QUEUE_FREE(freq_slider);
+        CONTROL_QUEUE_FREE(check_box);
+        CONTROL_QUEUE_FREE(color_picker);
+        CONTROL_QUEUE_FREE(width_container);
+        CONTROL_QUEUE_FREE(mul_container);
+        CONTROL_QUEUE_FREE(amp_container);
+        CONTROL_QUEUE_FREE(freq_container);
 
         UtilityFunctions::print("Outline toggled off");
     }
@@ -334,7 +334,4 @@ void ToolPanel::_on_posterize_toggled(bool toggled_on)
     }
 }
 
-void ToolPanel::set_edited_scene_root(Node *edited_scene_root)
-{
-    m_edited_scene_root = edited_scene_root;
-}
+void ToolPanel::set_edited_scene_root(Node *edited_scene_root) { m_edited_scene_root = edited_scene_root; }

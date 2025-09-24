@@ -1,8 +1,8 @@
 #include "outline_shader.hpp"
-#include "godot_cpp/classes/compositor_effect.hpp"
-#include "godot_cpp/core/error_macros.hpp"
-#include "godot_cpp/variant/packed_float32_array.hpp"
-#include "godot_cpp/variant/utility_functions.hpp"
+#include <godot_cpp/classes/compositor_effect.hpp>
+#include <godot_cpp/core/error_macros.hpp>
+#include <godot_cpp/variant/packed_float32_array.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 #include <godot_cpp/classes/rendering_device.hpp>
 #include <godot_cpp/classes/rd_shader_source.hpp>
 #include <godot_cpp/classes/rd_shader_spirv.hpp>
@@ -46,8 +46,7 @@ OutlineShader::OutlineShader()
     m_pipeline = RID();
     m_depth_sampler = RID();
     set_enabled(false);
-    UtilityFunctions::print("Set effect enabled to true");
-
+    
     if (auto *rs = RenderingServer::get_singleton())
     {
         auto c = Callable(this, "init_compute");

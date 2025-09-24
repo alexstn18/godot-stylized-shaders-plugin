@@ -8,8 +8,10 @@
 #include "godot_cpp/classes/editor_plugin.hpp"
 #include "godot_stylized_shaders_plugin.hpp"
 #include "screensaver.hpp"
+#include "base_shader.hpp"
 #include "invert_shader.hpp"
 #include "outline_shader.hpp"
+#include "cel_shader.hpp"
 #include "plugin_ui.hpp"
 #include "tool_panel.hpp"
 
@@ -30,11 +32,12 @@ void initialize_shader_plugin(ModuleInitializationLevel p_level)
     }
 
     GDREGISTER_VIRTUAL_CLASS(godot_stylized_shaders_plugin);
-
+    GDREGISTER_ABSTRACT_CLASS(BaseShader);
     GDREGISTER_RUNTIME_CLASS(Screensaver);
 
     GDREGISTER_CLASS(InvertShader);
     GDREGISTER_CLASS(OutlineShader);
+    GDREGISTER_CLASS(CelShader);
 }
 
 void uninitialize_shader_plugin(ModuleInitializationLevel p_level)

@@ -31,7 +31,6 @@ InvertShader::InvertShader()
     m_shader = RID();
     m_pipeline = RID();
     set_enabled(false);
-    UtilityFunctions::print("Set effect enabled to true");
 
     if (auto *rs = RenderingServer::get_singleton())
     {

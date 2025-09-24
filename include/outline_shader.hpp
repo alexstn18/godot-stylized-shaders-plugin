@@ -14,7 +14,6 @@ class OutlineShader : public CompositorEffect
 private:
     void init_compute();
 
-	String m_shader_template = "";
     RenderingDevice *m_device = nullptr;
     RID m_shader;
     RID m_pipeline;
