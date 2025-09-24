@@ -1,6 +1,7 @@
 #include "tool_panel.hpp"
 #include "godot_cpp/classes/check_button.hpp"
 #include "godot_cpp/classes/h_box_container.hpp"
+#include "godot_cpp/classes/v_box_container.hpp"
 #include "godot_cpp/core/error_macros.hpp"
 #include "godot_cpp/variant/utility_functions.hpp"
 #include "outline_shader.hpp"
@@ -183,10 +184,16 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
 {
     static VBoxContainer *width_container = nullptr;
     static VBoxContainer *mul_container = nullptr;
+    static VBoxContainer *amp_container = nullptr;
+    static VBoxContainer *freq_container = nullptr;
     static Label *width_label = nullptr;
     static Label *mul_label = nullptr;
+    static Label *amp_label = nullptr;
+    static Label *freq_label = nullptr;
     static HSlider *width_slider = nullptr;
     static HSlider *mul_slider = nullptr;
+    static HSlider *amp_slider = nullptr;
+    static HSlider *freq_slider = nullptr;
     static ColorPicker *color_picker = nullptr;
     static CheckBox *check_box = nullptr;
     
@@ -201,11 +208,19 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         mul_container = memnew(VBoxContainer);
         mul_label = memnew(Label);
         mul_slider = memnew(HSlider);
+        amp_container = memnew(VBoxContainer);
+        amp_label = memnew(Label);
+        amp_slider = memnew(HSlider);
+        freq_container = memnew(VBoxContainer);
+        freq_label = memnew(Label);
+        freq_slider = memnew(HSlider);
         color_picker = memnew(ColorPicker);
         check_box = memnew(CheckBox);
         
         width_label->set_text("Outline Width");
         mul_label->set_text("Outline Width Step");
+        amp_label->set_text("Jitter Amplitude");
+        freq_label->set_text("Jitter Frequency");
         check_box->set_text("Jitter");
 
         width_slider->set_step(0.001);
@@ -227,6 +242,22 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         check_box->connect("toggled", callable_mp(m_outline.ptr(), &OutlineShader::set_jitter));
         add_child(check_box);
 
+        amp_slider->set_step(0.01);
+        amp_slider->set_min(0.01);
+        amp_slider->set_max(0.1);
+        amp_slider->connect("value_changed", callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_amp));
+        amp_container->add_child(amp_label);
+        amp_container->add_child(amp_slider);
+        add_child(amp_container);
+        
+        freq_slider->set_step(0.01);
+        freq_slider->set_min(0.01);
+        freq_slider->set_max(0.1);
+        freq_slider->connect("value_changed", callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_freq));
+        freq_container->add_child(freq_label);
+        freq_container->add_child(freq_slider);
+        add_child(freq_container);
+
         color_picker->connect("color_changed", callable_mp(m_outline.ptr(), &OutlineShader::set_outline_color));
         add_child(color_picker);
 
@@ -242,8 +273,16 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         mul_container->remove_child(mul_label);
         mul_container->remove_child(mul_slider);
         
+        amp_container->remove_child(amp_label);
+        amp_container->remove_child(amp_slider);
+
+        freq_container->remove_child(freq_label);
+        freq_container->remove_child(freq_slider);
+
         remove_child(width_container);
         remove_child(mul_container);
+        remove_child(amp_container);
+        remove_child(freq_container);
         remove_child(check_box);
         remove_child(color_picker);
         
@@ -251,10 +290,16 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         mul_label->queue_free(); mul_label = nullptr;
         width_slider->queue_free(); width_slider = nullptr;
         mul_slider->queue_free(); mul_slider = nullptr;
+        amp_label->queue_free(); amp_label = nullptr;
+        freq_label->queue_free(); freq_label = nullptr;
+        amp_slider->queue_free(); amp_slider = nullptr;
+        freq_slider->queue_free(); freq_slider = nullptr;
         check_box->queue_free(); check_box = nullptr;
         color_picker->queue_free(); color_picker = nullptr;
         width_container->queue_free(); width_container = nullptr;
         mul_container->queue_free(); mul_container = nullptr;
+        amp_container->queue_free(); amp_container = nullptr;
+        freq_container->queue_free(); freq_container = nullptr;
 
         UtilityFunctions::print("Outline toggled off");
     }

@@ -9,7 +9,7 @@ layout(binding = 0, set = 1) uniform sampler2D depth_texture;
 layout(push_constant, std430) uniform Params 
 {
 	vec3 outline_color;
-	float _pad0;
+	float jitter_amp;
 	vec2 raster_size;
 	float inv_proj_2w;
     float inv_proj_3w;
@@ -18,7 +18,7 @@ layout(push_constant, std430) uniform Params
 	float delta_time;
 	float seed;
 	float jitter_enabled;
-	float _pad1;
+	float jitter_freq;
 } params;
 
 const float TAU = 6.2831;
@@ -28,12 +28,13 @@ float hash(vec2 pixel)
 	return fract(sin(dot(pixel, vec2(12.9898,78.233)) + params.seed) * 43758.5453);
 }
 
-vec2 jitter(vec2 uv, int sample_idx)
+float wiggle(float t, float frequency, float seed)
 {
-	float h = hash(uv + float(sample_idx)) * TAU;
-	float t = params.delta_time * 2.;
-	float r = .5 + .5 * sin(t + h);
-	return (vec2(cos(h), sin(h)) * r * 0.5);
+    t *= frequency;
+    float a = hash(vec2(floor(t), seed)) * 2. - 1.;
+    float b = hash(vec2(ceil(t), seed)) * 2. - 1.;
+    t -= floor(t);
+    return mix(a, b, t);
 }
 
 float linear_depth(vec2 uv)
@@ -51,26 +52,43 @@ float absdiff(float a, float b)
 
 float sample_edge(vec2 uv)
 {
-	float d = linear_depth(uv);
-	vec2 w0 = uv + vec2(params.outline_width, 0.);
-    vec2 w1 = uv - vec2(params.outline_width, 0.);
-	vec2 w2 = uv + vec2(0., params.outline_width);
-	vec2 w3 = uv + vec2(0., params.outline_width);
-	if(params.jitter_enabled == 1.)
-	{
-		vec2 jitter0 = jitter(uv, 0) * .1;
-		vec2 jitter1 = jitter(uv, 1) * .1;
-		vec2 jitter2 = jitter(uv, 2) * .1;
-		vec2 jitter3 = jitter(uv, 3) * .1;
+    float d = linear_depth(uv);
 
-		w0 += jitter0; w1 += jitter1; w2 += jitter2; w3 += jitter3;
-	}
-    vec4 b3d = vec4(linear_depth(w0), linear_depth(w1), linear_depth(w2), linear_depth(w3)); 
-	float outline = absdiff(b3d.x, d)
-                    + absdiff(b3d.y, d)
-                    + absdiff(b3d.z, d)
-                    + absdiff(b3d.w, d);
-	return fract(outline);
+    vec2 w0 = uv + vec2(params.outline_width, 0.0);
+    vec2 w1 = uv - vec2(params.outline_width, 0.0);
+    vec2 w2 = uv + vec2(0.0, params.outline_width);
+    vec2 w3 = uv - vec2(0.0, params.outline_width);
+
+    if (params.jitter_enabled == 1.0)
+	{
+        float t = params.delta_time;
+
+        w0 += vec2(wiggle(t, params.jitter_freq, params.seed),
+                   wiggle(t, params.jitter_freq, params.seed + 0.01)) * params.jitter_amp;
+
+        w1 += vec2(wiggle(t, params.jitter_freq, params.seed + 0.02),
+                   wiggle(t, params.jitter_freq, params.seed + 0.03)) * params.jitter_amp;
+
+        w2 += vec2(wiggle(t, params.jitter_freq, params.seed + 0.04),
+                   wiggle(t, params.jitter_freq, params.seed + 0.05)) * params.jitter_amp;
+
+        w3 += vec2(wiggle(t, params.jitter_freq, params.seed + 0.06),
+                   wiggle(t, params.jitter_freq, params.seed + 0.07)) * params.jitter_amp;
+    }
+
+    vec4 b3d = vec4(
+        linear_depth(w0),
+        linear_depth(w1),
+        linear_depth(w2),
+        linear_depth(w3)
+    );
+
+    float outline = absdiff(b3d.x, d)
+                  + absdiff(b3d.y, d)
+                  + absdiff(b3d.z, d)
+                  + absdiff(b3d.w, d);
+
+    return fract(outline);
 }
 
 vec2 offsets[4] = vec2[](

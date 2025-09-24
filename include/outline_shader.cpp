@@ -32,6 +32,10 @@ void OutlineShader::_bind_methods()
     ClassDB::bind_method(D_METHOD("get_outline_mul"), &OutlineShader::get_outline_mul);
     ClassDB::bind_method(D_METHOD("set_jitter", "jitter"), &OutlineShader::set_jitter);
     ClassDB::bind_method(D_METHOD("get_jitter"), &OutlineShader::get_jitter);
+    ClassDB::bind_method(D_METHOD("set_jitter_amp", "amp"), &OutlineShader::set_jitter_amp);
+    ClassDB::bind_method(D_METHOD("get_jitter_amp"), &OutlineShader::get_jitter_amp);
+    ClassDB::bind_method(D_METHOD("set_jitter_freq", "freq"), &OutlineShader::set_jitter_freq);
+    ClassDB::bind_method(D_METHOD("get_jitter_freq"), &OutlineShader::get_jitter_freq);
 }
 
 OutlineShader::OutlineShader()
@@ -108,7 +112,7 @@ void OutlineShader::_render_callback(int32_t p_effect_callback_type,
             PackedFloat32Array push_constant = {m_outline_color.r,
                                                 m_outline_color.g,
                                                 m_outline_color.b,
-                                                0.0f,
+                                                m_jitter_amp,
                                                 (float)size.x,
                                                 (float)size.y,
                                                 inv_proj_mat[2].w,
@@ -118,7 +122,8 @@ void OutlineShader::_render_callback(int32_t p_effect_callback_type,
                                                 m_dt,
                                                 (float)UtilityFunctions::randf(),
                                                 (float)m_jitter_toggle,
-                                                0.0f, 0.0f, 0.0f};
+                                                m_jitter_freq, 
+                                                0.0f, 0.0f};
             ERR_FAIL_COND_MSG(push_constant.is_empty(), "push constant is empty");
 
             uint32_t view_count = buffers->get_view_count();
@@ -193,6 +198,10 @@ void OutlineShader::set_outline_width(double width) { m_outline_width = static_c
 float OutlineShader::get_outline_width() const { return m_outline_width; }
 void OutlineShader::set_outline_mul(double mul) { m_outline_mul = static_cast<float>(mul); }
 float OutlineShader::get_outline_mul() const { return m_outline_mul; }
+void OutlineShader::set_jitter_amp(float amp) { m_jitter_amp = amp; }
+float OutlineShader::get_jitter_amp() const { return m_jitter_amp; }
+void OutlineShader::set_jitter_freq(float freq) { m_jitter_freq = freq; }
+float OutlineShader::get_jitter_freq() const { return m_jitter_freq; }
 void OutlineShader::set_dt(double dt) { m_dt = (float)dt; }
 float OutlineShader::get_dt() const { return m_dt; }
 void OutlineShader::set_jitter(bool jitter) { m_jitter_toggle = jitter; }

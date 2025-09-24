@@ -23,6 +23,8 @@ private:
     Color m_outline_color = Color(0.0f, 0.0f, 0.0f);
     float m_outline_width = .002f;
     float m_outline_mul = .01f;
+    float m_jitter_amp = .01f;
+    float m_jitter_freq = .002f;
     float m_dt = .0f;
     bool m_jitter_toggle = false;
 protected:
@@ -44,4 +46,8 @@ public:
     float get_dt() const;
     void set_jitter(bool jitter);
     bool get_jitter() const;
+    void set_jitter_amp(float amp);
+    float get_jitter_amp() const;
+    void set_jitter_freq(float freq);
+    float get_jitter_freq() const;
 };
