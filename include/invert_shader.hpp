@@ -1,23 +1,18 @@
 #pragma once
 
 #include <godot_cpp/core/class_db.hpp>
-#include <godot_cpp/classes/compositor_effect.hpp>
+#include "base_shader.hpp"
 #include <godot_cpp/classes/render_data.hpp>
 #include <godot_cpp/classes/rendering_server.hpp>
 
 using namespace godot;
 
-class InvertShader : public CompositorEffect 
+class InvertShader : public BaseShader
 {
-    GDCLASS(InvertShader, CompositorEffect);
+    GDCLASS(InvertShader, BaseShader);
     
 private:
-    void init_compute();
-
-	String m_shader_template = "";
-    RenderingDevice *m_device = nullptr;
-    RID m_shader;
-    RID m_pipeline;
+    void init_compute(const String &shader_filename) override;
 protected:
     static void _bind_methods();
 public:
@@ -25,5 +20,5 @@ public:
     ~InvertShader();
 
     void _render_callback(int32_t p_effect_callback_type, RenderData *p_render_data) override;
-    void _notification(int what);
+    void _notification(int what) override;
 };

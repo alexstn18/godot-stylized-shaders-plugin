@@ -1,22 +1,19 @@
 #pragma once
 
 #include <godot_cpp/core/class_db.hpp>
-#include <godot_cpp/classes/compositor_effect.hpp>
+#include "base_shader.hpp"
 #include <godot_cpp/classes/render_data.hpp>
 #include <godot_cpp/classes/rendering_server.hpp>
 
 using namespace godot;
 
-class OutlineShader : public CompositorEffect
+class OutlineShader : public BaseShader
 {
-    GDCLASS(OutlineShader, CompositorEffect);
+    GDCLASS(OutlineShader, BaseShader);
 
 private:
-    void init_compute();
+    void init_compute(const String &shader_filename) override;
 
-    RenderingDevice *m_device = nullptr;
-    RID m_shader;
-    RID m_pipeline;
     RID m_depth_sampler;
 
     Color m_outline_color = Color(0.0f, 0.0f, 0.0f);
@@ -32,8 +29,8 @@ public:
     OutlineShader();
     ~OutlineShader();
 
+    void _notification(int what) override;
     void _render_callback(int32_t, RenderData *) override;
-    void _notification(int what);
 
     void set_outline_color(Color color);
     Color get_outline_color() const;

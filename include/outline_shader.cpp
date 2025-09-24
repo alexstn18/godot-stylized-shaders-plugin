@@ -1,4 +1,5 @@
 #include "outline_shader.hpp"
+#include "base_shader.hpp"
 #include <godot_cpp/classes/compositor_effect.hpp>
 #include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/variant/packed_float32_array.hpp>
@@ -23,7 +24,6 @@
 
 void OutlineShader::_bind_methods()
 {
-    ClassDB::bind_method(D_METHOD("init_compute"), &OutlineShader::init_compute);
     ClassDB::bind_method(D_METHOD("set_outline_color", "color"), &OutlineShader::set_outline_color);
     ClassDB::bind_method(D_METHOD("get_outline_color"), &OutlineShader::get_outline_color);
     ClassDB::bind_method(D_METHOD("set_outline_width", "width"), &OutlineShader::set_outline_width);
@@ -40,19 +40,9 @@ void OutlineShader::_bind_methods()
 
 OutlineShader::OutlineShader()
 {
-    set_effect_callback_type(CompositorEffect::EFFECT_CALLBACK_TYPE_POST_TRANSPARENT);
-
-    m_shader = RID();
-    m_pipeline = RID();
+    construct();
     m_depth_sampler = RID();
-    set_enabled(false);
-    
-    if (auto *rs = RenderingServer::get_singleton())
-    {
-        auto c = Callable(this, "init_compute");
-        rs->call_on_render_thread(c);
-        UtilityFunctions::print("Queued init_compute on render thread");
-    }
+    queue_callable_on_render_thread(callable_mp(this, &OutlineShader::init_compute).bind("outline.glsl"));
 }
 
 OutlineShader::~OutlineShader() {}
@@ -63,20 +53,7 @@ void OutlineShader::_notification(int what)
     
     if (what == NOTIFICATION_PREDELETE && m_device)
     {
-        UtilityFunctions::print("NOTIFICATION_PREDELETE - cleaning up");
-        if (m_shader.is_valid())
-        {
-            m_device->free_rid(m_shader);
-            m_shader = RID();
-            UtilityFunctions::print("Freed shader");
-        }
-        
-        if (m_pipeline.is_valid()) 
-        {
-            m_device->free_rid(m_pipeline);
-            m_pipeline = RID();
-            UtilityFunctions::print("Freed pipeline");
-        }
+        free_shader();
         
         if (m_depth_sampler.is_valid()) 
         {
@@ -163,25 +140,9 @@ void OutlineShader::_render_callback(int32_t p_effect_callback_type,
     }
 }
 
-void OutlineShader::init_compute()
+void OutlineShader::init_compute(const String &shader_filename)
 {
-    m_device = RenderingServer::get_singleton()->get_rendering_device();
-    ERR_FAIL_COND_MSG(!m_device, "No device");
- 
-    Ref<RDShaderFile> shader_file = ResourceLoader::get_singleton()->load("res://addons/GodotStylizedShadersPlugin/shaders/outline.glsl");
-    ERR_FAIL_COND_MSG(!shader_file.is_valid(), "Failed to load shader file!");
-    
-    String base_error = shader_file->get_base_error();
-    ERR_FAIL_COND_MSG(!base_error.is_empty(), "Shader compilation error: " + base_error);
-    
-    Ref<RDShaderSPIRV> spirv = shader_file->get_spirv();
-    ERR_FAIL_COND_MSG(!spirv.is_valid(), "Failed to get SPIRV from shader file!");
-    
-    m_shader = m_device->shader_create_from_spirv(spirv);
-    ERR_FAIL_COND_MSG(!m_shader.is_valid(), "Failed to create shader from SPIRV!");
-    
-    m_pipeline = m_device->compute_pipeline_create(m_shader);
-    UtilityFunctions::print("Shader and pipeline created successfully");
+    BaseShader::init_compute(shader_filename);
 
     Ref<RDSamplerState> state;
     state.instantiate();
