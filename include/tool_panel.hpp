@@ -16,6 +16,7 @@
 
 #include "invert_shader.hpp"
 #include "outline_shader.hpp"
+#include "cel_shader.hpp"
 
 using namespace godot;
 
@@ -41,6 +42,7 @@ private:
     Compositor *m_world_environment_compositor = nullptr;
     Ref<InvertShader> m_invert;
     Ref<OutlineShader> m_outline;
+    Ref<CelShader> m_cel;
     TypedArray<Ref<CompositorEffect>> m_cmp_arr;
 
     // Other

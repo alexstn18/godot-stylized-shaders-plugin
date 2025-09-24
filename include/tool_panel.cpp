@@ -1,10 +1,10 @@
 #include "tool_panel.hpp"
 #include "godot_cpp/classes/check_button.hpp"
+#include "godot_cpp/classes/directional_light3d.hpp"
 #include "godot_cpp/classes/h_box_container.hpp"
 #include "godot_cpp/classes/v_box_container.hpp"
 #include "godot_cpp/core/error_macros.hpp"
 #include "godot_cpp/variant/utility_functions.hpp"
-#include "outline_shader.hpp"
 
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_selection.hpp>
@@ -44,6 +44,7 @@ void ToolPanel::_ready()
     /// Initialize effects
     m_invert.instantiate();
     m_outline.instantiate();
+    m_cel.instantiate();
     
     /// Get UI nodes
     // ApplyToContainer
@@ -168,13 +169,43 @@ void ToolPanel::_process(double delta)
 
 void ToolPanel::_on_cel_toggled(bool toggled_on)
 {
+    static VBoxContainer *levels_container = nullptr;
+    static Label *levels_label = nullptr;
+    static HSlider *levels_slider = nullptr;
+    
+    m_cel->set_enabled(toggled_on);
+
     if(toggled_on)
     {
+        m_cmp_arr.push_back(m_cel);
+
+        levels_container = memnew(VBoxContainer);
+        levels_label = memnew(Label);
+        levels_slider = memnew(HSlider);
+
+        levels_label->set_text("Levels");
+        levels_slider->set_step(1.0);
+        levels_slider->set_min(2.0);
+        levels_slider->set_max(32.0);
+        levels_slider->connect("value_changed", callable_mp(m_cel.ptr(), &CelShader::set_levels));
+
+        levels_container->add_child(levels_label);
+        levels_container->add_child(levels_slider);
+        add_child(levels_container);
+
         UtilityFunctions::print("Cel toggled on");
-        
     }
     else 
     {
+        m_cmp_arr.pop_back();
+
+        levels_container->remove_child(levels_slider);
+        levels_container->remove_child(levels_label);
+        remove_child(levels_container);
+
+        CONTROL_QUEUE_FREE(levels_slider);
+        CONTROL_QUEUE_FREE(levels_label);
+        CONTROL_QUEUE_FREE(levels_container);
         UtilityFunctions::print("Cel toggled off");
         
     }
