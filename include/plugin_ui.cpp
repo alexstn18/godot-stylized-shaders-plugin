@@ -5,6 +5,7 @@
 #include <godot_cpp/classes/packed_scene.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
+#include <godot_cpp/classes/editor_inspector.hpp>
 
 void PluginUI::_bind_methods()
 {

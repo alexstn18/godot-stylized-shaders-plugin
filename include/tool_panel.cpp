@@ -20,6 +20,8 @@
 #include <godot_cpp/classes/check_box.hpp>
 
 #define CONTROL_QUEUE_FREE(T) if(T) { T->queue_free(); T = nullptr; }
+#define ADD_EFFECT(T) m_effect_arr->add_effect(T);
+#define REMOVE_EFFECT(T) m_effect_arr->remove_effect(T);
 
 void ToolPanel::_bind_methods()
 {
@@ -31,17 +33,21 @@ void ToolPanel::_bind_methods()
 
 ToolPanel::~ToolPanel()
 {
+    remove_child(m_inspector);
+
     CONTROL_QUEUE_FREE(m_apply_option_btn);
     CONTROL_QUEUE_FREE(m_cel_toggle);
     CONTROL_QUEUE_FREE(m_outline_toggle);
     CONTROL_QUEUE_FREE(m_invert_toggle);
     CONTROL_QUEUE_FREE(m_posterize_toggle);
     CONTROL_QUEUE_FREE(m_effect_list);
+    CONTROL_QUEUE_FREE(m_inspector);
 }
 
 void ToolPanel::_ready()
 {
     /// Initialize effects
+    m_effect_arr.instantiate();
     m_invert.instantiate();
     m_outline.instantiate();
     m_cel.instantiate();
@@ -70,6 +76,10 @@ void ToolPanel::_ready()
     m_outline_toggle->connect("toggled", Callable(this, "_on_outline_toggled"));
     m_invert_toggle->connect("toggled", Callable(this, "_on_invert_toggled"));
     m_posterize_toggle->connect("toggled", Callable(this, "_on_posterize_toggled"));
+
+    m_inspector = memnew(EditorInspector);
+    m_inspector->edit(m_effect_arr.ptr());
+    add_child(m_inspector);
 }
 
 void ToolPanel::_process(double delta)
@@ -150,7 +160,7 @@ void ToolPanel::_process(double delta)
             {
                 if(m_camera3d_compositor) 
                 {
-                    m_camera3d_compositor->set_compositor_effects(m_cmp_arr);
+                    m_camera3d_compositor->set_compositor_effects(m_effect_arr->get_effects());
                     if(m_world_environment_compositor) m_world_environment_compositor->set_compositor_effects({});
                 }
             }
@@ -158,7 +168,7 @@ void ToolPanel::_process(double delta)
             {
                 if(m_world_environment_compositor) 
                 {
-                    m_world_environment_compositor->set_compositor_effects(m_cmp_arr);
+                    m_world_environment_compositor->set_compositor_effects(m_effect_arr->get_effects());
                     if(m_camera3d_compositor) m_camera3d_compositor->set_compositor_effects({});
                 }
             }
@@ -177,7 +187,7 @@ void ToolPanel::_on_cel_toggled(bool toggled_on)
 
     if(toggled_on)
     {
-        m_cmp_arr.push_back(m_cel);
+        ADD_EFFECT(m_cel);
 
         levels_container = memnew(VBoxContainer);
         levels_label = memnew(Label);
@@ -197,7 +207,7 @@ void ToolPanel::_on_cel_toggled(bool toggled_on)
     }
     else 
     {
-        m_cmp_arr.pop_back();
+        REMOVE_EFFECT(m_cel);
 
         levels_container->remove_child(levels_slider);
         levels_container->remove_child(levels_label);
@@ -231,7 +241,7 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
     m_outline->set_enabled(toggled_on);
     if(toggled_on)
     {
-        m_cmp_arr.push_back(m_outline);
+        ADD_EFFECT(m_outline);
         
         width_container = memnew(VBoxContainer);
         width_label = memnew(Label);
@@ -296,7 +306,7 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
     }
     else 
     {
-        m_cmp_arr.pop_back();
+        REMOVE_EFFECT(m_outline);
 
         width_container->remove_child(width_label);
         width_container->remove_child(width_slider);
@@ -341,12 +351,12 @@ void ToolPanel::_on_invert_toggled(bool toggled_on)
     m_invert->set_enabled(toggled_on);
     if(toggled_on)
     {
-        m_cmp_arr.push_back(m_invert);
+        ADD_EFFECT(m_invert);
         UtilityFunctions::print("Invert toggled on");        
     }
     else 
     {
-        m_cmp_arr.pop_back();
+        REMOVE_EFFECT(m_invert);
         UtilityFunctions::print("Invert toggled off");
     }
 }

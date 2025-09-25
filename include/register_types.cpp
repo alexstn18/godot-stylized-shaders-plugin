@@ -14,6 +14,7 @@
 #include "cel_shader.hpp"
 #include "plugin_ui.hpp"
 #include "tool_panel.hpp"
+#include "effect_array.hpp"
 
 using namespace godot;
 
@@ -21,6 +22,7 @@ void initialize_shader_plugin(ModuleInitializationLevel p_level)
 {
     if(p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
     {
+        GDREGISTER_CLASS(EffectArray);
         GDREGISTER_CLASS(ToolPanel);
         GDREGISTER_INTERNAL_CLASS(PluginUI);
         EditorPlugins::add_by_type<PluginUI>();

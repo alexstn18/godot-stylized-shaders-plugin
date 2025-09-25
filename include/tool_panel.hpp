@@ -13,7 +13,9 @@
 #include <godot_cpp/classes/world_environment.hpp>
 #include <godot_cpp/classes/compositor.hpp>
 #include <godot_cpp/classes/compositor_effect.hpp>
+#include <godot_cpp/classes/editor_inspector.hpp>
 
+#include "effect_array.hpp"
 #include "invert_shader.hpp"
 #include "outline_shader.hpp"
 #include "cel_shader.hpp"
@@ -30,6 +32,7 @@ class ToolPanel : public VBoxContainer
 
 private:
     // UI
+    EditorInspector *m_inspector = nullptr;
     OptionButton *m_apply_option_btn = nullptr;
     CheckButton *m_cel_toggle = nullptr;
     CheckButton *m_outline_toggle = nullptr;
@@ -43,6 +46,7 @@ private:
     Ref<InvertShader> m_invert;
     Ref<OutlineShader> m_outline;
     Ref<CelShader> m_cel;
+    Ref<EffectArray> m_effect_arr;
     TypedArray<Ref<CompositorEffect>> m_cmp_arr;
 
     // Other
