@@ -1,4 +1,5 @@
 #include "tool_panel.hpp"
+#include "crt_shader.hpp"
 #include "godot_cpp/classes/check_button.hpp"
 #include "godot_cpp/classes/directional_light3d.hpp"
 #include "godot_cpp/classes/h_box_container.hpp"
@@ -51,6 +52,7 @@ void ToolPanel::_ready()
     m_invert.instantiate();
     m_outline.instantiate();
     m_cel.instantiate();
+    m_crt.instantiate();
     
     /// Get UI nodes
     // ApplyToContainer
@@ -298,16 +300,16 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         freq_container->add_child(freq_label);
         freq_container->add_child(freq_slider);
         add_child(freq_container);
-
+        
         color_picker->connect("color_changed", callable_mp(m_outline.ptr(), &OutlineShader::set_outline_color));
         add_child(color_picker);
-
+        
         UtilityFunctions::print("Outline toggled on");
     }
     else 
     {
         REMOVE_EFFECT(m_outline);
-
+        
         width_container->remove_child(width_label);
         width_container->remove_child(width_slider);
         
@@ -316,10 +318,10 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         
         amp_container->remove_child(amp_label);
         amp_container->remove_child(amp_slider);
-
+        
         freq_container->remove_child(freq_label);
         freq_container->remove_child(freq_slider);
-
+        
         remove_child(width_container);
         remove_child(mul_container);
         remove_child(amp_container);
@@ -341,7 +343,7 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         CONTROL_QUEUE_FREE(mul_container);
         CONTROL_QUEUE_FREE(amp_container);
         CONTROL_QUEUE_FREE(freq_container);
-
+        
         UtilityFunctions::print("Outline toggled off");
     }
 }
@@ -363,13 +365,93 @@ void ToolPanel::_on_invert_toggled(bool toggled_on)
 
 void ToolPanel::_on_posterize_toggled(bool toggled_on)
 {
+    m_crt->set_enabled(toggled_on);
+    
+    static VBoxContainer *curvature_container    = nullptr;
+    static VBoxContainer *vignette_mul_container = nullptr;
+    static VBoxContainer *brightness_container   = nullptr;
+    static Label         *curvature_label        = nullptr;
+    static Label         *vignette_mul_label     = nullptr;
+    static Label         *brightness_label       = nullptr;
+    static HSlider       *curvature_slider       = nullptr;
+    static HSlider       *vignette_mul_slider    = nullptr;
+    static HSlider       *brightness_slider      = nullptr;
     if(toggled_on)
     {
+        ADD_EFFECT(m_crt);
+        
+        curvature_container = memnew(VBoxContainer);
+        vignette_mul_container = memnew(VBoxContainer);
+        brightness_container = memnew(VBoxContainer);
+        
+        curvature_label = memnew(Label);
+        vignette_mul_label = memnew(Label);
+        brightness_label = memnew(Label);
+        
+        curvature_slider = memnew(HSlider);
+        vignette_mul_slider = memnew(HSlider);
+        brightness_slider = memnew(HSlider);
+        
+        curvature_label->set_text("Curvature");
+        vignette_mul_label->set_text("Vignette Multiplier");
+        brightness_label->set_text("Brightness");
+        
+        curvature_slider->set_step(1.0);
+        curvature_slider->set_min(0.0);
+        curvature_slider->set_max(10.0);
+        curvature_slider->connect("value_changed", callable_mp(m_crt.ptr(), &CRTShader::set_curvature));
+        
+        vignette_mul_slider->set_step(1.0);
+        vignette_mul_slider->set_min(0.0);
+        vignette_mul_slider->set_max(10.0);
+        vignette_mul_slider->connect("value_changed", callable_mp(m_crt.ptr(), &CRTShader::set_vignette_mul));
+        
+        brightness_slider->set_step(0.1);
+        brightness_slider->set_min(0.0);
+        brightness_slider->set_max(10.0);
+        brightness_slider->connect("value_changed", callable_mp(m_crt.ptr(), &CRTShader::set_brightness));
+        
+        curvature_container->add_child(curvature_label);
+        curvature_container->add_child(curvature_slider);
+        
+        vignette_mul_container->add_child(vignette_mul_label);
+        vignette_mul_container->add_child(vignette_mul_slider);
+        
+        brightness_container->add_child(brightness_label);
+        brightness_container->add_child(brightness_slider);
+
+        add_child(curvature_container);
+        add_child(vignette_mul_container);
+        add_child(brightness_container);
+
         UtilityFunctions::print("Posterize toggled on");
         
     }
     else 
     {
+        REMOVE_EFFECT(m_crt);
+
+        curvature_container->remove_child(curvature_label);
+        curvature_container->remove_child(curvature_slider);
+        vignette_mul_container->remove_child(vignette_mul_label);
+        vignette_mul_container->remove_child(vignette_mul_slider);
+        brightness_container->remove_child(brightness_label);
+        brightness_container->remove_child(brightness_slider);
+
+        remove_child(curvature_container);
+        remove_child(vignette_mul_container);
+        remove_child(brightness_container);
+
+        CONTROL_QUEUE_FREE(curvature_container);   
+        CONTROL_QUEUE_FREE(vignette_mul_container);
+        CONTROL_QUEUE_FREE(brightness_container);  
+        CONTROL_QUEUE_FREE(curvature_label);       
+        CONTROL_QUEUE_FREE(vignette_mul_label);    
+        CONTROL_QUEUE_FREE(brightness_label);      
+        CONTROL_QUEUE_FREE(curvature_slider);      
+        CONTROL_QUEUE_FREE(vignette_mul_slider);   
+        CONTROL_QUEUE_FREE(brightness_slider);     
+
         UtilityFunctions::print("Posterize toggled off");
     
     }

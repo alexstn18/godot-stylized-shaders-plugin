@@ -14,8 +14,6 @@
 #include <godot_cpp/classes/rd_shader_file.hpp>
 #include <godot_cpp/classes/uniform_set_cache_rd.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
-#include <godot_cpp/classes/editor_plugin.hpp>
-#include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/classes/render_scene_data_rd.hpp>
 #include <godot_cpp/classes/rd_sampler_state.hpp>
 #include <godot_cpp/variant/projection.hpp>

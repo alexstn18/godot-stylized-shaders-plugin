@@ -19,6 +19,7 @@
 #include "invert_shader.hpp"
 #include "outline_shader.hpp"
 #include "cel_shader.hpp"
+#include "crt_shader.hpp"
 
 using namespace godot;
 
@@ -46,6 +47,7 @@ private:
     Ref<InvertShader> m_invert;
     Ref<OutlineShader> m_outline;
     Ref<CelShader> m_cel;
+    Ref<CRTShader> m_crt;
     Ref<EffectArray> m_effect_arr;
     TypedArray<Ref<CompositorEffect>> m_cmp_arr;
 

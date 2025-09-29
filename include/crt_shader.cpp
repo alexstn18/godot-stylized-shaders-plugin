@@ -1,36 +1,25 @@
-#include "invert_shader.hpp"
-#include "godot_cpp/classes/compositor_effect.hpp"
-#include "godot_cpp/core/error_macros.hpp"
-#include "godot_cpp/variant/packed_float32_array.hpp"
-#include "godot_cpp/variant/utility_functions.hpp"
-#include <godot_cpp/classes/rendering_device.hpp>
-#include <godot_cpp/classes/rd_shader_source.hpp>
-#include <godot_cpp/classes/rd_shader_spirv.hpp>
+#include "crt_shader.hpp"
+#include <godot_cpp/classes/compositor_effect.hpp>
 #include <godot_cpp/classes/render_scene_buffers_rd.hpp>
-#include <godot_cpp/classes/render_scene_data_rd.hpp>
-#include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/rd_uniform.hpp>
-#include <godot_cpp/classes/rd_shader_file.hpp>
 #include <godot_cpp/classes/uniform_set_cache_rd.hpp>
-#include <godot_cpp/classes/resource_loader.hpp>
 
-// Converted to C++ GDExtension from:
-// https://docs.godotengine.org/en/latest/tutorials/rendering/compositor.html
-
-void InvertShader::_bind_methods()
+void CRTShader::_bind_methods()
 {
-    ClassDB::bind_method(D_METHOD("init_compute"), &InvertShader::init_compute);
+    ClassDB::bind_method(D_METHOD("init_compute"), &CRTShader::init_compute);
 }
 
-InvertShader::InvertShader()
+CRTShader::CRTShader()
 {
     construct();
-    queue_callable_on_render_thread(callable_mp(this, &InvertShader::init_compute).bind("compute_template.glsl"));
+    queue_callable_on_render_thread(callable_mp(this, &CRTShader::init_compute).bind("crt.glsl"));
 }
 
-InvertShader::~InvertShader() {}
+CRTShader::~CRTShader() {}
 
-void InvertShader::_notification(int what)
+void CRTShader::init_compute(const String &shader_filename) { BaseShader::init_compute(shader_filename); }
+
+void CRTShader::_notification(int what)
 {
     UtilityFunctions::print("PostProcessShader notification: " + String::num(what));
     
@@ -40,8 +29,7 @@ void InvertShader::_notification(int what)
     }
 }
 
-void InvertShader::_render_callback(int32_t p_effect_callback_type,
-                                         RenderData *p_render_data)
+void CRTShader::_render_callback(int32_t p_effect_callback_type, RenderData *p_render_data)
 {
     if(m_device && 
         p_effect_callback_type == EFFECT_CALLBACK_TYPE_POST_TRANSPARENT)
@@ -61,7 +49,7 @@ void InvertShader::_render_callback(int32_t p_effect_callback_type,
             const int x_groups = (size.x + 15) / 16;
             const int y_groups = (size.y + 15) / 16;
 
-            PackedFloat32Array push_constant = {(float)size.x, (float)size.y, 0, 0};
+            PackedFloat32Array push_constant = {(float)size.x, (float)size.y, 0.0f, 0.0f, m_curvature, m_vignette_mul, m_brightness, 0.0f};
             ERR_FAIL_COND_MSG(push_constant.is_empty(), "push constant is empty");
 
             uint32_t view_count = buffers->get_view_count();
@@ -94,4 +82,9 @@ void InvertShader::_render_callback(int32_t p_effect_callback_type,
     }
 }
 
-void InvertShader::init_compute(const String &shader_filename) { BaseShader::init_compute(shader_filename); }
+void  CRTShader::set_curvature(float curvature) { m_curvature = curvature; }
+float CRTShader::get_curvature() const { return m_curvature; }
+void  CRTShader::set_vignette_mul(float vignette_mul) { m_vignette_mul = vignette_mul; }
+float CRTShader::get_vignette_mul() const { return m_vignette_mul; }
+void  CRTShader::set_brightness(float brightness) { m_brightness = brightness; }
+float CRTShader::get_brightness() const { return m_brightness; }
