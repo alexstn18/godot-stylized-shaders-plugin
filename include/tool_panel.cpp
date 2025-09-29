@@ -1,5 +1,5 @@
 #include "tool_panel.hpp"
-#include "crt_shader.hpp"
+#include "slider_container.hpp"
 #include "godot_cpp/classes/check_button.hpp"
 #include "godot_cpp/classes/directional_light3d.hpp"
 #include "godot_cpp/classes/h_box_container.hpp"
@@ -20,7 +20,6 @@
 #include <godot_cpp/classes/color_picker.hpp>
 #include <godot_cpp/classes/check_box.hpp>
 
-#define CONTROL_QUEUE_FREE(T) if(T) { T->queue_free(); T = nullptr; }
 #define ADD_EFFECT(T) m_effect_arr->add_effect(T);
 #define REMOVE_EFFECT(T) m_effect_arr->remove_effect(T);
 
@@ -181,9 +180,7 @@ void ToolPanel::_process(double delta)
 
 void ToolPanel::_on_cel_toggled(bool toggled_on)
 {
-    static VBoxContainer *levels_container = nullptr;
-    static Label *levels_label = nullptr;
-    static HSlider *levels_slider = nullptr;
+    static SliderContainer *container = nullptr;
     
     m_cel->set_enabled(toggled_on);
 
@@ -191,33 +188,22 @@ void ToolPanel::_on_cel_toggled(bool toggled_on)
     {
         ADD_EFFECT(m_cel);
 
-        levels_container = memnew(VBoxContainer);
-        levels_label = memnew(Label);
-        levels_slider = memnew(HSlider);
+        container = memnew(SliderContainer);
+        container->set_label_text("Levels");
+        container->set_slider_step(1.0);
+        container->set_slider_min(2.0);
+        container->set_slider_max(32.0);
+        container->connect_to_slider(callable_mp(m_cel.ptr(), &CelShader::set_levels));
 
-        levels_label->set_text("Levels");
-        levels_slider->set_step(1.0);
-        levels_slider->set_min(2.0);
-        levels_slider->set_max(32.0);
-        levels_slider->connect("value_changed", callable_mp(m_cel.ptr(), &CelShader::set_levels));
-
-        levels_container->add_child(levels_label);
-        levels_container->add_child(levels_slider);
-        add_child(levels_container);
+        add_child(container);
 
         UtilityFunctions::print("Cel toggled on");
     }
     else 
     {
         REMOVE_EFFECT(m_cel);
-
-        levels_container->remove_child(levels_slider);
-        levels_container->remove_child(levels_label);
-        remove_child(levels_container);
-
-        CONTROL_QUEUE_FREE(levels_slider);
-        CONTROL_QUEUE_FREE(levels_label);
-        CONTROL_QUEUE_FREE(levels_container);
+        remove_child(container);
+        CONTROL_QUEUE_FREE(container);
         UtilityFunctions::print("Cel toggled off");
         
     }
@@ -225,18 +211,10 @@ void ToolPanel::_on_cel_toggled(bool toggled_on)
 
 void ToolPanel::_on_outline_toggled(bool toggled_on)
 {
-    static VBoxContainer *width_container = nullptr;
-    static VBoxContainer *mul_container = nullptr;
-    static VBoxContainer *amp_container = nullptr;
-    static VBoxContainer *freq_container = nullptr;
-    static Label *width_label = nullptr;
-    static Label *mul_label = nullptr;
-    static Label *amp_label = nullptr;
-    static Label *freq_label = nullptr;
-    static HSlider *width_slider = nullptr;
-    static HSlider *mul_slider = nullptr;
-    static HSlider *amp_slider = nullptr;
-    static HSlider *freq_slider = nullptr;
+    static SliderContainer *width_container = nullptr;
+    static SliderContainer *mul_container = nullptr;
+    static SliderContainer *amp_container = nullptr;
+    static SliderContainer *freq_container = nullptr;
     static ColorPicker *color_picker = nullptr;
     static CheckBox *check_box = nullptr;
     
@@ -245,60 +223,44 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
     {
         ADD_EFFECT(m_outline);
         
-        width_container = memnew(VBoxContainer);
-        width_label = memnew(Label);
-        width_slider = memnew(HSlider);
-        mul_container = memnew(VBoxContainer);
-        mul_label = memnew(Label);
-        mul_slider = memnew(HSlider);
-        amp_container = memnew(VBoxContainer);
-        amp_label = memnew(Label);
-        amp_slider = memnew(HSlider);
-        freq_container = memnew(VBoxContainer);
-        freq_label = memnew(Label);
-        freq_slider = memnew(HSlider);
+        width_container = memnew(SliderContainer);
+        mul_container = memnew(SliderContainer);
+        amp_container = memnew(SliderContainer);
+        freq_container = memnew(SliderContainer);
         color_picker = memnew(ColorPicker);
         check_box = memnew(CheckBox);
         
-        width_label->set_text("Outline Width");
-        mul_label->set_text("Outline Width Step");
-        amp_label->set_text("Jitter Amplitude");
-        freq_label->set_text("Jitter Frequency");
+        width_container->set_label_text("Outline Width");
+        mul_container->set_label_text("Outline Width Step");
+        amp_container->set_label_text("Jitter Amplitude");
+        freq_container->set_label_text("Jitter Frequency");
         check_box->set_text("Jitter");
 
-        width_slider->set_step(0.001);
-        width_slider->set_min(0.0);
-        width_slider->set_max(0.01);
-        width_slider->connect("value_changed", callable_mp(m_outline.ptr(), &OutlineShader::set_outline_width));
-        width_container->add_child(width_label);
-        width_container->add_child(width_slider);
+        width_container->set_slider_step(0.001);
+        width_container->set_slider_min(0.0);
+        width_container->set_slider_max(0.01);
+        width_container->connect_to_slider(callable_mp(m_outline.ptr(), &OutlineShader::set_outline_width));
         add_child(width_container);
 
-        mul_slider->set_step(0.01);
-        mul_slider->set_min(0.01);
-        mul_slider->set_max(1.0);
-        mul_slider->connect("value_changed", callable_mp(m_outline.ptr(), &OutlineShader::set_outline_mul));
-        mul_container->add_child(mul_label);
-        mul_container->add_child(mul_slider);
+        mul_container->set_slider_step(0.01);
+        mul_container->set_slider_min(0.01);
+        mul_container->set_slider_max(1.0);
+        mul_container->connect_to_slider(callable_mp(m_outline.ptr(), &OutlineShader::set_outline_mul));
         add_child(mul_container);
         
         check_box->connect("toggled", callable_mp(m_outline.ptr(), &OutlineShader::set_jitter));
         add_child(check_box);
 
-        amp_slider->set_step(0.01);
-        amp_slider->set_min(0.01);
-        amp_slider->set_max(0.1);
-        amp_slider->connect("value_changed", callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_amp));
-        amp_container->add_child(amp_label);
-        amp_container->add_child(amp_slider);
+        amp_container->set_slider_step(0.01);
+        amp_container->set_slider_min(0.01);
+        amp_container->set_slider_max(0.1);
+        amp_container->connect_to_slider(callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_amp));
         add_child(amp_container);
         
-        freq_slider->set_step(0.01);
-        freq_slider->set_min(0.01);
-        freq_slider->set_max(0.1);
-        freq_slider->connect("value_changed", callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_freq));
-        freq_container->add_child(freq_label);
-        freq_container->add_child(freq_slider);
+        freq_container->set_slider_step(0.01);
+        freq_container->set_slider_min(0.01);
+        freq_container->set_slider_max(0.1);
+        freq_container->connect_to_slider(callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_freq));
         add_child(freq_container);
         
         color_picker->connect("color_changed", callable_mp(m_outline.ptr(), &OutlineShader::set_outline_color));
@@ -310,18 +272,6 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
     {
         REMOVE_EFFECT(m_outline);
         
-        width_container->remove_child(width_label);
-        width_container->remove_child(width_slider);
-        
-        mul_container->remove_child(mul_label);
-        mul_container->remove_child(mul_slider);
-        
-        amp_container->remove_child(amp_label);
-        amp_container->remove_child(amp_slider);
-        
-        freq_container->remove_child(freq_label);
-        freq_container->remove_child(freq_slider);
-        
         remove_child(width_container);
         remove_child(mul_container);
         remove_child(amp_container);
@@ -329,14 +279,6 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         remove_child(check_box);
         remove_child(color_picker);
         
-        CONTROL_QUEUE_FREE(width_label);
-        CONTROL_QUEUE_FREE(mul_label);
-        CONTROL_QUEUE_FREE(width_slider);
-        CONTROL_QUEUE_FREE(mul_slider);
-        CONTROL_QUEUE_FREE(amp_label);
-        CONTROL_QUEUE_FREE(freq_label);
-        CONTROL_QUEUE_FREE(amp_slider);
-        CONTROL_QUEUE_FREE(freq_slider);
         CONTROL_QUEUE_FREE(check_box);
         CONTROL_QUEUE_FREE(color_picker);
         CONTROL_QUEUE_FREE(width_container);
@@ -367,58 +309,36 @@ void ToolPanel::_on_posterize_toggled(bool toggled_on)
 {
     m_crt->set_enabled(toggled_on);
     
-    static VBoxContainer *curvature_container    = nullptr;
-    static VBoxContainer *vignette_mul_container = nullptr;
-    static VBoxContainer *brightness_container   = nullptr;
-    static Label         *curvature_label        = nullptr;
-    static Label         *vignette_mul_label     = nullptr;
-    static Label         *brightness_label       = nullptr;
-    static HSlider       *curvature_slider       = nullptr;
-    static HSlider       *vignette_mul_slider    = nullptr;
-    static HSlider       *brightness_slider      = nullptr;
+    static SliderContainer *curvature_container    = nullptr;
+    static SliderContainer *vignette_mul_container = nullptr;
+    static SliderContainer *brightness_container   = nullptr;
+
     if(toggled_on)
     {
         ADD_EFFECT(m_crt);
         
-        curvature_container = memnew(VBoxContainer);
-        vignette_mul_container = memnew(VBoxContainer);
-        brightness_container = memnew(VBoxContainer);
+        curvature_container = memnew(SliderContainer);
+        vignette_mul_container = memnew(SliderContainer);
+        brightness_container = memnew(SliderContainer);
         
-        curvature_label = memnew(Label);
-        vignette_mul_label = memnew(Label);
-        brightness_label = memnew(Label);
+        curvature_container->set_label_text("Curvature");
+        vignette_mul_container->set_label_text("Vignette Multiplier");
+        brightness_container->set_label_text("Brightness");
         
-        curvature_slider = memnew(HSlider);
-        vignette_mul_slider = memnew(HSlider);
-        brightness_slider = memnew(HSlider);
+        curvature_container->set_slider_step(1.0);
+        curvature_container->set_slider_min(0.0);
+        curvature_container->set_slider_max(10.0);
+        curvature_container->connect_to_slider(callable_mp(m_crt.ptr(), &CRTShader::set_curvature));
         
-        curvature_label->set_text("Curvature");
-        vignette_mul_label->set_text("Vignette Multiplier");
-        brightness_label->set_text("Brightness");
+        vignette_mul_container->set_slider_step(1.0);
+        vignette_mul_container->set_slider_min(0.0);
+        vignette_mul_container->set_slider_max(10.0);
+        vignette_mul_container->connect_to_slider(callable_mp(m_crt.ptr(), &CRTShader::set_vignette_mul));
         
-        curvature_slider->set_step(1.0);
-        curvature_slider->set_min(0.0);
-        curvature_slider->set_max(10.0);
-        curvature_slider->connect("value_changed", callable_mp(m_crt.ptr(), &CRTShader::set_curvature));
-        
-        vignette_mul_slider->set_step(1.0);
-        vignette_mul_slider->set_min(0.0);
-        vignette_mul_slider->set_max(10.0);
-        vignette_mul_slider->connect("value_changed", callable_mp(m_crt.ptr(), &CRTShader::set_vignette_mul));
-        
-        brightness_slider->set_step(0.1);
-        brightness_slider->set_min(0.0);
-        brightness_slider->set_max(10.0);
-        brightness_slider->connect("value_changed", callable_mp(m_crt.ptr(), &CRTShader::set_brightness));
-        
-        curvature_container->add_child(curvature_label);
-        curvature_container->add_child(curvature_slider);
-        
-        vignette_mul_container->add_child(vignette_mul_label);
-        vignette_mul_container->add_child(vignette_mul_slider);
-        
-        brightness_container->add_child(brightness_label);
-        brightness_container->add_child(brightness_slider);
+        brightness_container->set_slider_step(0.1);
+        brightness_container->set_slider_min(0.0);
+        brightness_container->set_slider_max(10.0);
+        brightness_container->connect_to_slider(callable_mp(m_crt.ptr(), &CRTShader::set_brightness));
 
         add_child(curvature_container);
         add_child(vignette_mul_container);
@@ -431,13 +351,6 @@ void ToolPanel::_on_posterize_toggled(bool toggled_on)
     {
         REMOVE_EFFECT(m_crt);
 
-        curvature_container->remove_child(curvature_label);
-        curvature_container->remove_child(curvature_slider);
-        vignette_mul_container->remove_child(vignette_mul_label);
-        vignette_mul_container->remove_child(vignette_mul_slider);
-        brightness_container->remove_child(brightness_label);
-        brightness_container->remove_child(brightness_slider);
-
         remove_child(curvature_container);
         remove_child(vignette_mul_container);
         remove_child(brightness_container);
@@ -445,15 +358,8 @@ void ToolPanel::_on_posterize_toggled(bool toggled_on)
         CONTROL_QUEUE_FREE(curvature_container);   
         CONTROL_QUEUE_FREE(vignette_mul_container);
         CONTROL_QUEUE_FREE(brightness_container);  
-        CONTROL_QUEUE_FREE(curvature_label);       
-        CONTROL_QUEUE_FREE(vignette_mul_label);    
-        CONTROL_QUEUE_FREE(brightness_label);      
-        CONTROL_QUEUE_FREE(curvature_slider);      
-        CONTROL_QUEUE_FREE(vignette_mul_slider);   
-        CONTROL_QUEUE_FREE(brightness_slider);     
 
         UtilityFunctions::print("Posterize toggled off");
-    
     }
 }
 
