@@ -13,14 +13,7 @@ SliderContainer::SliderContainer()
     add_child(m_slider);
 }
 
-SliderContainer::~SliderContainer()
-{
-    // remove_child(m_slider);
-    // remove_child(m_label);
-
-    // CONTROL_QUEUE_FREE(m_slider);
-    // CONTROL_QUEUE_FREE(m_label);
-}
+SliderContainer::~SliderContainer() {}
 
 void SliderContainer::set_label_text(const String &text)
 {
