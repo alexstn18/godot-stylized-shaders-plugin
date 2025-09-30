@@ -39,9 +39,13 @@ text = "Outline Shader"
 layout_mode = 2
 text = "Invert Color"
 
-[node name="PosterizeToggle" type="CheckButton" parent="ToggleContainer"]
+[node name="CRTToggle" type="CheckButton" parent="ToggleContainer"]
 layout_mode = 2
-text = "Posterize"
+text = "CRT Effect"
+
+[node name="PSXToggle" type="CheckButton" parent="ToggleContainer"]
+layout_mode = 2
+text = "PS1 Effect"
 
 [node name="HSeparator2" type="HSeparator" parent="."]
 layout_mode = 2

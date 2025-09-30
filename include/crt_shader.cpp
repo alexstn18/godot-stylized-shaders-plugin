@@ -6,7 +6,7 @@
 
 void CRTShader::_bind_methods()
 {
-    ClassDB::bind_method(D_METHOD("init_compute"), &CRTShader::init_compute);
+    
 }
 
 CRTShader::CRTShader()

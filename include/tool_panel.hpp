@@ -20,6 +20,7 @@
 #include "outline_shader.hpp"
 #include "cel_shader.hpp"
 #include "crt_shader.hpp"
+#include "psx_shader.hpp"
 
 using namespace godot;
 
@@ -38,7 +39,8 @@ private:
     CheckButton *m_cel_toggle = nullptr;
     CheckButton *m_outline_toggle = nullptr;
     CheckButton *m_invert_toggle = nullptr;
-    CheckButton *m_posterize_toggle = nullptr;
+    CheckButton *m_crt_toggle = nullptr;
+    CheckButton *m_psx_toggle = nullptr;
     ItemList *m_effect_list = nullptr;
 
     // Compositor-related
@@ -48,6 +50,7 @@ private:
     Ref<OutlineShader> m_outline;
     Ref<CelShader> m_cel;
     Ref<CRTShader> m_crt;
+    Ref<PSXShader> m_psx;
     Ref<EffectArray> m_effect_arr;
     TypedArray<Ref<CompositorEffect>> m_cmp_arr;
 
@@ -68,6 +71,7 @@ public:
     void _on_cel_toggled(bool toggled_on);
     void _on_outline_toggled(bool toggled_on);
     void _on_invert_toggled(bool toggled_on);
-    void _on_posterize_toggled(bool toggled_on);
+    void _on_crt_toggled(bool toggled_on);
+    void _on_psx_toggled(bool toggled_on);
     void set_edited_scene_root(Node *edited_scene_root);
 };
