@@ -17,8 +17,7 @@ class BaseShader : public CompositorEffect
 
 private:
     String m_addon_path = "res://addons/GodotStylizedShadersPlugin/shaders/";
-    // TypedArray<Callable> m_uniform_callables;
-    std::vector<Callable> m_uniform_callables;
+    TypedArray<Callable> m_uniform_callables;
     protected:
     RID m_shader;
     RID m_pipeline;

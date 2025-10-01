@@ -108,20 +108,11 @@ void BaseShader::base_compute_update(int32_t p_effect_callback_type,
                 auto compute_list = m_device->compute_list_begin();
                 m_device->compute_list_bind_compute_pipeline(compute_list, m_pipeline);
                 m_device->compute_list_bind_uniform_set(compute_list, image_uniform_set, 0);
-                
-                for(Callable &c : m_uniform_callables)
-                {
-                    c.call(m_device, uniform, compute_list, i);
-                }
 
-                // for(auto& v: m_uniform_callables)
-                // {
-                //     Object *obj = v.get_validated_object();
-                //     if(Callable *c = Object::cast_to<Callable>(obj))
-                //     {
-                //         c->call(m_device, uniform, compute_list, i);
-                //     }
-                // }
+                for(auto& item: m_uniform_callables)
+                {
+                    Callable c(item); c.call(m_device, uniform, compute_list, i);
+                }
 
                 m_device->compute_list_set_push_constant(compute_list, push_constant.to_byte_array(), push_constant.size() * 4);
                 m_device->compute_list_dispatch(compute_list, x_groups, y_groups, 1);
