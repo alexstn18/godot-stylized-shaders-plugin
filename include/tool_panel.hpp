@@ -20,6 +20,7 @@
 #include "cel_shader.hpp"
 #include "crt_shader.hpp"
 #include "dither_shader.hpp"
+#include "pixel_shader.hpp"
 
 using namespace godot;
 
@@ -39,6 +40,7 @@ private:
     CheckButton  *m_invert_toggle    = nullptr;
     CheckButton  *m_crt_toggle       = nullptr;
     CheckButton  *m_dither_toggle    = nullptr;
+    CheckButton  *m_pixel_toggle     = nullptr;
     ItemList     *m_effect_list      = nullptr;
 
     // Compositor-related
@@ -49,6 +51,7 @@ private:
     Ref<CelShader> m_cel;
     Ref<CRTShader> m_crt;
     Ref<DitherShader> m_dither;
+    Ref<PixelShader> m_pixel;
     Ref<EffectArray> m_effect_arr;
 
     // Other
@@ -70,5 +73,6 @@ public:
     void _on_invert_toggled(bool toggled_on);
     void _on_crt_toggled(bool toggled_on);
     void _on_dither_toggled(bool toggled_on);
+    void _on_pixel_toggled(bool toggled_on);
     void set_edited_scene_root(Node *edited_scene_root);
 };

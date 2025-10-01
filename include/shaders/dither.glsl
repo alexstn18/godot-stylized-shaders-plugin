@@ -21,8 +21,11 @@ const float bayer_matrix[4][4] = float[4][4](
 void main()
 {
     ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
-    float bayer_val = bayer_matrix[pixel.x%4][pixel.y%4] / 16.;
     vec2 size = params.raster_size;
+
+    if(pixel.x >= size.x || pixel.y >= size.y) return;
+
+    float bayer_val = bayer_matrix[pixel.x%4][pixel.y%4] / 16.;
     vec3 screen_tex = imageLoad(color_image, pixel).rgb;
     screen_tex = vec3(pow(screen_tex.rgb, vec3(params.gamma_correction)) - 0.004);
     vec3 col = vec3(step(bayer_val, screen_tex.r), step(bayer_val, screen_tex.g), step(bayer_val, screen_tex.b));

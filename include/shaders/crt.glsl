@@ -18,6 +18,9 @@ void main()
 {
     ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
 	vec2 size = params.raster_size;
+
+    if(pixel.x >= size.x || pixel.y >= size.y) return;
+
     vec2 uv = pixel / size;
 
     vec2 centered_uv = uv * 2. - 1.;

@@ -1,4 +1,5 @@
 #include "tool_panel.hpp"
+#include "pixel_shader.hpp"
 #include "slider_container.hpp"
 #include "godot_cpp/classes/check_button.hpp"
 #include "godot_cpp/classes/directional_light3d.hpp"
@@ -19,6 +20,8 @@
 #include <godot_cpp/classes/h_slider.hpp>
 #include <godot_cpp/classes/color_picker.hpp>
 #include <godot_cpp/classes/check_box.hpp>
+#include <godot_cpp/classes/spin_box.hpp>
+#include <godot_cpp/classes/display_server.hpp>
 
 #define ADD_EFFECT(T) m_effect_arr->add_effect(T);
 #define REMOVE_EFFECT(T) m_effect_arr->remove_effect(T);
@@ -30,6 +33,7 @@ void ToolPanel::_bind_methods()
     ClassDB::bind_method(D_METHOD("_on_invert_toggled"), &ToolPanel::_on_invert_toggled);
     ClassDB::bind_method(D_METHOD("_on_crt_toggled"), &ToolPanel::_on_crt_toggled);
     ClassDB::bind_method(D_METHOD("_on_dither_toggled"), &ToolPanel::_on_dither_toggled);
+    ClassDB::bind_method(D_METHOD("_on_pixel_toggled"), &ToolPanel::_on_pixel_toggled);
 }
 
 ToolPanel::~ToolPanel()
@@ -51,6 +55,7 @@ void ToolPanel::_ready()
     m_cel.instantiate();
     m_crt.instantiate();
     m_dither.instantiate();
+    m_pixel.instantiate();
     
     /// Get UI nodes
     // ApplyToContainer
@@ -61,6 +66,7 @@ void ToolPanel::_ready()
     m_invert_toggle = get_node<CheckButton>("ToggleContainer/InvertToggle");
     m_crt_toggle = get_node<CheckButton>("ToggleContainer/CRTToggle");
     m_dither_toggle = get_node<CheckButton>("ToggleContainer/DitherToggle");
+    m_pixel_toggle = get_node<CheckButton>("ToggleContainer/PixelToggle");
     
     // root
     m_effect_list = get_node<ItemList>("EffectList");
@@ -72,6 +78,7 @@ void ToolPanel::_ready()
     ERR_FAIL_COND_MSG(!m_invert_toggle, "ERROR: Could not find InvertToggle node!");
     ERR_FAIL_COND_MSG(!m_crt_toggle, "ERROR: Could not find CRTToggle node!");
     ERR_FAIL_COND_MSG(!m_dither_toggle, "ERROR: Could not find DitherToggle node!");
+    ERR_FAIL_COND_MSG(!m_pixel_toggle, "ERROR: Could not find PixelToggle node!");
     ERR_FAIL_COND_MSG(!m_effect_list, "ERROR: Could not find EffectList node!");
 
     /// Connect to signals
@@ -80,6 +87,7 @@ void ToolPanel::_ready()
     m_invert_toggle->connect("toggled", Callable(this, "_on_invert_toggled"));
     m_crt_toggle->connect("toggled", Callable(this, "_on_crt_toggled"));
     m_dither_toggle->connect("toggled", Callable(this, "_on_dither_toggled"));
+    m_pixel_toggle->connect("toggled", Callable(this, "_on_pixel_toggled"));
 }
 
 void ToolPanel::_process(double delta)
@@ -98,17 +106,20 @@ void ToolPanel::_process(double delta)
             m_camera3d_option_index = -1;
             m_world_environment_option_index = -1;
 
+            // Traverse the current edited scene's children
             for(const auto& child : m_edited_scene_root->get_children())
             {
                 Object *child_obj = child.get_validated_object();
                 ERR_CONTINUE_MSG(!child_obj, "ERROR: Could not get valid object from node");
     
+                // Checking to see if a Camera3D Object is a child in the tree scene, as we need it
                 if(Camera3D *c3d = Object::cast_to<Camera3D>(child_obj))
                 {
                     m_camera3d = c3d;
                     UtilityFunctions::print("Found Camera3D node in edited scene!");
                 }
                 
+                // Checking to see if a WorldEnvironment Object is a child in the tree scene, as we need it
                 if(WorldEnvironment *w_env = Object::cast_to<WorldEnvironment>(child_obj))
                 {
                     m_world_environment = w_env;
@@ -392,6 +403,59 @@ void ToolPanel::_on_dither_toggled(bool toggled_on)
         CONTROL_QUEUE_FREE(dither_container);
 
         UtilityFunctions::print("Dither toggled off");
+    }
+}
+
+void ToolPanel::_on_pixel_toggled(bool toggled_on)
+{
+    m_pixel->set_enabled(toggled_on);
+
+    static HBoxContainer *resolution_container = nullptr;
+    static Label         *label                = nullptr;
+    static SpinBox       *width_spin_box       = nullptr;
+    static SpinBox       *height_spin_box      = nullptr;
+
+    if(toggled_on)
+    {
+        ADD_EFFECT(m_pixel);
+
+        resolution_container = memnew(HBoxContainer);
+        label = memnew(Label);
+        width_spin_box = memnew(SpinBox);
+        height_spin_box = memnew(SpinBox);
+
+        label->set_text("Target Width and Height");
+        width_spin_box->set_step(1.);
+        width_spin_box->set_min(1.);
+        width_spin_box->set_max((double)DisplayServer::get_singleton()->screen_get_size().x);
+        width_spin_box->connect("value_changed", callable_mp(m_pixel.ptr(), &PixelShader::set_target_width));
+        height_spin_box->connect("value_changed", callable_mp(m_pixel.ptr(), &PixelShader::set_target_height));
+        height_spin_box->set_step(1.);
+        height_spin_box->set_min(1.);
+        height_spin_box->set_max((double)DisplayServer::get_singleton()->screen_get_size().y);
+
+        resolution_container->add_child(label);
+        resolution_container->add_child(width_spin_box);
+        resolution_container->add_child(height_spin_box);
+        add_child(resolution_container);
+
+        UtilityFunctions::print("Pixelization effect toggled on");
+    }
+    else
+    {
+        REMOVE_EFFECT(m_pixel);
+
+        resolution_container->remove_child(height_spin_box);
+        resolution_container->remove_child(width_spin_box);
+        resolution_container->remove_child(label);
+        remove_child(resolution_container);
+
+        CONTROL_QUEUE_FREE(height_spin_box);
+        CONTROL_QUEUE_FREE(width_spin_box);
+        CONTROL_QUEUE_FREE(label);
+        CONTROL_QUEUE_FREE(resolution_container);
+
+        UtilityFunctions::print("Pixelization effect toggled off");
     }
 }
 

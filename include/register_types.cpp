@@ -13,6 +13,7 @@
 #include "outline_shader.hpp"
 #include "crt_shader.hpp"
 #include "dither_shader.hpp"
+#include "pixel_shader.hpp"
 #include "cel_shader.hpp"
 #include "plugin_ui.hpp"
 #include "tool_panel.hpp"
@@ -46,6 +47,7 @@ void initialize_shader_plugin(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(CelShader);
     GDREGISTER_CLASS(CRTShader);
     GDREGISTER_CLASS(DitherShader);
+    GDREGISTER_CLASS(PixelShader);
 }
 
 void uninitialize_shader_plugin(ModuleInitializationLevel p_level)
