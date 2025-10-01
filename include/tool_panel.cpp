@@ -1,4 +1,5 @@
 #include "tool_panel.hpp"
+#include "godot_cpp/variant/color.hpp"
 #include "pixel_shader.hpp"
 #include "slider_container.hpp"
 #include "godot_cpp/classes/check_button.hpp"
@@ -229,6 +230,8 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
     static SliderContainer   *mul_container   = nullptr;
     static SliderContainer   *amp_container   = nullptr;
     static SliderContainer   *freq_container  = nullptr;
+    static HBoxContainer     *color_container = nullptr;
+    static Label             *color_label     = nullptr;
     static ColorPickerButton *color_picker    = nullptr;
     static CheckBox          *check_box       = nullptr;
     
@@ -242,6 +245,8 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         mul_container = memnew(SliderContainer);
         amp_container = memnew(SliderContainer);
         freq_container = memnew(SliderContainer);
+        color_container = memnew(HBoxContainer);
+        color_label = memnew(Label);
         color_picker = memnew(ColorPickerButton);
         check_box = memnew(CheckBox);
         
@@ -280,10 +285,12 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         freq_container->connect_to_slider(callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_freq));
         base_container->add_child(freq_container);
         
-        // TODO: Add label here (with the text from below)
-        color_picker->set_text("Open Color Picker"); 
+        color_picker->set_text("Color Picker Button");
         color_picker->connect("color_changed", callable_mp(m_outline.ptr(), &OutlineShader::set_outline_color));
-        base_container->add_child(color_picker);
+        color_label->set_text("Open Color Picker"); 
+        color_container->add_child(color_label);
+        color_container->add_child(color_picker);
+        base_container->add_child(color_container);
         
         m_tab_container->add_child(base_container);
 
@@ -298,12 +305,17 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         base_container->remove_child(amp_container);
         base_container->remove_child(freq_container);
         base_container->remove_child(check_box);
-        base_container->remove_child(color_picker);
+        base_container->remove_child(color_container);
         
+        color_container->remove_child(color_label);
+        color_container->remove_child(color_picker);
+
         m_tab_container->remove_child(base_container);
 
         CONTROL_QUEUE_FREE(check_box);
         CONTROL_QUEUE_FREE(color_picker);
+        CONTROL_QUEUE_FREE(color_label);
+        CONTROL_QUEUE_FREE(color_container);
         CONTROL_QUEUE_FREE(width_container);
         CONTROL_QUEUE_FREE(mul_container);
         CONTROL_QUEUE_FREE(amp_container);

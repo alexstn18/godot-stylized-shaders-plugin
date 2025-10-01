@@ -18,7 +18,7 @@ private:
 
     Color m_outline_color = Color(0.0f, 0.0f, 0.0f);
     float m_outline_width = .002f;
-    float m_outline_mul = .01f;
+    float m_outline_mul = .04f;
     float m_jitter_amp = .01f;
     float m_jitter_freq = .002f;
     float m_dt = .0f;
