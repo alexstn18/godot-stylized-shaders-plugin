@@ -1,5 +1,4 @@
 #include "tool_panel.hpp"
-#include "psx_shader.hpp"
 #include "slider_container.hpp"
 #include "godot_cpp/classes/check_button.hpp"
 #include "godot_cpp/classes/directional_light3d.hpp"
@@ -30,20 +29,17 @@ void ToolPanel::_bind_methods()
     ClassDB::bind_method(D_METHOD("_on_outline_toggled"), &ToolPanel::_on_outline_toggled);
     ClassDB::bind_method(D_METHOD("_on_invert_toggled"), &ToolPanel::_on_invert_toggled);
     ClassDB::bind_method(D_METHOD("_on_crt_toggled"), &ToolPanel::_on_crt_toggled);
-    ClassDB::bind_method(D_METHOD("_on_psx_toggled"), &ToolPanel::_on_psx_toggled);
+    ClassDB::bind_method(D_METHOD("_on_dither_toggled"), &ToolPanel::_on_dither_toggled);
 }
 
 ToolPanel::~ToolPanel()
 {
-    remove_child(m_inspector);
-
     CONTROL_QUEUE_FREE(m_apply_option_btn);
     CONTROL_QUEUE_FREE(m_cel_toggle);
     CONTROL_QUEUE_FREE(m_outline_toggle);
     CONTROL_QUEUE_FREE(m_invert_toggle);
     CONTROL_QUEUE_FREE(m_crt_toggle);
     CONTROL_QUEUE_FREE(m_effect_list);
-    CONTROL_QUEUE_FREE(m_inspector);
 }
 
 void ToolPanel::_ready()
@@ -54,7 +50,7 @@ void ToolPanel::_ready()
     m_outline.instantiate();
     m_cel.instantiate();
     m_crt.instantiate();
-    m_psx.instantiate();
+    m_dither.instantiate();
     
     /// Get UI nodes
     // ApplyToContainer
@@ -64,7 +60,7 @@ void ToolPanel::_ready()
     m_outline_toggle = get_node<CheckButton>("ToggleContainer/OutlineToggle");
     m_invert_toggle = get_node<CheckButton>("ToggleContainer/InvertToggle");
     m_crt_toggle = get_node<CheckButton>("ToggleContainer/CRTToggle");
-    m_psx_toggle = get_node<CheckButton>("ToggleContainer/PSXToggle");
+    m_dither_toggle = get_node<CheckButton>("ToggleContainer/DitherToggle");
     
     // root
     m_effect_list = get_node<ItemList>("EffectList");
@@ -75,7 +71,7 @@ void ToolPanel::_ready()
     ERR_FAIL_COND_MSG(!m_outline_toggle, "ERROR: Could not find OutlineToggle node!");
     ERR_FAIL_COND_MSG(!m_invert_toggle, "ERROR: Could not find InvertToggle node!");
     ERR_FAIL_COND_MSG(!m_crt_toggle, "ERROR: Could not find CRTToggle node!");
-    ERR_FAIL_COND_MSG(!m_psx_toggle, "ERROR: Could not find PSXToggle node!");
+    ERR_FAIL_COND_MSG(!m_dither_toggle, "ERROR: Could not find DitherToggle node!");
     ERR_FAIL_COND_MSG(!m_effect_list, "ERROR: Could not find EffectList node!");
 
     /// Connect to signals
@@ -83,11 +79,7 @@ void ToolPanel::_ready()
     m_outline_toggle->connect("toggled", Callable(this, "_on_outline_toggled"));
     m_invert_toggle->connect("toggled", Callable(this, "_on_invert_toggled"));
     m_crt_toggle->connect("toggled", Callable(this, "_on_crt_toggled"));
-    m_psx_toggle->connect("toggled", Callable(this, "_on_psx_toggled"));
-
-    m_inspector = memnew(EditorInspector);
-    m_inspector->edit(m_effect_arr.ptr());
-    add_child(m_inspector);
+    m_dither_toggle->connect("toggled", Callable(this, "_on_dither_toggled"));
 }
 
 void ToolPanel::_process(double delta)
@@ -181,8 +173,8 @@ void ToolPanel::_process(double delta)
                 }
             }
         }
-        if(m_outline.is_valid()) m_outline->set_dt(delta);
     }
+    if(m_outline.is_valid()) m_outline->set_dt(delta);
 }
 
 void ToolPanel::_on_cel_toggled(bool toggled_on)
@@ -219,11 +211,11 @@ void ToolPanel::_on_cel_toggled(bool toggled_on)
 void ToolPanel::_on_outline_toggled(bool toggled_on)
 {
     static SliderContainer *width_container = nullptr;
-    static SliderContainer *mul_container = nullptr;
-    static SliderContainer *amp_container = nullptr;
-    static SliderContainer *freq_container = nullptr;
-    static ColorPicker *color_picker = nullptr;
-    static CheckBox *check_box = nullptr;
+    static SliderContainer *mul_container   = nullptr;
+    static SliderContainer *amp_container   = nullptr;
+    static SliderContainer *freq_container  = nullptr;
+    static ColorPicker     *color_picker    = nullptr;
+    static CheckBox        *check_box       = nullptr;
     
     m_outline->set_enabled(toggled_on);
     if(toggled_on)
@@ -369,37 +361,37 @@ void ToolPanel::_on_crt_toggled(bool toggled_on)
     }
 }
 
-void ToolPanel::_on_psx_toggled(bool toggled_on)
+void ToolPanel::_on_dither_toggled(bool toggled_on)
 {
-    m_psx->set_enabled(toggled_on);
+    m_dither->set_enabled(toggled_on);
 
     static SliderContainer *dither_container = nullptr;
 
     if(toggled_on)
     {
-        ADD_EFFECT(m_psx);
+        ADD_EFFECT(m_dither);
 
         dither_container = memnew(SliderContainer);
         
-        dither_container->set_label_text("Dither Amount");
+        dither_container->set_label_text("Gamma Correction Amount");
         dither_container->set_slider_step(0.1);
-        dither_container->set_slider_min(0.0);
-        dither_container->set_slider_max(1.0);
-        dither_container->connect_to_slider(callable_mp(m_psx.ptr(), &PSXShader::set_dither_amount));
+        dither_container->set_slider_min(-0.5);
+        dither_container->set_slider_max(3.0);
+        dither_container->connect_to_slider(callable_mp(m_dither.ptr(), &DitherShader::set_gamma_correction));
 
         add_child(dither_container);
 
-        UtilityFunctions::print("PSX toggled on");
+        UtilityFunctions::print("Dither toggled on");
     }
     else 
     {
-        REMOVE_EFFECT(m_psx);
+        REMOVE_EFFECT(m_dither);
 
         remove_child(dither_container);
 
         CONTROL_QUEUE_FREE(dither_container);
 
-        UtilityFunctions::print("PSX toggled off");
+        UtilityFunctions::print("Dither toggled off");
     }
 }
 

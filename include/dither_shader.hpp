@@ -5,23 +5,23 @@
 
 using namespace godot;
 
-class PSXShader : public BaseShader
+class DitherShader : public BaseShader
 {
-    GDCLASS(PSXShader, BaseShader);
+    GDCLASS(DitherShader, BaseShader);
 
 private:
     void init_compute(const String &shader_filename) override;
 
-    float m_dither_amount = 0.5f;
+    float m_gamma_correction = 2.2f;
 protected:
     static void _bind_methods();
 public:
-    PSXShader();
-    ~PSXShader();
+    DitherShader();
+    ~DitherShader();
 
     void _notification(int what) override;
     void _render_callback(int32_t, RenderData *) override;
 
-    void set_dither_amount(float dither_amount);
-    float get_dither_amount() const;
+    void set_gamma_correction(float gamma_correction);
+    float get_gamma_correction() const;
 };

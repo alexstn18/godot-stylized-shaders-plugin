@@ -13,14 +13,13 @@
 #include <godot_cpp/classes/world_environment.hpp>
 #include <godot_cpp/classes/compositor.hpp>
 #include <godot_cpp/classes/compositor_effect.hpp>
-#include <godot_cpp/classes/editor_inspector.hpp>
 
 #include "effect_array.hpp"
 #include "invert_shader.hpp"
 #include "outline_shader.hpp"
 #include "cel_shader.hpp"
 #include "crt_shader.hpp"
-#include "psx_shader.hpp"
+#include "dither_shader.hpp"
 
 using namespace godot;
 
@@ -34,14 +33,13 @@ class ToolPanel : public VBoxContainer
 
 private:
     // UI
-    EditorInspector *m_inspector = nullptr;
     OptionButton *m_apply_option_btn = nullptr;
-    CheckButton *m_cel_toggle = nullptr;
-    CheckButton *m_outline_toggle = nullptr;
-    CheckButton *m_invert_toggle = nullptr;
-    CheckButton *m_crt_toggle = nullptr;
-    CheckButton *m_psx_toggle = nullptr;
-    ItemList *m_effect_list = nullptr;
+    CheckButton  *m_cel_toggle       = nullptr;
+    CheckButton  *m_outline_toggle   = nullptr;
+    CheckButton  *m_invert_toggle    = nullptr;
+    CheckButton  *m_crt_toggle       = nullptr;
+    CheckButton  *m_dither_toggle    = nullptr;
+    ItemList     *m_effect_list      = nullptr;
 
     // Compositor-related
     Compositor *m_camera3d_compositor = nullptr;
@@ -50,9 +48,8 @@ private:
     Ref<OutlineShader> m_outline;
     Ref<CelShader> m_cel;
     Ref<CRTShader> m_crt;
-    Ref<PSXShader> m_psx;
+    Ref<DitherShader> m_dither;
     Ref<EffectArray> m_effect_arr;
-    TypedArray<Ref<CompositorEffect>> m_cmp_arr;
 
     // Other
     Node *m_edited_scene_root = nullptr;
@@ -72,6 +69,6 @@ public:
     void _on_outline_toggled(bool toggled_on);
     void _on_invert_toggled(bool toggled_on);
     void _on_crt_toggled(bool toggled_on);
-    void _on_psx_toggled(bool toggled_on);
+    void _on_dither_toggled(bool toggled_on);
     void set_edited_scene_root(Node *edited_scene_root);
 };

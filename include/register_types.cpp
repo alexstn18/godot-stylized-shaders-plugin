@@ -12,7 +12,7 @@
 #include "invert_shader.hpp"
 #include "outline_shader.hpp"
 #include "crt_shader.hpp"
-#include "psx_shader.hpp"
+#include "dither_shader.hpp"
 #include "cel_shader.hpp"
 #include "plugin_ui.hpp"
 #include "tool_panel.hpp"
@@ -45,7 +45,7 @@ void initialize_shader_plugin(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(OutlineShader);
     GDREGISTER_CLASS(CelShader);
     GDREGISTER_CLASS(CRTShader);
-    GDREGISTER_CLASS(PSXShader);
+    GDREGISTER_CLASS(DitherShader);
 }
 
 void uninitialize_shader_plugin(ModuleInitializationLevel p_level)

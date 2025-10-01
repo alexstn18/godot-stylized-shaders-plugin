@@ -43,9 +43,9 @@ text = "Invert Color"
 layout_mode = 2
 text = "CRT Effect"
 
-[node name="PSXToggle" type="CheckButton" parent="ToggleContainer"]
+[node name="DitherToggle" type="CheckButton" parent="ToggleContainer"]
 layout_mode = 2
-text = "PS1 Effect"
+text = "Dither Effect"
 
 [node name="HSeparator2" type="HSeparator" parent="."]
 layout_mode = 2
