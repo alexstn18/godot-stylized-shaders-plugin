@@ -21,7 +21,6 @@
 #include <godot_cpp/classes/color_picker_button.hpp>
 #include <godot_cpp/classes/check_box.hpp>
 #include <godot_cpp/classes/spin_box.hpp>
-#include <godot_cpp/classes/h_separator.hpp>
 #include <godot_cpp/classes/display_server.hpp>
 
 #define ADD_EFFECT(T) m_effect_arr->add_effect(T);
@@ -230,10 +229,6 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
     static SliderContainer   *mul_container   = nullptr;
     static SliderContainer   *amp_container   = nullptr;
     static SliderContainer   *freq_container  = nullptr;
-    static HSeparator        *width_separator = nullptr;
-    static HSeparator        *mul_separator = nullptr;
-    static HSeparator        *amp_separator = nullptr;
-    static HSeparator        *freq_separator = nullptr;
     static ColorPickerButton *color_picker    = nullptr;
     static CheckBox          *check_box       = nullptr;
     
@@ -247,10 +242,6 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         mul_container = memnew(SliderContainer);
         amp_container = memnew(SliderContainer);
         freq_container = memnew(SliderContainer);
-        width_separator = memnew(HSeparator);
-        mul_separator  = memnew(HSeparator);
-        amp_separator  = memnew(HSeparator);
-        freq_separator  = memnew(HSeparator);
         color_picker = memnew(ColorPickerButton);
         check_box = memnew(CheckBox);
         
@@ -267,14 +258,12 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         width_container->set_slider_max(0.01);
         width_container->connect_to_slider(callable_mp(m_outline.ptr(), &OutlineShader::set_outline_width));
         base_container->add_child(width_container);
-        base_container->add_child(width_separator);
         
         mul_container->set_slider_step(0.01);
         mul_container->set_slider_min(0.01);
         mul_container->set_slider_max(1.0);
         mul_container->connect_to_slider(callable_mp(m_outline.ptr(), &OutlineShader::set_outline_mul));
         base_container->add_child(mul_container);
-        base_container->add_child(mul_separator);
         
         check_box->connect("toggled", callable_mp(m_outline.ptr(), &OutlineShader::set_jitter));
         base_container->add_child(check_box);
@@ -284,14 +273,12 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         amp_container->set_slider_max(0.1);
         amp_container->connect_to_slider(callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_amp));
         base_container->add_child(amp_container);
-        base_container->add_child(amp_separator);
         
         freq_container->set_slider_step(0.01);
         freq_container->set_slider_min(0.01);
         freq_container->set_slider_max(0.1);
         freq_container->connect_to_slider(callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_freq));
         base_container->add_child(freq_container);
-        base_container->add_child(freq_separator);
         
         // TODO: Add label here (with the text from below)
         color_picker->set_text("Open Color Picker"); 
@@ -310,10 +297,6 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         base_container->remove_child(mul_container);
         base_container->remove_child(amp_container);
         base_container->remove_child(freq_container);
-        base_container->remove_child(width_separator);
-        base_container->remove_child(mul_separator);
-        base_container->remove_child(amp_separator);
-        base_container->remove_child(freq_separator);
         base_container->remove_child(check_box);
         base_container->remove_child(color_picker);
         
@@ -321,10 +304,6 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
 
         CONTROL_QUEUE_FREE(check_box);
         CONTROL_QUEUE_FREE(color_picker);
-        CONTROL_QUEUE_FREE(width_separator);
-        CONTROL_QUEUE_FREE(mul_separator);
-        CONTROL_QUEUE_FREE(amp_separator);
-        CONTROL_QUEUE_FREE(freq_separator);
         CONTROL_QUEUE_FREE(width_container);
         CONTROL_QUEUE_FREE(mul_container);
         CONTROL_QUEUE_FREE(amp_container);
