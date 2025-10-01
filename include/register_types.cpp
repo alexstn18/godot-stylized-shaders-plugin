@@ -6,8 +6,6 @@
 #include <godot_cpp/godot.hpp>
 
 #include "godot_cpp/classes/editor_plugin.hpp"
-#include "godot_stylized_shaders_plugin.hpp"
-#include "screensaver.hpp"
 #include "base_shader.hpp"
 #include "invert_shader.hpp"
 #include "outline_shader.hpp"
@@ -38,9 +36,7 @@ void initialize_shader_plugin(ModuleInitializationLevel p_level)
         return;
     }
 
-    GDREGISTER_VIRTUAL_CLASS(godot_stylized_shaders_plugin);
     GDREGISTER_ABSTRACT_CLASS(BaseShader);
-    GDREGISTER_RUNTIME_CLASS(Screensaver);
 
     GDREGISTER_CLASS(InvertShader);
     GDREGISTER_CLASS(OutlineShader);
