@@ -9,6 +9,7 @@
 #include <godot_cpp/classes/option_button.hpp>
 #include <godot_cpp/classes/check_button.hpp>
 #include <godot_cpp/classes/item_list.hpp>
+#include <godot_cpp/classes/tab_container.hpp>
 #include <godot_cpp/classes/camera3d.hpp>
 #include <godot_cpp/classes/world_environment.hpp>
 #include <godot_cpp/classes/compositor.hpp>
@@ -42,6 +43,7 @@ private:
     CheckButton  *m_dither_toggle    = nullptr;
     CheckButton  *m_pixel_toggle     = nullptr;
     ItemList     *m_effect_list      = nullptr;
+    TabContainer *m_tab_container    = nullptr;
 
     // Compositor-related
     Compositor *m_camera3d_compositor = nullptr;

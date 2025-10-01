@@ -18,9 +18,10 @@
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/environment.hpp>
 #include <godot_cpp/classes/h_slider.hpp>
-#include <godot_cpp/classes/color_picker.hpp>
+#include <godot_cpp/classes/color_picker_button.hpp>
 #include <godot_cpp/classes/check_box.hpp>
 #include <godot_cpp/classes/spin_box.hpp>
+#include <godot_cpp/classes/h_separator.hpp>
 #include <godot_cpp/classes/display_server.hpp>
 
 #define ADD_EFFECT(T) m_effect_arr->add_effect(T);
@@ -70,6 +71,7 @@ void ToolPanel::_ready()
     
     // root
     m_effect_list = get_node<ItemList>("EffectList");
+    m_tab_container = get_node<TabContainer>("TabContainer");
     
     /// Check if "gotten" UI nodes even exist
     ERR_FAIL_COND_MSG(!m_apply_option_btn, "ERROR: Could not find OptionButton node!");
@@ -80,6 +82,7 @@ void ToolPanel::_ready()
     ERR_FAIL_COND_MSG(!m_dither_toggle, "ERROR: Could not find DitherToggle node!");
     ERR_FAIL_COND_MSG(!m_pixel_toggle, "ERROR: Could not find PixelToggle node!");
     ERR_FAIL_COND_MSG(!m_effect_list, "ERROR: Could not find EffectList node!");
+    ERR_FAIL_COND_MSG(!m_tab_container, "ERROR: Could not find TabContainer node!");
 
     /// Connect to signals
     m_cel_toggle->connect("toggled", Callable(this, "_on_cel_toggled"));
@@ -199,20 +202,21 @@ void ToolPanel::_on_cel_toggled(bool toggled_on)
         ADD_EFFECT(m_cel);
 
         container = memnew(SliderContainer);
+        container->set_name("Posterize");
         container->set_label_text("Levels");
         container->set_slider_step(1.0);
         container->set_slider_min(2.0);
         container->set_slider_max(32.0);
         container->connect_to_slider(callable_mp(m_cel.ptr(), &CelShader::set_levels));
 
-        add_child(container);
+        m_tab_container->add_child(container);
 
         UtilityFunctions::print("Cel toggled on");
     }
     else 
     {
         REMOVE_EFFECT(m_cel);
-        remove_child(container);
+        m_tab_container->remove_child(container);
         CONTROL_QUEUE_FREE(container);
         UtilityFunctions::print("Cel toggled off");
         
@@ -221,25 +225,37 @@ void ToolPanel::_on_cel_toggled(bool toggled_on)
 
 void ToolPanel::_on_outline_toggled(bool toggled_on)
 {
-    static SliderContainer *width_container = nullptr;
-    static SliderContainer *mul_container   = nullptr;
-    static SliderContainer *amp_container   = nullptr;
-    static SliderContainer *freq_container  = nullptr;
-    static ColorPicker     *color_picker    = nullptr;
-    static CheckBox        *check_box       = nullptr;
+    static VBoxContainer     *base_container  = nullptr;
+    static SliderContainer   *width_container = nullptr;
+    static SliderContainer   *mul_container   = nullptr;
+    static SliderContainer   *amp_container   = nullptr;
+    static SliderContainer   *freq_container  = nullptr;
+    static HSeparator        *width_separator = nullptr;
+    static HSeparator        *mul_separator = nullptr;
+    static HSeparator        *amp_separator = nullptr;
+    static HSeparator        *freq_separator = nullptr;
+    static ColorPickerButton *color_picker    = nullptr;
+    static CheckBox          *check_box       = nullptr;
     
     m_outline->set_enabled(toggled_on);
     if(toggled_on)
     {
         ADD_EFFECT(m_outline);
         
+        base_container = memnew(VBoxContainer);
         width_container = memnew(SliderContainer);
         mul_container = memnew(SliderContainer);
         amp_container = memnew(SliderContainer);
         freq_container = memnew(SliderContainer);
-        color_picker = memnew(ColorPicker);
+        width_separator = memnew(HSeparator);
+        mul_separator  = memnew(HSeparator);
+        amp_separator  = memnew(HSeparator);
+        freq_separator  = memnew(HSeparator);
+        color_picker = memnew(ColorPickerButton);
         check_box = memnew(CheckBox);
         
+        base_container->set_name("Outline");
+
         width_container->set_label_text("Outline Width");
         mul_container->set_label_text("Outline Width Step");
         amp_container->set_label_text("Jitter Amplitude");
@@ -250,51 +266,70 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         width_container->set_slider_min(0.0);
         width_container->set_slider_max(0.01);
         width_container->connect_to_slider(callable_mp(m_outline.ptr(), &OutlineShader::set_outline_width));
-        add_child(width_container);
-
+        base_container->add_child(width_container);
+        base_container->add_child(width_separator);
+        
         mul_container->set_slider_step(0.01);
         mul_container->set_slider_min(0.01);
         mul_container->set_slider_max(1.0);
         mul_container->connect_to_slider(callable_mp(m_outline.ptr(), &OutlineShader::set_outline_mul));
-        add_child(mul_container);
+        base_container->add_child(mul_container);
+        base_container->add_child(mul_separator);
         
         check_box->connect("toggled", callable_mp(m_outline.ptr(), &OutlineShader::set_jitter));
-        add_child(check_box);
-
+        base_container->add_child(check_box);
+        
         amp_container->set_slider_step(0.01);
         amp_container->set_slider_min(0.01);
         amp_container->set_slider_max(0.1);
         amp_container->connect_to_slider(callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_amp));
-        add_child(amp_container);
+        base_container->add_child(amp_container);
+        base_container->add_child(amp_separator);
         
         freq_container->set_slider_step(0.01);
         freq_container->set_slider_min(0.01);
         freq_container->set_slider_max(0.1);
         freq_container->connect_to_slider(callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_freq));
-        add_child(freq_container);
+        base_container->add_child(freq_container);
+        base_container->add_child(freq_separator);
         
+        // TODO: Add label here (with the text from below)
+        color_picker->set_text("Open Color Picker"); 
         color_picker->connect("color_changed", callable_mp(m_outline.ptr(), &OutlineShader::set_outline_color));
-        add_child(color_picker);
+        base_container->add_child(color_picker);
         
+        m_tab_container->add_child(base_container);
+
         UtilityFunctions::print("Outline toggled on");
     }
     else 
     {
         REMOVE_EFFECT(m_outline);
         
-        remove_child(width_container);
-        remove_child(mul_container);
-        remove_child(amp_container);
-        remove_child(freq_container);
-        remove_child(check_box);
-        remove_child(color_picker);
+        base_container->remove_child(width_container);
+        base_container->remove_child(mul_container);
+        base_container->remove_child(amp_container);
+        base_container->remove_child(freq_container);
+        base_container->remove_child(width_separator);
+        base_container->remove_child(mul_separator);
+        base_container->remove_child(amp_separator);
+        base_container->remove_child(freq_separator);
+        base_container->remove_child(check_box);
+        base_container->remove_child(color_picker);
         
+        m_tab_container->remove_child(base_container);
+
         CONTROL_QUEUE_FREE(check_box);
         CONTROL_QUEUE_FREE(color_picker);
+        CONTROL_QUEUE_FREE(width_separator);
+        CONTROL_QUEUE_FREE(mul_separator);
+        CONTROL_QUEUE_FREE(amp_separator);
+        CONTROL_QUEUE_FREE(freq_separator);
         CONTROL_QUEUE_FREE(width_container);
         CONTROL_QUEUE_FREE(mul_container);
         CONTROL_QUEUE_FREE(amp_container);
         CONTROL_QUEUE_FREE(freq_container);
+        CONTROL_QUEUE_FREE(base_container);
         
         UtilityFunctions::print("Outline toggled off");
     }
@@ -319,6 +354,7 @@ void ToolPanel::_on_crt_toggled(bool toggled_on)
 {
     m_crt->set_enabled(toggled_on);
     
+    static VBoxContainer   *base_container         = nullptr;
     static SliderContainer *curvature_container    = nullptr;
     static SliderContainer *vignette_mul_container = nullptr;
     static SliderContainer *brightness_container   = nullptr;
@@ -327,10 +363,13 @@ void ToolPanel::_on_crt_toggled(bool toggled_on)
     {
         ADD_EFFECT(m_crt);
         
+        base_container = memnew(VBoxContainer);
         curvature_container = memnew(SliderContainer);
         vignette_mul_container = memnew(SliderContainer);
         brightness_container = memnew(SliderContainer);
         
+        base_container->set_name("CRT");
+
         curvature_container->set_label_text("Curvature");
         vignette_mul_container->set_label_text("Vignette Multiplier");
         brightness_container->set_label_text("Brightness");
@@ -350,9 +389,11 @@ void ToolPanel::_on_crt_toggled(bool toggled_on)
         brightness_container->set_slider_max(10.0);
         brightness_container->connect_to_slider(callable_mp(m_crt.ptr(), &CRTShader::set_brightness));
 
-        add_child(curvature_container);
-        add_child(vignette_mul_container);
-        add_child(brightness_container);
+        base_container->add_child(curvature_container);
+        base_container->add_child(vignette_mul_container);
+        base_container->add_child(brightness_container);
+
+        m_tab_container->add_child(base_container);
 
         UtilityFunctions::print("CRT toggled on");
     }
@@ -360,13 +401,16 @@ void ToolPanel::_on_crt_toggled(bool toggled_on)
     {
         REMOVE_EFFECT(m_crt);
 
-        remove_child(curvature_container);
-        remove_child(vignette_mul_container);
-        remove_child(brightness_container);
+        base_container->remove_child(curvature_container);
+        base_container->remove_child(vignette_mul_container);
+        base_container->remove_child(brightness_container);
+
+        m_tab_container->remove_child(base_container);
 
         CONTROL_QUEUE_FREE(curvature_container);   
         CONTROL_QUEUE_FREE(vignette_mul_container);
         CONTROL_QUEUE_FREE(brightness_container);  
+        CONTROL_QUEUE_FREE(base_container);
 
         UtilityFunctions::print("CRT toggled off");
     }
@@ -384,13 +428,14 @@ void ToolPanel::_on_dither_toggled(bool toggled_on)
 
         dither_container = memnew(SliderContainer);
         
+        dither_container->set_name("Dither");
         dither_container->set_label_text("Gamma Correction Amount");
         dither_container->set_slider_step(0.1);
         dither_container->set_slider_min(-0.5);
         dither_container->set_slider_max(3.0);
         dither_container->connect_to_slider(callable_mp(m_dither.ptr(), &DitherShader::set_gamma_correction));
 
-        add_child(dither_container);
+        m_tab_container->add_child(dither_container);
 
         UtilityFunctions::print("Dither toggled on");
     }
@@ -398,7 +443,7 @@ void ToolPanel::_on_dither_toggled(bool toggled_on)
     {
         REMOVE_EFFECT(m_dither);
 
-        remove_child(dither_container);
+        m_tab_container->remove_child(dither_container);
 
         CONTROL_QUEUE_FREE(dither_container);
 
@@ -434,10 +479,11 @@ void ToolPanel::_on_pixel_toggled(bool toggled_on)
         height_spin_box->set_min(1.);
         height_spin_box->set_max((double)DisplayServer::get_singleton()->screen_get_size().y);
 
+        resolution_container->set_name("Pixelize");
         resolution_container->add_child(label);
         resolution_container->add_child(width_spin_box);
         resolution_container->add_child(height_spin_box);
-        add_child(resolution_container);
+        m_tab_container->add_child(resolution_container);
 
         UtilityFunctions::print("Pixelization effect toggled on");
     }
@@ -448,7 +494,7 @@ void ToolPanel::_on_pixel_toggled(bool toggled_on)
         resolution_container->remove_child(height_spin_box);
         resolution_container->remove_child(width_spin_box);
         resolution_container->remove_child(label);
-        remove_child(resolution_container);
+        m_tab_container->remove_child(resolution_container);
 
         CONTROL_QUEUE_FREE(height_spin_box);
         CONTROL_QUEUE_FREE(width_spin_box);

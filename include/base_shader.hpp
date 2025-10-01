@@ -6,8 +6,6 @@
 #include <godot_cpp/classes/compositor_effect.hpp>
 #include <godot_cpp/classes/render_data.hpp>
 #include <godot_cpp/classes/rendering_server.hpp>
-#include <vector>
-#include <functional>
 
 using namespace godot;
 
