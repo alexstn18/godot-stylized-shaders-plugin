@@ -109,11 +109,20 @@ void BaseShader::base_compute_update(int32_t p_effect_callback_type,
                 m_device->compute_list_bind_compute_pipeline(compute_list, m_pipeline);
                 m_device->compute_list_bind_uniform_set(compute_list, image_uniform_set, 0);
                 
-                for(std::function<void(RenderingDevice *, Ref<RDUniform> &, const int64_t &, int32_t)> &func : m_uniform_funcs)
+                for(Callable &c : m_uniform_callables)
                 {
-                    func(m_device, uniform, compute_list, i);
+                    c.call(m_device, uniform, compute_list, i);
                 }
-                
+
+                // for(auto& v: m_uniform_callables)
+                // {
+                //     Object *obj = v.get_validated_object();
+                //     if(Callable *c = Object::cast_to<Callable>(obj))
+                //     {
+                //         c->call(m_device, uniform, compute_list, i);
+                //     }
+                // }
+
                 m_device->compute_list_set_push_constant(compute_list, push_constant.to_byte_array(), push_constant.size() * 4);
                 m_device->compute_list_dispatch(compute_list, x_groups, y_groups, 1);
                 m_device->compute_list_end();
@@ -122,9 +131,9 @@ void BaseShader::base_compute_update(int32_t p_effect_callback_type,
     }
 }
 
-void BaseShader::push_back_func(const std::function<void(RenderingDevice *, Ref<RDUniform> &, const int64_t &, int32_t)> &func)
+void BaseShader::push_back_callable(const Callable &c)
 {
-    m_uniform_funcs.push_back(func);
+    m_uniform_callables.push_back(c);
 }
 
 Vector2i BaseShader::get_buffers_internal_size(RenderData *p_render_data, Ref<RenderSceneBuffersRD> &buffers) const

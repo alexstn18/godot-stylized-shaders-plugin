@@ -17,8 +17,9 @@ class BaseShader : public CompositorEffect
 
 private:
     String m_addon_path = "res://addons/GodotStylizedShadersPlugin/shaders/";
-    std::vector<std::function<void(RenderingDevice *, Ref<RDUniform> &, const int64_t &, int32_t)>> m_uniform_funcs;
-protected:
+    // TypedArray<Callable> m_uniform_callables;
+    std::vector<Callable> m_uniform_callables;
+    protected:
     RID m_shader;
     RID m_pipeline;
     RenderingDevice *m_device = nullptr;
@@ -30,7 +31,7 @@ protected:
 
     static void _bind_methods();
     virtual void init_compute(const String &shader_filename);
-    void push_back_func(const std::function<void(RenderingDevice *, Ref<RDUniform> &, const int64_t &, int32_t)> &func);
+    void push_back_callable(const Callable &c);
     Vector2i get_buffers_internal_size(RenderData *, Ref<RenderSceneBuffersRD> &) const;
 public:
     virtual void _notification(int what) = 0;

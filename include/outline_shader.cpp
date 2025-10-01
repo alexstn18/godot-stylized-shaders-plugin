@@ -19,6 +19,7 @@
 #include <godot_cpp/variant/projection.hpp>
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/classes/engine.hpp>
+#include "ext/callable_lambda.hpp"
 
 void OutlineShader::_bind_methods()
 {
@@ -87,7 +88,8 @@ void OutlineShader::_render_callback(int32_t p_effect_callback_type,
                                         0.0f, 0.0f};
     ERR_FAIL_COND_MSG(push_constant.is_empty(), "push constant is empty");
 
-    push_back_func([this, buffers](RenderingDevice *device, Ref<RDUniform> &uniform, const int64_t &compute_list, int32_t i)
+    push_back_callable(
+    create_custom_callable_lambda(this, [&, buffers](RenderingDevice *device, Ref<RDUniform> &uniform, const int64_t &compute_list, int32_t i)
     {
         RID depth_texture = buffers->get_depth_layer(i);
         ERR_FAIL_COND_MSG(!depth_texture.is_valid(), "Invalid depth texture for view " + String::num(i));
@@ -99,8 +101,23 @@ void OutlineShader::_render_callback(int32_t p_effect_callback_type,
 
         RID depth_uniform_set = UniformSetCacheRD::get_cache(m_shader, 1, {uniform});
         ERR_FAIL_COND_MSG(!depth_uniform_set.is_valid(), "Failed to create depth uniform set for view " + String::num(i));
-        device->compute_list_bind_uniform_set(compute_list, depth_uniform_set, 1);
-    });
+        device->compute_list_bind_uniform_set(compute_list, depth_uniform_set, 1);   
+    }));
+
+    // push_back_func([this, buffers](RenderingDevice *device, Ref<RDUniform> &uniform, const int64_t &compute_list, int32_t i)
+    // {
+    //     RID depth_texture = buffers->get_depth_layer(i);
+    //     ERR_FAIL_COND_MSG(!depth_texture.is_valid(), "Invalid depth texture for view " + String::num(i));
+    //     uniform.instantiate();
+    //     uniform->set_uniform_type(RenderingDevice::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE);
+    //     uniform->set_binding(0);
+    //     uniform->add_id(m_depth_sampler);
+    //     uniform->add_id(depth_texture);
+
+    //     RID depth_uniform_set = UniformSetCacheRD::get_cache(m_shader, 1, {uniform});
+    //     ERR_FAIL_COND_MSG(!depth_uniform_set.is_valid(), "Failed to create depth uniform set for view " + String::num(i));
+    //     device->compute_list_bind_uniform_set(compute_list, depth_uniform_set, 1);
+    // });
 
     base_compute_update(p_effect_callback_type, p_render_data, buffers, push_constant, size);
 }
