@@ -25,6 +25,11 @@ void SliderContainer::connect_to_slider(const Callable &c)
     if(m_slider) m_slider->connect("value_changed", c);
 }
 
+void SliderContainer::set_slider_value(const double value)
+{
+    if(m_slider) m_slider->set_value(value);
+}
+
 void SliderContainer::set_slider_step(const double step) 
 {
     if(m_slider) m_slider->set_step(step);

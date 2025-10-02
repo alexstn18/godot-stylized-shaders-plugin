@@ -25,6 +25,7 @@ public:
     void set_label_text(const String &text);
 
     void connect_to_slider(const Callable &c);
+    void set_slider_value(const double value);
     void set_slider_step(const double step);
     void set_slider_min(const double min);
     void set_slider_max(const double max);

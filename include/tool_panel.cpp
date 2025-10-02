@@ -207,6 +207,7 @@ void ToolPanel::_on_cel_toggled(bool toggled_on)
         container->set_slider_step(1.0);
         container->set_slider_min(2.0);
         container->set_slider_max(32.0);
+        container->set_slider_value((double)m_cel->get_levels());
         container->connect_to_slider(callable_mp(m_cel.ptr(), &CelShader::set_levels));
 
         m_tab_container->add_child(container);
@@ -261,12 +262,14 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         width_container->set_slider_step(0.001);
         width_container->set_slider_min(0.0);
         width_container->set_slider_max(0.01);
+        width_container->set_slider_value((double)m_outline->get_outline_width());
         width_container->connect_to_slider(callable_mp(m_outline.ptr(), &OutlineShader::set_outline_width));
         base_container->add_child(width_container);
         
         mul_container->set_slider_step(0.01);
         mul_container->set_slider_min(0.01);
         mul_container->set_slider_max(1.0);
+        mul_container->set_slider_value((double)m_outline->get_outline_mul());
         mul_container->connect_to_slider(callable_mp(m_outline.ptr(), &OutlineShader::set_outline_mul));
         base_container->add_child(mul_container);
         
@@ -276,12 +279,14 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
         amp_container->set_slider_step(0.01);
         amp_container->set_slider_min(0.01);
         amp_container->set_slider_max(0.1);
+        amp_container->set_slider_value((double)m_outline->get_jitter_amp());
         amp_container->connect_to_slider(callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_amp));
         base_container->add_child(amp_container);
         
         freq_container->set_slider_step(0.01);
         freq_container->set_slider_min(0.01);
         freq_container->set_slider_max(0.1);
+        freq_container->set_slider_value((double)m_outline->get_jitter_freq());
         freq_container->connect_to_slider(callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_freq));
         base_container->add_child(freq_container);
         
@@ -368,16 +373,19 @@ void ToolPanel::_on_crt_toggled(bool toggled_on)
         curvature_container->set_slider_step(1.0);
         curvature_container->set_slider_min(0.0);
         curvature_container->set_slider_max(10.0);
+        curvature_container->set_slider_value((double)m_crt->get_curvature());
         curvature_container->connect_to_slider(callable_mp(m_crt.ptr(), &CRTShader::set_curvature));
         
         vignette_mul_container->set_slider_step(1.0);
         vignette_mul_container->set_slider_min(0.0);
         vignette_mul_container->set_slider_max(10.0);
+        vignette_mul_container->set_slider_value((double)m_crt->get_vignette_mul());
         vignette_mul_container->connect_to_slider(callable_mp(m_crt.ptr(), &CRTShader::set_vignette_mul));
         
         brightness_container->set_slider_step(0.1);
         brightness_container->set_slider_min(0.0);
         brightness_container->set_slider_max(10.0);
+        brightness_container->set_slider_value((double)m_crt->get_brightness());
         brightness_container->connect_to_slider(callable_mp(m_crt.ptr(), &CRTShader::set_brightness));
 
         base_container->add_child(curvature_container);
@@ -424,6 +432,7 @@ void ToolPanel::_on_dither_toggled(bool toggled_on)
         dither_container->set_slider_step(0.1);
         dither_container->set_slider_min(-0.5);
         dither_container->set_slider_max(3.0);
+        dither_container->set_slider_value((double)m_dither->get_gamma_correction());
         dither_container->connect_to_slider(callable_mp(m_dither.ptr(), &DitherShader::set_gamma_correction));
 
         m_tab_container->add_child(dither_container);
@@ -464,7 +473,9 @@ void ToolPanel::_on_pixel_toggled(bool toggled_on)
         width_spin_box->set_step(1.);
         width_spin_box->set_min(1.);
         width_spin_box->set_max((double)DisplayServer::get_singleton()->screen_get_size().x);
+        width_spin_box->set_value((double)m_pixel->get_target_width());
         width_spin_box->connect("value_changed", callable_mp(m_pixel.ptr(), &PixelShader::set_target_width));
+        height_spin_box->set_value((double)m_pixel->get_target_height());
         height_spin_box->connect("value_changed", callable_mp(m_pixel.ptr(), &PixelShader::set_target_height));
         height_spin_box->set_step(1.);
         height_spin_box->set_min(1.);
