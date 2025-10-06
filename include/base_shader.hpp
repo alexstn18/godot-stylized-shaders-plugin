@@ -1,5 +1,4 @@
 #pragma once
-
 #include "godot_cpp/classes/render_scene_buffers_rd.hpp"
 #include "godot_cpp/variant/packed_float32_array.hpp"
 #include <godot_cpp/core/class_db.hpp>

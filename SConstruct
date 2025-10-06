@@ -3,9 +3,9 @@ import os
 
 env = SConscript("godot-cpp/SConstruct")
 
-env.Append(CPPPATH=["include/"])
+env.Append(CPPPATH=["include/", "include/util/"])
 
-sources = Glob("include/*.cpp")
+sources = Glob("include/*.cpp", "include/util/*.cpp")
 
 folder = "demo/addons/GodotStylizedShadersPlugin"
 

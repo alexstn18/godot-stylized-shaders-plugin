@@ -23,6 +23,9 @@
 #include "dither_shader.hpp"
 #include "pixel_shader.hpp"
 
+#include "slider_container.hpp"
+#include "util/node_builder.hpp"
+
 using namespace godot;
 
 // Convention:
@@ -34,7 +37,7 @@ class ToolPanel : public VBoxContainer
     GDCLASS(ToolPanel, VBoxContainer);
 
 private:
-    // UI
+    // UI (gotten from the UI scene)
     OptionButton *m_apply_option_btn = nullptr;
     CheckButton  *m_cel_toggle       = nullptr;
     CheckButton  *m_outline_toggle   = nullptr;
@@ -44,6 +47,13 @@ private:
     CheckButton  *m_pixel_toggle     = nullptr;
     ItemList     *m_effect_list      = nullptr;
     TabContainer *m_tab_container    = nullptr;
+
+    // UI (code/manually-made, mostly containers)
+    NodeBuilder<SliderContainer> m_posterize_container;
+    NodeBuilder<SliderContainer> m_dither_container;
+    NodeBuilder<VBoxContainer>   m_outline_container;
+    NodeBuilder<VBoxContainer>   m_crt_container;
+    NodeBuilder<HBoxContainer>   m_pixel_container;
 
     // Compositor-related
     Compositor *m_camera3d_compositor = nullptr;
@@ -65,7 +75,7 @@ private:
 protected:
     static void _bind_methods();
 public:
-    ToolPanel() {};
+    ToolPanel();
     ~ToolPanel();
 
     void _ready() override;

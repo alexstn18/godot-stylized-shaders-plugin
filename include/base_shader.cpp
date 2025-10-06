@@ -1,5 +1,4 @@
 #include "base_shader.hpp"
-#include <exception>
 #include <godot_cpp/classes/rd_shader_file.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/rd_shader_spirv.hpp>

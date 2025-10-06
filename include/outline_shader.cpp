@@ -1,5 +1,4 @@
 #include "outline_shader.hpp"
-#include "base_shader.hpp"
 #include <godot_cpp/classes/compositor_effect.hpp>
 #include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/variant/packed_float32_array.hpp>
