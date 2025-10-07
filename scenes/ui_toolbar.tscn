@@ -51,6 +51,10 @@ text = "Dither Effect"
 layout_mode = 2
 text = "Pixelization Effect"
 
+[node name="VHSToggle" type="CheckButton" parent="ToggleContainer"]
+layout_mode = 2
+text = "VHS Effect"
+
 [node name="HSeparator2" type="HSeparator" parent="."]
 layout_mode = 2
 

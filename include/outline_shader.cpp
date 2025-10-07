@@ -1,46 +1,57 @@
 #include "outline_shader.hpp"
+#include "ext/callable_lambda.hpp"
 #include <godot_cpp/classes/compositor_effect.hpp>
-#include <godot_cpp/core/error_macros.hpp>
-#include <godot_cpp/variant/packed_float32_array.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
-#include <godot_cpp/classes/rendering_device.hpp>
+#include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/file_access.hpp>
+#include <godot_cpp/classes/rd_sampler_state.hpp>
+#include <godot_cpp/classes/rd_shader_file.hpp>
 #include <godot_cpp/classes/rd_shader_source.hpp>
 #include <godot_cpp/classes/rd_shader_spirv.hpp>
+#include <godot_cpp/classes/rd_uniform.hpp>
 #include <godot_cpp/classes/render_scene_buffers_rd.hpp>
 #include <godot_cpp/classes/render_scene_data_rd.hpp>
-#include <godot_cpp/classes/file_access.hpp>
-#include <godot_cpp/classes/rd_uniform.hpp>
-#include <godot_cpp/classes/rd_shader_file.hpp>
-#include <godot_cpp/classes/uniform_set_cache_rd.hpp>
+#include <godot_cpp/classes/rendering_device.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
-#include <godot_cpp/classes/render_scene_data_rd.hpp>
-#include <godot_cpp/classes/rd_sampler_state.hpp>
-#include <godot_cpp/variant/projection.hpp>
+#include <godot_cpp/classes/uniform_set_cache_rd.hpp>
+#include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/variant/array.hpp>
-#include <godot_cpp/classes/engine.hpp>
-#include "ext/callable_lambda.hpp"
+#include <godot_cpp/variant/packed_float32_array.hpp>
+#include <godot_cpp/variant/projection.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 void OutlineShader::_bind_methods()
 {
-    ClassDB::bind_method(D_METHOD("set_outline_color", "color"), &OutlineShader::set_outline_color);
-    ClassDB::bind_method(D_METHOD("get_outline_color"), &OutlineShader::get_outline_color);
-    ClassDB::bind_method(D_METHOD("set_outline_width", "width"), &OutlineShader::set_outline_width);
-    ClassDB::bind_method(D_METHOD("get_outline_width"), &OutlineShader::get_outline_width);
-    ClassDB::bind_method(D_METHOD("set_outline_mul", "mul"), &OutlineShader::set_outline_mul);
-    ClassDB::bind_method(D_METHOD("get_outline_mul"), &OutlineShader::get_outline_mul);
-    ClassDB::bind_method(D_METHOD("set_jitter", "jitter"), &OutlineShader::set_jitter);
+    ClassDB::bind_method(D_METHOD("set_outline_color", "color"),
+                         &OutlineShader::set_outline_color);
+    ClassDB::bind_method(D_METHOD("get_outline_color"),
+                         &OutlineShader::get_outline_color);
+    ClassDB::bind_method(D_METHOD("set_outline_width", "width"),
+                         &OutlineShader::set_outline_width);
+    ClassDB::bind_method(D_METHOD("get_outline_width"),
+                         &OutlineShader::get_outline_width);
+    ClassDB::bind_method(D_METHOD("set_outline_mul", "mul"),
+                         &OutlineShader::set_outline_mul);
+    ClassDB::bind_method(D_METHOD("get_outline_mul"),
+                         &OutlineShader::get_outline_mul);
+    ClassDB::bind_method(D_METHOD("set_jitter", "jitter"),
+                         &OutlineShader::set_jitter);
     ClassDB::bind_method(D_METHOD("get_jitter"), &OutlineShader::get_jitter);
-    ClassDB::bind_method(D_METHOD("set_jitter_amp", "amp"), &OutlineShader::set_jitter_amp);
-    ClassDB::bind_method(D_METHOD("get_jitter_amp"), &OutlineShader::get_jitter_amp);
-    ClassDB::bind_method(D_METHOD("set_jitter_freq", "freq"), &OutlineShader::set_jitter_freq);
-    ClassDB::bind_method(D_METHOD("get_jitter_freq"), &OutlineShader::get_jitter_freq);
+    ClassDB::bind_method(D_METHOD("set_jitter_amp", "amp"),
+                         &OutlineShader::set_jitter_amp);
+    ClassDB::bind_method(D_METHOD("get_jitter_amp"),
+                         &OutlineShader::get_jitter_amp);
+    ClassDB::bind_method(D_METHOD("set_jitter_freq", "freq"),
+                         &OutlineShader::set_jitter_freq);
+    ClassDB::bind_method(D_METHOD("get_jitter_freq"),
+                         &OutlineShader::get_jitter_freq);
 }
 
 OutlineShader::OutlineShader()
 {
     construct();
     m_depth_sampler = RID();
-    queue_callable_on_render_thread(callable_mp(this, &OutlineShader::init_compute).bind("outline.glsl"));
+    queue_callable_on_render_thread(
+        callable_mp(this, &OutlineShader::init_compute).bind("outline.glsl"));
 }
 
 OutlineShader::~OutlineShader() {}
@@ -48,12 +59,12 @@ OutlineShader::~OutlineShader() {}
 void OutlineShader::_notification(int what)
 {
     UtilityFunctions::print("OutlineShader notification: " + String::num(what));
-    
+
     if (what == NOTIFICATION_PREDELETE && m_device)
     {
         free_shader();
-        
-        if (m_depth_sampler.is_valid()) 
+
+        if (m_depth_sampler.is_valid())
         {
             m_device->free_rid(m_depth_sampler);
             m_depth_sampler = RID();
@@ -63,13 +74,15 @@ void OutlineShader::_notification(int what)
 }
 
 void OutlineShader::_render_callback(int32_t p_effect_callback_type,
-                                         RenderData *p_render_data)
+                                     RenderData *p_render_data)
 {
-    Ref<RenderSceneBuffersRD> buffers; buffers.instantiate();
+    Ref<RenderSceneBuffersRD> buffers;
+    buffers.instantiate();
     Vector2i size = get_buffers_internal_size(p_render_data, buffers);
     ERR_FAIL_COND_MSG(size.x == 0 || size.y == 0, "Buffer size is 0");
 
-    auto inv_proj_mat = p_render_data->get_render_scene_data()->get_cam_projection().inverse();
+    auto inv_proj_mat =
+        p_render_data->get_render_scene_data()->get_cam_projection().inverse();
     PackedFloat32Array push_constant = {m_outline_color.r,
                                         m_outline_color.g,
                                         m_outline_color.b,
@@ -83,42 +96,38 @@ void OutlineShader::_render_callback(int32_t p_effect_callback_type,
                                         m_dt,
                                         (float)UtilityFunctions::randf(),
                                         (float)m_jitter_toggle,
-                                        m_jitter_freq, 
-                                        0.0f, 0.0f};
+                                        m_jitter_freq,
+                                        0.0f,
+                                        0.0f};
     ERR_FAIL_COND_MSG(push_constant.is_empty(), "push constant is empty");
 
-    push_back_callable(
-    create_custom_callable_lambda(this, [&, buffers](RenderingDevice *device, Ref<RDUniform> &uniform, const int64_t &compute_list, int32_t i)
-    {
-        RID depth_texture = buffers->get_depth_layer(i);
-        ERR_FAIL_COND_MSG(!depth_texture.is_valid(), "Invalid depth texture for view " + String::num(i));
-        uniform.instantiate();
-        uniform->set_uniform_type(RenderingDevice::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE);
-        uniform->set_binding(0);
-        uniform->add_id(m_depth_sampler);
-        uniform->add_id(depth_texture);
+    push_back_callable(create_custom_callable_lambda(
+        this,
+        [&, buffers](RenderingDevice *device, Ref<RDUniform> &uniform,
+                     const int64_t &compute_list, int32_t i)
+        {
+            RID depth_texture = buffers->get_depth_layer(i);
+            ERR_FAIL_COND_MSG(!depth_texture.is_valid(),
+                              "Invalid depth texture for view " +
+                                  String::num(i));
+            uniform.instantiate();
+            uniform->set_uniform_type(
+                RenderingDevice::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE);
+            uniform->set_binding(0);
+            uniform->add_id(m_depth_sampler);
+            uniform->add_id(depth_texture);
 
-        RID depth_uniform_set = UniformSetCacheRD::get_cache(m_shader, 1, {uniform});
-        ERR_FAIL_COND_MSG(!depth_uniform_set.is_valid(), "Failed to create depth uniform set for view " + String::num(i));
-        device->compute_list_bind_uniform_set(compute_list, depth_uniform_set, 1);   
-    }));
+            RID depth_uniform_set =
+                UniformSetCacheRD::get_cache(m_shader, 1, {uniform});
+            ERR_FAIL_COND_MSG(!depth_uniform_set.is_valid(),
+                              "Failed to create depth uniform set for view " +
+                                  String::num(i));
+            device->compute_list_bind_uniform_set(compute_list,
+                                                  depth_uniform_set, 1);
+        }));
 
-    // push_back_func([this, buffers](RenderingDevice *device, Ref<RDUniform> &uniform, const int64_t &compute_list, int32_t i)
-    // {
-    //     RID depth_texture = buffers->get_depth_layer(i);
-    //     ERR_FAIL_COND_MSG(!depth_texture.is_valid(), "Invalid depth texture for view " + String::num(i));
-    //     uniform.instantiate();
-    //     uniform->set_uniform_type(RenderingDevice::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE);
-    //     uniform->set_binding(0);
-    //     uniform->add_id(m_depth_sampler);
-    //     uniform->add_id(depth_texture);
-
-    //     RID depth_uniform_set = UniformSetCacheRD::get_cache(m_shader, 1, {uniform});
-    //     ERR_FAIL_COND_MSG(!depth_uniform_set.is_valid(), "Failed to create depth uniform set for view " + String::num(i));
-    //     device->compute_list_bind_uniform_set(compute_list, depth_uniform_set, 1);
-    // });
-
-    base_compute_update(p_effect_callback_type, p_render_data, buffers, push_constant, size);
+    base_compute_update(p_effect_callback_type, p_render_data, buffers,
+                        push_constant, size);
 }
 
 void OutlineShader::init_compute(const String &shader_filename)

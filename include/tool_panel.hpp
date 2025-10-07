@@ -22,6 +22,7 @@
 #include "crt_shader.hpp"
 #include "dither_shader.hpp"
 #include "pixel_shader.hpp"
+#include "vhs_shader.hpp"
 
 #include "slider_container.hpp"
 #include "util/node_builder.hpp"
@@ -45,6 +46,7 @@ private:
     CheckButton  *m_crt_toggle       = nullptr;
     CheckButton  *m_dither_toggle    = nullptr;
     CheckButton  *m_pixel_toggle     = nullptr;
+    CheckButton  *m_vhs_toggle       = nullptr;
     ItemList     *m_effect_list      = nullptr;
     TabContainer *m_tab_container    = nullptr;
 
@@ -53,6 +55,7 @@ private:
     NodeBuilder<SliderContainer> m_dither_container;
     NodeBuilder<VBoxContainer>   m_outline_container;
     NodeBuilder<VBoxContainer>   m_crt_container;
+    NodeBuilder<VBoxContainer>   m_vhs_container;
     NodeBuilder<HBoxContainer>   m_pixel_container;
 
     // Compositor-related
@@ -64,6 +67,7 @@ private:
     Ref<CRTShader> m_crt;
     Ref<DitherShader> m_dither;
     Ref<PixelShader> m_pixel;
+    Ref<VHSShader> m_vhs;
     Ref<EffectArray> m_effect_arr;
 
     // Other
@@ -72,6 +76,14 @@ private:
     WorldEnvironment *m_world_environment = nullptr;
     int32_t m_camera3d_option_index = 0;
     int32_t m_world_environment_option_index = 0;
+
+    void setup_cel();
+    void setup_outline();
+    void setup_invert();
+    void setup_crt();
+    void setup_dither();
+    void setup_pixel();
+    void setup_vhs();
 protected:
     static void _bind_methods();
 public:
@@ -86,5 +98,6 @@ public:
     void _on_crt_toggled(bool toggled_on);
     void _on_dither_toggled(bool toggled_on);
     void _on_pixel_toggled(bool toggled_on);
+    void _on_vhs_toggled(bool toggled_on);
     void set_edited_scene_root(Node *edited_scene_root);
 };

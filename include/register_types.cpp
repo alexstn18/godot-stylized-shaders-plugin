@@ -5,24 +5,26 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
-#include "godot_cpp/classes/editor_plugin.hpp"
 #include "base_shader.hpp"
-#include "invert_shader.hpp"
-#include "outline_shader.hpp"
+#include "cel_shader.hpp"
 #include "crt_shader.hpp"
 #include "dither_shader.hpp"
-#include "pixel_shader.hpp"
-#include "cel_shader.hpp"
-#include "plugin_ui.hpp"
-#include "tool_panel.hpp"
 #include "effect_array.hpp"
+#include "godot_cpp/classes/editor_plugin.hpp"
+#include "invert_shader.hpp"
+#include "outline_shader.hpp"
+#include "pixel_shader.hpp"
+#include "plugin_ui.hpp"
 #include "slider_container.hpp"
+#include "tool_panel.hpp"
+#include "vhs_shader.hpp"
+
 
 using namespace godot;
 
 void initialize_shader_plugin(ModuleInitializationLevel p_level)
 {
-    if(p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
+    if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
     {
         GDREGISTER_CLASS(EffectArray);
         GDREGISTER_CLASS(SliderContainer);
@@ -44,11 +46,12 @@ void initialize_shader_plugin(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(CRTShader);
     GDREGISTER_CLASS(DitherShader);
     GDREGISTER_CLASS(PixelShader);
+    GDREGISTER_CLASS(VHSShader);
 }
 
 void uninitialize_shader_plugin(ModuleInitializationLevel p_level)
 {
-    if(p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
+    if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
     {
         EditorPlugins::remove_by_type<PluginUI>();
     }
