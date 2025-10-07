@@ -99,50 +99,33 @@ void ToolPanel::_ready()
     /// NodeBuilder object initialization
     // Posterize container
     m_posterize_container
-    .call(&SliderContainer::set_name, "Posterize")
-    .call(&SliderContainer::set_label_text, "Levels")
-    .call(&SliderContainer::set_slider_step, 1.0)
-    .call(&SliderContainer::set_slider_min, 2.0)
-    .call(&SliderContainer::set_slider_max, 32.0)
-    .call(&SliderContainer::set_slider_value, static_cast<double>(m_cel->get_levels()))
-    .call(&SliderContainer::connect_to_slider, callable_mp(m_cel.ptr(), &CelShader::set_levels));
-
+    .slider_container_init("Posterize", "Levels", 
+                           1.0, 2.0, 32.0, static_cast<double>(m_cel->get_levels()),
+                           callable_mp(m_cel.ptr(), &CelShader::set_levels));
     // Outline container
     m_outline_container.call(&VBoxContainer::set_name, "Outline");
     auto width_container = m_outline_container.add_child<SliderContainer>()
-         .call(&SliderContainer::set_label_text, "Outline Width")
-         .call(&SliderContainer::set_slider_step, 0.001)
-         .call(&SliderContainer::set_slider_min, 0.0)
-         .call(&SliderContainer::set_slider_max, 0.01)
-         .call(&SliderContainer::set_slider_value, static_cast<double>(m_outline->get_outline_width()))
-         .call(&SliderContainer::connect_to_slider, callable_mp(m_outline.ptr(), &OutlineShader::set_outline_width));
-    
+        .slider_container_init("Outline Width", "Outline Width", 
+                               0.001, 0.0, 0.01, static_cast<double>(m_outline->get_outline_width()), 
+                               callable_mp(m_outline.ptr(), &OutlineShader::set_outline_width));
+         
     auto mul_container = m_outline_container.add_child<SliderContainer>()
-         .call(&SliderContainer::set_label_text, "Outline Width Step")
-         .call(&SliderContainer::set_slider_step, 0.01)
-         .call(&SliderContainer::set_slider_min, 0.01)
-         .call(&SliderContainer::set_slider_max, 1.0)
-         .call(&SliderContainer::set_slider_value, static_cast<double>(m_outline->get_outline_mul()))
-         .call(&SliderContainer::connect_to_slider, callable_mp(m_outline.ptr(), &OutlineShader::set_outline_mul));;
-    
+        .slider_container_init("Outline Width Step", "Outline Width Step", 
+                               0.01, 0.01, 1.0, static_cast<double>(m_outline->get_outline_mul()),
+                               callable_mp(m_outline.ptr(), &OutlineShader::set_outline_mul));
+
     m_outline_container.add_child<CheckBox>()
                        .call(&CheckBox::set_text, "Jitter")
                        .call(&CheckBox::connect, "toggled", callable_mp(m_outline.ptr(), &OutlineShader::set_jitter), 0u);
 
     auto amp_container = m_outline_container.add_child<SliderContainer>()
-         .call(&SliderContainer::set_label_text, "Jitter Amplitude")
-         .call(&SliderContainer::set_slider_step, 0.01)
-         .call(&SliderContainer::set_slider_min, 0.01)
-         .call(&SliderContainer::set_slider_max, 0.1)
-         .call(&SliderContainer::set_slider_value, static_cast<double>(m_outline->get_jitter_amp()))
-         .call(&SliderContainer::connect_to_slider, callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_amp));
+        .slider_container_init("Jitter Amplitude", "Jitter Amplitude", 
+                               0.01, 0.01, 0.1, static_cast<double>(m_outline->get_jitter_amp()), 
+                               callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_amp));
     auto freq_container = m_outline_container.add_child<SliderContainer>()
-         .call(&SliderContainer::set_label_text, "Jitter Frequency")
-         .call(&SliderContainer::set_slider_step, 0.01)
-         .call(&SliderContainer::set_slider_min, 0.01)
-         .call(&SliderContainer::set_slider_max, 0.1)
-         .call(&SliderContainer::set_slider_value, static_cast<double>(m_outline->get_jitter_freq()))
-         .call(&SliderContainer::connect_to_slider, callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_freq));;
+        .slider_container_init("Jitter Frequency", "Jitter Frequency",
+                               0.01, 0.01, 0.1, static_cast<double>(m_outline->get_jitter_freq()),
+                               callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_freq));
     auto color_container = m_outline_container.add_child<HBoxContainer>();
 
     color_container.add_child<Label>()
@@ -154,36 +137,23 @@ void ToolPanel::_ready()
     // CRT container
     m_crt_container.call(&VBoxContainer::set_name, "CRT");
     auto curvature_container = m_crt_container.add_child<SliderContainer>()
-         .call(&SliderContainer::set_label_text, "Curvature")
-         .call(&SliderContainer::set_slider_step, 1.0)
-         .call(&SliderContainer::set_slider_min, 0.0)
-         .call(&SliderContainer::set_slider_max, 10.0)
-         .call(&SliderContainer::set_slider_value, static_cast<double>(m_crt->get_curvature()))
-         .call(&SliderContainer::connect_to_slider, callable_mp(m_crt.ptr(), &CRTShader::set_curvature));
+        .slider_container_init("Curvature", "Curvature", 
+                               1.0, 0.0, 10.0, static_cast<double>(m_crt->get_curvature()), 
+                               callable_mp(m_crt.ptr(), &CRTShader::set_curvature));
     auto vignette_mul_container = m_crt_container.add_child<SliderContainer>()
-         .call(&SliderContainer::set_label_text, "Vignette Multiplier")
-         .call(&SliderContainer::set_slider_step, 1.0)
-         .call(&SliderContainer::set_slider_min, 0.0)
-         .call(&SliderContainer::set_slider_max, 10.0)
-         .call(&SliderContainer::set_slider_value, static_cast<double>(m_crt->get_vignette_mul()))
-         .call(&SliderContainer::connect_to_slider, callable_mp(m_crt.ptr(), &CRTShader::set_vignette_mul));
+        .slider_container_init("Vignette Multiplier", "Vignette Multiplier",
+                              1.0, 0.0, 10.0, static_cast<double>(m_crt->get_vignette_mul()), 
+                              callable_mp(m_crt.ptr(), &CRTShader::set_vignette_mul));
     auto brightness_container = m_crt_container.add_child<SliderContainer>()
-         .call(&SliderContainer::set_label_text, "Brightness")
-         .call(&SliderContainer::set_slider_step, 0.1)
-         .call(&SliderContainer::set_slider_min, 0.0)
-         .call(&SliderContainer::set_slider_max, 10.0)
-         .call(&SliderContainer::set_slider_value, static_cast<double>(m_crt->get_brightness()))
-         .call(&SliderContainer::connect_to_slider, callable_mp(m_crt.ptr(), &CRTShader::set_brightness));
-
+        .slider_container_init("Brightness", "Brightness",
+                               0.1, 0.0, 10.0, static_cast<double>(m_crt->get_brightness()),
+                               callable_mp(m_crt.ptr(), &CRTShader::set_brightness));
     // Dither container
-    m_dither_container.call(&SliderContainer::set_name, "Dither")
-    .call(&SliderContainer::set_label_text, "Gamma Correction Amount")
-    .call(&SliderContainer::set_slider_step, 0.1)
-    .call(&SliderContainer::set_slider_min, 0.0)
-    .call(&SliderContainer::set_slider_max, 10.0)
-    .call(&SliderContainer::set_slider_value, static_cast<double>(m_dither->get_gamma_correction()))
-    .call(&SliderContainer::connect_to_slider, callable_mp(m_dither.ptr(), &DitherShader::set_gamma_correction));
-
+    m_dither_container
+    .slider_container_init("Dither", "Gamma Correction Amount",
+                          0.1, 0.0, 10.0, static_cast<double>(m_dither->get_gamma_correction()), 
+                          callable_mp(m_dither.ptr(), &DitherShader::set_gamma_correction));
+    
     // Pixelize container
     m_pixel_container.call(&HBoxContainer::set_name, "Pixelize");
     auto label = m_pixel_container.add_child<Label>()
