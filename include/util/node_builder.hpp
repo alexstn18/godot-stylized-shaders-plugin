@@ -63,8 +63,7 @@ template <typename T> class NodeBuilder
         return NodeBuilder<T>(node);
     }
 
-    template <typename C>
-    NodeBuilder<T> &remove_child(NodeBuilder<C> &builder)
+    template <typename C> NodeBuilder<T> &remove_child(NodeBuilder<C> &builder)
     {
         static_assert(std::is_base_of_v<Node, C>,
                       "remove_child() can only be used on Node builders");
@@ -76,13 +75,12 @@ template <typename T> class NodeBuilder
         return *this;
     }
 
-    template <typename C>
-    NodeBuilder<T> &remove_child(C *child)
+    template <typename C> NodeBuilder<T> &try_remove_child(C *child)
     {
         static_assert(std::is_base_of_v<Node, C>,
                       "remove_child() can only be used on Node children");
 
-        if (child->get_parent() == node)
+        if (child && child->get_parent() == node)
         {
             node->remove_child(child);
         }

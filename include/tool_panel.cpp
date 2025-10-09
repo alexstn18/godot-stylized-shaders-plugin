@@ -46,6 +46,8 @@ void ToolPanel::_bind_methods()
                          &ToolPanel::_on_pixel_toggled);
     ClassDB::bind_method(D_METHOD("_on_vhs_toggled"),
                          &ToolPanel::_on_vhs_toggled);
+    ClassDB::bind_method(D_METHOD("_on_bloom_toggled"),
+                         &ToolPanel::_on_bloom_toggled);
 }
 
 ToolPanel::ToolPanel()
@@ -54,7 +56,8 @@ ToolPanel::ToolPanel()
       m_outline_container(NodeBuilder<VBoxContainer>::create()),
       m_crt_container(NodeBuilder<VBoxContainer>::create()),
       m_pixel_container(NodeBuilder<HBoxContainer>::create()),
-      m_vhs_container(NodeBuilder<VBoxContainer>::create())
+      m_vhs_container(NodeBuilder<VBoxContainer>::create()),
+      m_bloom_container(NodeBuilder<VBoxContainer>::create())
 {
 }
 
@@ -71,6 +74,7 @@ void ToolPanel::_ready()
     m_dither.instantiate();
     m_pixel.instantiate();
     m_vhs.instantiate();
+    m_bloom.instantiate();
 
     /// Get UI nodes
     // ApplyToContainer
@@ -84,6 +88,7 @@ void ToolPanel::_ready()
     m_dither_toggle = get_node<CheckButton>("ToggleContainer/DitherToggle");
     m_pixel_toggle = get_node<CheckButton>("ToggleContainer/PixelToggle");
     m_vhs_toggle = get_node<CheckButton>("ToggleContainer/VHSToggle");
+    m_bloom_toggle = get_node<CheckButton>("ToggleContainer/BloomToggle");
 
     // root
     m_effect_list = get_node<ItemList>("EffectList");
@@ -103,6 +108,7 @@ void ToolPanel::_ready()
     ERR_FAIL_COND_MSG(!m_pixel_toggle,
                       "ERROR: Could not find PixelToggle node!");
     ERR_FAIL_COND_MSG(!m_vhs_toggle, "ERROR: Could not find VHSToggle node!");
+    ERR_FAIL_COND_MSG(!m_bloom_toggle, "ERROR: Could not find BloomToggle node!");
     ERR_FAIL_COND_MSG(!m_effect_list, "ERROR: Could not find EffectList node!");
     ERR_FAIL_COND_MSG(!m_tab_container,
                       "ERROR: Could not find TabContainer node!");
@@ -114,6 +120,7 @@ void ToolPanel::_ready()
     setup_dither();
     setup_pixel();
     setup_vhs();
+    setup_bloom();
 
     /// Connect to signals
     m_cel_toggle->connect("toggled", Callable(this, "_on_cel_toggled"));
@@ -123,6 +130,7 @@ void ToolPanel::_ready()
     m_dither_toggle->connect("toggled", Callable(this, "_on_dither_toggled"));
     m_pixel_toggle->connect("toggled", Callable(this, "_on_pixel_toggled"));
     m_vhs_toggle->connect("toggled", Callable(this, "_on_vhs_toggled"));
+    m_bloom_toggle->connect("toggled", Callable(this, "_on_bloom_toggled"));
 }
 
 void ToolPanel::_process(double delta)
@@ -382,16 +390,38 @@ void ToolPanel::_on_vhs_toggled(bool toggled_on)
         ADD_EFFECT(m_vhs);
 
         m_tab_container->add_child(m_vhs_container.get());
-
+        
         UtilityFunctions::print("VHS effect toggled on");
     }
     else
     {
         REMOVE_EFFECT(m_vhs);
-
+        
         m_tab_container->remove_child(m_vhs_container.get());
-
+        
         UtilityFunctions::print("VHS effect toggled off");
+    }
+}
+
+void ToolPanel::_on_bloom_toggled(bool toggled_on)
+{
+    m_bloom->set_enabled(toggled_on);
+    
+    if(toggled_on)
+    {
+        ADD_EFFECT(m_bloom);
+        
+        m_tab_container->add_child(m_bloom_container.get());
+        
+        UtilityFunctions::print("Bloom effect toggled on");
+    }
+    else 
+    {
+        REMOVE_EFFECT(m_bloom);
+        
+        m_tab_container->remove_child(m_bloom_container.get());
+
+        UtilityFunctions::print("Bloom effect toggled off");
     }
 }
 
@@ -585,10 +615,10 @@ void ToolPanel::setup_vhs()
                         }
                         else
                         {
-                            m_vhs_container.remove_child(raw_blend);
-                            m_vhs_container.remove_child(raw_height);
-                            m_vhs_container.remove_child(raw_intensity);
-                            m_vhs_container.remove_child(raw_scroll);
+                            m_vhs_container.try_remove_child(raw_blend);
+                            m_vhs_container.try_remove_child(raw_height);
+                            m_vhs_container.try_remove_child(raw_intensity);
+                            m_vhs_container.try_remove_child(raw_scroll);
                         }
                     }),
                 0u);
@@ -603,7 +633,7 @@ void ToolPanel::setup_vhs()
                       {
                           m_vhs->set_grain_enabled(toggled_on);
 
-                          static SliderContainer *raw = nullptr;
+                          static SliderContainer *raw_grain = nullptr;
 
                           if (toggled_on)
                           {
@@ -617,11 +647,11 @@ void ToolPanel::setup_vhs()
                                           callable_mp(
                                               m_vhs.ptr(),
                                               &VHSShader::set_grain_intensity));
-                              raw = grain_intensity_container.get();
+                              raw_grain = grain_intensity_container.get();
                           }
                           else
                           {
-                              m_vhs_container.remove_child(raw);
+                              m_vhs_container.try_remove_child(raw_grain);
                           }
                       }),
                   0u);
@@ -743,15 +773,29 @@ void ToolPanel::setup_vhs()
                         }
                         else
                         {
-                            m_vhs_container.remove_child(raw_speed);
-                            m_vhs_container.remove_child(raw_height);
-                            m_vhs_container.remove_child(raw_intensity);
-                            m_vhs_container.remove_child(raw_choppiness);
-                            m_vhs_container.remove_child(raw_static);
-                            m_vhs_container.remove_child(raw_warp);
+                            m_vhs_container.try_remove_child(raw_speed);
+                            m_vhs_container.try_remove_child(raw_height);
+                            m_vhs_container.try_remove_child(raw_intensity);
+                            m_vhs_container.try_remove_child(raw_choppiness);
+                            m_vhs_container.try_remove_child(raw_static);
+                            m_vhs_container.try_remove_child(raw_warp);
                         }
                     }),
                 0u);
+}
+
+void ToolPanel::setup_bloom()
+{
+    m_bloom_container.call(&VBoxContainer::set_name, "Bloom");
+
+    m_bloom_container.add_child<SliderContainer>()
+        .slider_container_init("Threshold", "Threshold", 0.1, 0.0, 10.0,
+                               static_cast<double>(m_bloom->get_threshold()),
+                               callable_mp(m_bloom.ptr(), &BloomShader::set_threshold));
+    m_bloom_container.add_child<SliderContainer>()
+        .slider_container_init("Radius", "Radius", 0.1, 0.0, 10.0,
+                               static_cast<double>(m_bloom->get_radius()),
+                               callable_mp(m_bloom.ptr(), &BloomShader::set_radius));
 }
 
 void ToolPanel::set_edited_scene_root(Node *edited_scene_root)

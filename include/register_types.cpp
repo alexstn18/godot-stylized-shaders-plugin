@@ -18,6 +18,7 @@
 #include "slider_container.hpp"
 #include "tool_panel.hpp"
 #include "vhs_shader.hpp"
+#include "bloom_shader.hpp"
 
 
 using namespace godot;
@@ -47,6 +48,7 @@ void initialize_shader_plugin(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(DitherShader);
     GDREGISTER_CLASS(PixelShader);
     GDREGISTER_CLASS(VHSShader);
+    GDREGISTER_CLASS(BloomShader);
 }
 
 void uninitialize_shader_plugin(ModuleInitializationLevel p_level)

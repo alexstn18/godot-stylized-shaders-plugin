@@ -3,11 +3,9 @@
 #include <godot_cpp/classes/rd_shader_spirv.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 
-
 #include <godot_cpp/classes/rd_uniform.hpp>
 #include <godot_cpp/classes/render_scene_buffers_rd.hpp>
 #include <godot_cpp/classes/uniform_set_cache_rd.hpp>
-
 
 void BaseShader::_bind_methods() {}
 
@@ -116,10 +114,10 @@ void BaseShader::base_compute_update(int32_t p_effect_callback_type,
                     "Failed to create color image uniform set for view " +
                         String::num(i));
 
-                uniform.instantiate();
-                uniform->set_uniform_type(
-                    RenderingDevice::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE);
-                uniform->set_binding(0);
+                // uniform.instantiate();
+                // uniform->set_uniform_type(
+                //     RenderingDevice::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE);
+                // uniform->set_binding(0);
 
                 auto compute_list = m_device->compute_list_begin();
                 m_device->compute_list_bind_compute_pipeline(compute_list,

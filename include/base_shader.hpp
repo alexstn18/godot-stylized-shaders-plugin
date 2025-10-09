@@ -15,7 +15,7 @@ class BaseShader : public CompositorEffect
 private:
     String m_addon_path = "res://addons/GodotStylizedShadersPlugin/shaders/";
     TypedArray<Callable> m_uniform_callables;
-    protected:
+protected:
     RID m_shader;
     RID m_pipeline;
     RenderingDevice *m_device = nullptr;
@@ -31,4 +31,5 @@ private:
     Vector2i get_buffers_internal_size(RenderData *, Ref<RenderSceneBuffersRD> &) const;
 public:
     virtual void _notification(int what) = 0;
+    String get_addon_path() const { return m_addon_path; }
 };

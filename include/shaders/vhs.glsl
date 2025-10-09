@@ -49,7 +49,6 @@ const vec2 SEED = vec2(12.9898, 78.233);
 
 void main()
 {
-    // TODO: implement usage of "enabled" vars
     ivec2 pixel = ivec2(gl_GlobalInvocationID.xy); // fragCoord on shadertoy
     vec2 size = params.raster_size; // iResolution on shadertoy
 
@@ -61,7 +60,7 @@ void main()
 
     float scanline = sin((uv.y * size.y - params.delta_time * params.scanline_settings.scroll_speed) * (1. / params.scanline_settings.height));
     vec3 vhs_color = vec3(1.0); 
-    if(params.scanline_settings.enabled) vhs_color = SCANLINE_COLOR * scanline * params.scanline_settings.intensity;
+    if(params.scanline_settings.enabled == 1.0) vhs_color = SCANLINE_COLOR * scanline * params.scanline_settings.intensity;
 
     if(params.grain_settings.enabled == 1.0)
     {

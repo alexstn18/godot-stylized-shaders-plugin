@@ -23,6 +23,7 @@
 #include "dither_shader.hpp"
 #include "pixel_shader.hpp"
 #include "vhs_shader.hpp"
+#include "bloom_shader.hpp"
 
 #include "slider_container.hpp"
 #include "util/node_builder.hpp"
@@ -47,6 +48,7 @@ private:
     CheckButton  *m_dither_toggle    = nullptr;
     CheckButton  *m_pixel_toggle     = nullptr;
     CheckButton  *m_vhs_toggle       = nullptr;
+    CheckButton  *m_bloom_toggle     = nullptr;
     ItemList     *m_effect_list      = nullptr;
     TabContainer *m_tab_container    = nullptr;
 
@@ -56,6 +58,7 @@ private:
     NodeBuilder<VBoxContainer>   m_outline_container;
     NodeBuilder<VBoxContainer>   m_crt_container;
     NodeBuilder<VBoxContainer>   m_vhs_container;
+    NodeBuilder<VBoxContainer>   m_bloom_container;
     NodeBuilder<HBoxContainer>   m_pixel_container;
 
     // Compositor-related
@@ -68,6 +71,7 @@ private:
     Ref<DitherShader> m_dither;
     Ref<PixelShader> m_pixel;
     Ref<VHSShader> m_vhs;
+    Ref<BloomShader> m_bloom;
     Ref<EffectArray> m_effect_arr;
 
     // Other
@@ -84,6 +88,7 @@ private:
     void setup_dither();
     void setup_pixel();
     void setup_vhs();
+    void setup_bloom();
 protected:
     static void _bind_methods();
 public:
@@ -99,5 +104,6 @@ public:
     void _on_dither_toggled(bool toggled_on);
     void _on_pixel_toggled(bool toggled_on);
     void _on_vhs_toggled(bool toggled_on);
+    void _on_bloom_toggled(bool toggled_on);
     void set_edited_scene_root(Node *edited_scene_root);
 };
