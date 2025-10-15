@@ -20,6 +20,11 @@ private:
 
     float m_threshold = 1.0f;
     float m_radius = 1.0f;
+    float m_strength = 0.5f;
+
+    int32_t m_num_sampled_mips = 0;
+    bool m_mip_finished = false;
+    std::vector<Vector2i> m_mip_resolutions;
 
     void init_compute();
     void create_shader(const String &shader_path, RID &shader, RID &pipeline);
@@ -40,4 +45,6 @@ public:
     float get_threshold() const { return m_threshold; }
     void set_radius(float radius) { m_radius = radius; }
     float get_radius() const { return m_radius; }
+    void set_strength(float strength) { m_strength = strength; }
+    float get_strength() const { return m_strength; }
 };

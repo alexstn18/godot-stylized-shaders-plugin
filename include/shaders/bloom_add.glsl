@@ -9,6 +9,7 @@ layout(binding = 1, set = 0) uniform sampler2D blur_image;
 layout(push_constant, std430) uniform Params 
 {
     vec2 raster_size;
+    float strength;
 } params;
 
 void main()
@@ -22,5 +23,6 @@ void main()
 
     vec4 base_color = imageLoad(base_image, pixel);
     vec4 blur_color = texture(blur_image, uv);
-    imageStore(base_image, pixel, base_color + blur_color);
+    vec4 final_color = mix(base_color, blur_color, params.strength);
+    imageStore(base_image, pixel, final_color);
 }

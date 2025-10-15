@@ -789,13 +789,18 @@ void ToolPanel::setup_bloom()
     m_bloom_container.call(&VBoxContainer::set_name, "Bloom");
 
     m_bloom_container.add_child<SliderContainer>()
-        .slider_container_init("Threshold", "Threshold", 0.1, 0.0, 10.0,
+        .slider_container_init("Threshold", "Threshold", 0.01, 0.0, 10.0,
                                static_cast<double>(m_bloom->get_threshold()),
                                callable_mp(m_bloom.ptr(), &BloomShader::set_threshold));
     m_bloom_container.add_child<SliderContainer>()
-        .slider_container_init("Radius", "Radius", 0.1, 0.0, 10.0,
+        .slider_container_init("Radius", "Radius", 0.001, 0.0, 10.0,
                                static_cast<double>(m_bloom->get_radius()),
                                callable_mp(m_bloom.ptr(), &BloomShader::set_radius));
+
+    m_bloom_container.add_child<SliderContainer>()
+        .slider_container_init("Strength", "Strength", 0.001, 0.0, 1.0,
+                               static_cast<double>(m_bloom->get_strength()),
+                               callable_mp(m_bloom.ptr(), &BloomShader::set_strength));
 }
 
 void ToolPanel::set_edited_scene_root(Node *edited_scene_root)
