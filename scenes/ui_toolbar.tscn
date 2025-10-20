@@ -62,7 +62,7 @@ text = "HDR Bloom Effect"
 [node name="HSeparator2" type="HSeparator" parent="."]
 layout_mode = 2
 
-[node name="EffectList" type="ItemList" parent="."]
+[node name="ArrayOrder" type="ManualArrayInspector" parent="."]
 layout_mode = 2
 
 [node name="HSeparator3" type="HSeparator" parent="."]

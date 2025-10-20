@@ -14,9 +14,11 @@
 #include <godot_cpp/classes/world_environment.hpp>
 #include <godot_cpp/classes/compositor.hpp>
 #include <godot_cpp/classes/compositor_effect.hpp>
+#include <godot_cpp/classes/editor_property.hpp>
 
 #include "effect_array.hpp"
 #include "invert_shader.hpp"
+#include "manual_array_inspector.hpp"
 #include "outline_shader.hpp"
 #include "cel_shader.hpp"
 #include "crt_shader.hpp"
@@ -49,7 +51,8 @@ private:
     CheckButton  *m_pixel_toggle     = nullptr;
     CheckButton  *m_vhs_toggle       = nullptr;
     CheckButton  *m_bloom_toggle     = nullptr;
-    ItemList     *m_effect_list      = nullptr;
+    
+    ManualArrayInspector *m_array_inspector = nullptr;
     TabContainer *m_tab_container    = nullptr;
 
     // UI (code/manually-made, mostly containers)

@@ -1,4 +1,5 @@
 #include "tool_panel.hpp"
+#include "effect_array.hpp"
 #include "ext/callable_lambda.hpp"
 #include "godot_cpp/classes/check_button.hpp"
 #include "godot_cpp/classes/directional_light3d.hpp"
@@ -7,6 +8,7 @@
 #include "godot_cpp/core/error_macros.hpp"
 #include "godot_cpp/variant/color.hpp"
 #include "godot_cpp/variant/utility_functions.hpp"
+#include "manual_array_inspector.hpp"
 #include "outline_shader.hpp"
 #include "pixel_shader.hpp"
 #include "slider_container.hpp"
@@ -92,7 +94,7 @@ void ToolPanel::_ready()
     m_bloom_toggle = get_node<CheckButton>("ToggleContainer/BloomToggle");
 
     // root
-    m_effect_list = get_node<ItemList>("EffectList");
+    m_array_inspector = get_node<ManualArrayInspector>("ArrayOrder");
     m_tab_container = get_node<TabContainer>("TabContainer");
 
     /// Check if "gotten" UI nodes even exist
@@ -111,7 +113,8 @@ void ToolPanel::_ready()
     ERR_FAIL_COND_MSG(!m_vhs_toggle, "ERROR: Could not find VHSToggle node!");
     ERR_FAIL_COND_MSG(!m_bloom_toggle,
                       "ERROR: Could not find BloomToggle node!");
-    ERR_FAIL_COND_MSG(!m_effect_list, "ERROR: Could not find EffectList node!");
+    ERR_FAIL_COND_MSG(!m_array_inspector,
+                      "ERROR: Could not find ManualArrayInspector node!");
     ERR_FAIL_COND_MSG(!m_tab_container,
                       "ERROR: Could not find TabContainer node!");
 
@@ -133,6 +136,7 @@ void ToolPanel::_ready()
     m_pixel_toggle->connect("toggled", Callable(this, "_on_pixel_toggled"));
     m_vhs_toggle->connect("toggled", Callable(this, "_on_vhs_toggled"));
     m_bloom_toggle->connect("toggled", Callable(this, "_on_bloom_toggled"));
+    m_array_inspector->connect("order_changed", callable_mp(m_effect_arr.ptr(), &EffectArray::set_effects));
 }
 
 void ToolPanel::_process(double delta)

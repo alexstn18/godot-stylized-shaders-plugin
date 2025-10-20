@@ -10,6 +10,7 @@
 #include "crt_shader.hpp"
 #include "dither_shader.hpp"
 #include "effect_array.hpp"
+#include "manual_array_inspector.hpp"
 #include "godot_cpp/classes/editor_plugin.hpp"
 #include "invert_shader.hpp"
 #include "outline_shader.hpp"
@@ -21,13 +22,13 @@
 #include "vhs_shader.hpp"
 #include "bloom_shader.hpp"
 
-
 using namespace godot;
 
 void initialize_shader_plugin(ModuleInitializationLevel p_level)
 {
     if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
     {
+        GDREGISTER_CLASS(ManualArrayInspector);
         GDREGISTER_CLASS(EffectArray);
         GDREGISTER_CLASS(EncapsuledData<int>);
         GDREGISTER_CLASS(EncapsuledData<float>);
