@@ -19,6 +19,14 @@ void ManualArrayInspector::_refresh_ui()
         }
     }
 
+    if(m_effects.size() > 0)
+    {
+        Label *label = memnew(Label);
+        label->set_text("Effect Order");
+        label->set_horizontal_alignment(godot::HORIZONTAL_ALIGNMENT_CENTER);
+        add_child(label);
+    }
+
     for (int32_t i = 0; i < m_effects.size(); ++i)
     {
         if (BaseShader *obj = Object::cast_to<BaseShader>(m_effects[i]))
@@ -28,21 +36,21 @@ void ManualArrayInspector::_refresh_ui()
             line_edit->set_text(obj->get_class());
             line_edit->set_editable(false);
             hbox->add_child(line_edit);
-
+            
             Button *up_btn = memnew(Button);
-            up_btn->set_text("↑");
+            up_btn->set_text("Move Up");
             up_btn->set_focus_mode(Control::FOCUS_NONE);
             up_btn->set_disabled(i == 0);
             up_btn->connect("pressed", callable_mp(this, &ManualArrayInspector::_on_move_pressed).bind(i, i-1));
             hbox->add_child(up_btn);
-
+            
             Button *down_btn = memnew(Button);
-            down_btn->set_text("↓");
-            up_btn->set_focus_mode(Control::FOCUS_NONE);
-            up_btn->set_disabled(i == m_effects.size() - 1);
+            down_btn->set_text("Move Down");
+            down_btn->set_focus_mode(Control::FOCUS_NONE);
+            down_btn->set_disabled(i == m_effects.size() - 1);
             down_btn->connect("pressed", callable_mp(this, &ManualArrayInspector::_on_move_pressed).bind(i, i+1));
             hbox->add_child(down_btn);
-
+            
             add_child(hbox);
         }
     }

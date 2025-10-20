@@ -30,8 +30,8 @@
 #include <godot_cpp/classes/spin_box.hpp>
 #include <godot_cpp/variant/callable.hpp>
 
-#define ADD_EFFECT(T) m_effect_arr->add_effect(T);
-#define REMOVE_EFFECT(T) m_effect_arr->remove_effect(T);
+#define ADD_EFFECT(T) m_effect_arr->add_effect(T); m_array_inspector->set_effects(m_effect_arr->get_effects());
+#define REMOVE_EFFECT(T) m_effect_arr->remove_effect(T); m_array_inspector->set_effects(m_effect_arr->get_effects());
 
 void ToolPanel::_bind_methods()
 {
@@ -126,6 +126,8 @@ void ToolPanel::_ready()
     setup_pixel();
     setup_vhs();
     setup_bloom();
+
+    m_array_inspector->set_effects(m_effect_arr->get_effects());
 
     /// Connect to signals
     m_cel_toggle->connect("toggled", Callable(this, "_on_cel_toggled"));
