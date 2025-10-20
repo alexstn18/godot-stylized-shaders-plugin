@@ -41,12 +41,9 @@ void CelShader::_render_callback(int32_t p_effect_callback_type, RenderData *p_r
     
     PackedFloat32Array push_constant = {(float)size.x,
                                         (float)size.y,
-                                        (float)m_levels, 
+                                        m_levels->get(), 
                                         0.0f};
     ERR_FAIL_COND_MSG(push_constant.is_empty(), "push constant is empty");
     
     base_compute_update(p_effect_callback_type, p_render_data,buffers, push_constant, size);
 }
-
-void CelShader::set_levels(int levels) { m_levels = levels; }
-int CelShader::get_levels() const { return m_levels; }

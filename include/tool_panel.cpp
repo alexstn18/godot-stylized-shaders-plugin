@@ -10,6 +10,7 @@
 #include "outline_shader.hpp"
 #include "pixel_shader.hpp"
 #include "slider_container.hpp"
+#include "util/encapsulated_data.hpp"
 #include "util/node_builder.hpp"
 
 #include <godot_cpp/classes/check_box.hpp>
@@ -108,7 +109,8 @@ void ToolPanel::_ready()
     ERR_FAIL_COND_MSG(!m_pixel_toggle,
                       "ERROR: Could not find PixelToggle node!");
     ERR_FAIL_COND_MSG(!m_vhs_toggle, "ERROR: Could not find VHSToggle node!");
-    ERR_FAIL_COND_MSG(!m_bloom_toggle, "ERROR: Could not find BloomToggle node!");
+    ERR_FAIL_COND_MSG(!m_bloom_toggle,
+                      "ERROR: Could not find BloomToggle node!");
     ERR_FAIL_COND_MSG(!m_effect_list, "ERROR: Could not find EffectList node!");
     ERR_FAIL_COND_MSG(!m_tab_container,
                       "ERROR: Could not find TabContainer node!");
@@ -252,9 +254,9 @@ void ToolPanel::_process(double delta)
         }
     }
     if (m_outline.is_valid())
-        m_outline->set_dt(delta);
+        m_outline->m_dt->set(delta);
     if (m_vhs.is_valid())
-        m_vhs->set_dt(m_vhs->get_dt() + delta);
+        m_vhs->m_dt->set(m_vhs->m_dt->get() + delta);
 }
 
 void ToolPanel::_on_cel_toggled(bool toggled_on)
@@ -390,15 +392,15 @@ void ToolPanel::_on_vhs_toggled(bool toggled_on)
         ADD_EFFECT(m_vhs);
 
         m_tab_container->add_child(m_vhs_container.get());
-        
+
         UtilityFunctions::print("VHS effect toggled on");
     }
     else
     {
         REMOVE_EFFECT(m_vhs);
-        
+
         m_tab_container->remove_child(m_vhs_container.get());
-        
+
         UtilityFunctions::print("VHS effect toggled off");
     }
 }
@@ -406,19 +408,19 @@ void ToolPanel::_on_vhs_toggled(bool toggled_on)
 void ToolPanel::_on_bloom_toggled(bool toggled_on)
 {
     m_bloom->set_enabled(toggled_on);
-    
-    if(toggled_on)
+
+    if (toggled_on)
     {
         ADD_EFFECT(m_bloom);
-        
+
         m_tab_container->add_child(m_bloom_container.get());
-        
+
         UtilityFunctions::print("Bloom effect toggled on");
     }
-    else 
+    else
     {
         REMOVE_EFFECT(m_bloom);
-        
+
         m_tab_container->remove_child(m_bloom_container.get());
 
         UtilityFunctions::print("Bloom effect toggled off");
@@ -428,9 +430,8 @@ void ToolPanel::_on_bloom_toggled(bool toggled_on)
 void ToolPanel::setup_cel()
 {
     m_posterize_container.slider_container_init(
-        "Posterize", "Levels", 1.0, 2.0, 32.0,
-        static_cast<double>(m_cel->get_levels()),
-        callable_mp(m_cel.ptr(), &CelShader::set_levels));
+        "Posterize", "Levels", 1.0, 2.0, 32.0, m_cel->m_levels,
+        encapsulated_callable(float, m_cel, m_levels));
 }
 
 void ToolPanel::setup_outline()
@@ -439,30 +440,30 @@ void ToolPanel::setup_outline()
     auto width_container =
         m_outline_container.add_child<SliderContainer>().slider_container_init(
             "Outline Width", "Outline Width", 0.001, 0.0, 0.01,
-            static_cast<double>(m_outline->get_outline_width()),
-            callable_mp(m_outline.ptr(), &OutlineShader::set_outline_width));
+            m_outline->m_outline_width,
+            encapsulated_callable(float, m_outline, m_outline_width));
 
     auto mul_container =
         m_outline_container.add_child<SliderContainer>().slider_container_init(
             "Outline Width Step", "Outline Width Step", 0.01, 0.01, 1.0,
-            static_cast<double>(m_outline->get_outline_mul()),
-            callable_mp(m_outline.ptr(), &OutlineShader::set_outline_mul));
+            m_outline->m_outline_mul,
+            encapsulated_callable(float, m_outline, m_outline_mul));
 
     m_outline_container.add_child<CheckBox>()
         .call(&CheckBox::set_text, "Jitter")
         .call(&CheckBox::connect, "toggled",
-              callable_mp(m_outline.ptr(), &OutlineShader::set_jitter), 0u);
+              encapsulated_callable(bool, m_outline, m_jitter_toggle), 0u);
 
     auto amp_container =
         m_outline_container.add_child<SliderContainer>().slider_container_init(
             "Jitter Amplitude", "Jitter Amplitude", 0.01, 0.01, 0.1,
-            static_cast<double>(m_outline->get_jitter_amp()),
-            callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_amp));
+            m_outline->m_jitter_amp,
+            encapsulated_callable(float, m_outline, m_jitter_amp));
     auto freq_container =
         m_outline_container.add_child<SliderContainer>().slider_container_init(
             "Jitter Frequency", "Jitter Frequency", 0.01, 0.01, 0.1,
-            static_cast<double>(m_outline->get_jitter_freq()),
-            callable_mp(m_outline.ptr(), &OutlineShader::set_jitter_freq));
+            m_outline->m_jitter_freq,
+            encapsulated_callable(float, m_outline, m_jitter_freq));
     auto color_container = m_outline_container.add_child<HBoxContainer>();
 
     color_container.add_child<Label>().call(&Label::set_text,
@@ -479,27 +480,25 @@ void ToolPanel::setup_crt()
     m_crt_container.call(&VBoxContainer::set_name, "CRT");
     auto curvature_container =
         m_crt_container.add_child<SliderContainer>().slider_container_init(
-            "Curvature", "Curvature", 1.0, 0.0, 10.0,
-            static_cast<double>(m_crt->get_curvature()),
-            callable_mp(m_crt.ptr(), &CRTShader::set_curvature));
+            "Curvature", "Curvature", 1.0, 0.0, 10.0, m_crt->m_curvature,
+            encapsulated_callable(float, m_crt, m_curvature));
     auto vignette_mul_container =
         m_crt_container.add_child<SliderContainer>().slider_container_init(
             "Vignette Multiplier", "Vignette Multiplier", 1.0, 0.0, 10.0,
-            static_cast<double>(m_crt->get_vignette_mul()),
-            callable_mp(m_crt.ptr(), &CRTShader::set_vignette_mul));
+            m_crt->m_vignette_mul,
+            encapsulated_callable(float, m_crt, m_vignette_mul));
     auto brightness_container =
         m_crt_container.add_child<SliderContainer>().slider_container_init(
-            "Brightness", "Brightness", 0.1, 0.0, 10.0,
-            static_cast<double>(m_crt->get_brightness()),
-            callable_mp(m_crt.ptr(), &CRTShader::set_brightness));
+            "Brightness", "Brightness", 0.1, 0.0, 10.0, m_crt->m_brightness,
+            encapsulated_callable(float, m_crt, m_brightness));
 }
 
 void ToolPanel::setup_dither()
 {
     m_dither_container.slider_container_init(
         "Dither", "Gamma Correction Amount", 0.1, 0.0, 10.0,
-        static_cast<double>(m_dither->get_gamma_correction()),
-        callable_mp(m_dither.ptr(), &DitherShader::set_gamma_correction));
+        m_dither->m_gamma_correction,
+        encapsulated_callable(float, m_dither, m_gamma_correction));
 }
 
 void ToolPanel::setup_pixel()
@@ -516,10 +515,9 @@ void ToolPanel::setup_pixel()
                   static_cast<double>(
                       DisplayServer::get_singleton()->screen_get_size().x))
             .call(&SpinBox::set_value,
-                  static_cast<double>(m_pixel->get_target_width()))
+                  static_cast<double>(m_pixel->target_width->get()))
             .call(&SpinBox::connect, "value_changed",
-                  callable_mp(m_pixel.ptr(), &PixelShader::set_target_width),
-                  0u);
+                  encapsulated_callable(int, m_pixel, target_width), 0u);
 
     auto height_spin_box =
         m_pixel_container.add_child<SpinBox>()
@@ -529,99 +527,90 @@ void ToolPanel::setup_pixel()
                   static_cast<double>(
                       DisplayServer::get_singleton()->screen_get_size().y))
             .call(&SpinBox::set_value,
-                  static_cast<double>(m_pixel->get_target_height()))
+                  static_cast<double>(m_pixel->target_height->get()))
             .call(&SpinBox::connect, "value_changed",
-                  callable_mp(m_pixel.ptr(), &PixelShader::set_target_height),
-                  0u);
+                  encapsulated_callable(int, m_pixel, target_height), 0u);
 }
 
-// TODO: refactor this function and get rid of the static raw pointers, 200 lines just for this currently lol
+// TODO: refactor this function and get rid of the static raw pointers, 200
+// lines just for this currently lol
 void ToolPanel::setup_vhs()
 {
     m_vhs_container.call(&VBoxContainer::set_name, "VHS");
     auto scanline_checkbox =
         m_vhs_container.add_child<CheckBox>()
             .call(&CheckBox::set_text, "Enable Scanlines")
-            .call(
-                &CheckBox::connect, "toggled",
-                create_custom_callable_lambda(
-                    this,
-                    [&](bool toggled_on)
-                    {
-                        m_vhs->set_scanline_enabled(toggled_on);
+            .call(&CheckBox::connect, "toggled",
+                  create_custom_callable_lambda(
+                      this,
+                      [&](bool toggled_on)
+                      {
+                          m_vhs->m_scanline_enabled->set(toggled_on);
 
-                        static SliderContainer *raw_blend = nullptr;
-                        static SliderContainer *raw_height = nullptr;
-                        static SliderContainer *raw_intensity = nullptr;
-                        static SliderContainer *raw_scroll = nullptr;
+                          static SliderContainer *raw_blend = nullptr;
+                          static SliderContainer *raw_height = nullptr;
+                          static SliderContainer *raw_intensity = nullptr;
+                          static SliderContainer *raw_scroll = nullptr;
 
-                        if (toggled_on)
-                        {
-                            auto scanline_blend_container =
-                                m_vhs_container.add_child<SliderContainer>()
-                                    .slider_container_init(
-                                        "Scanline Blend Factor",
-                                        "Scanline Blend Factor", 0.01, 0.0, 1.0,
-                                        static_cast<double>(
-                                            m_vhs->get_scanline_blend_factor()),
-                                        callable_mp(
-                                            m_vhs.ptr(),
-                                            &VHSShader::
-                                                set_scanline_blend_factor));
+                          if (toggled_on)
+                          {
+                              auto scanline_blend_container =
+                                  m_vhs_container.add_child<SliderContainer>()
+                                      .slider_container_init(
+                                          "Scanline Blend Factor",
+                                          "Scanline Blend Factor", 0.01, 0.0,
+                                          1.0, m_vhs->m_scanline_blend_factor,
+                                          encapsulated_callable(
+                                              float, m_vhs,
+                                              m_scanline_blend_factor));
 
-                            raw_blend = scanline_blend_container.get();
+                              raw_blend = scanline_blend_container.get();
 
-                            auto scanline_height_container =
-                                m_vhs_container.add_child<SliderContainer>()
-                                    .slider_container_init(
-                                        "Scanline Height", "Scanline Height",
-                                        1.0, 1.0, 20.0,
-                                        static_cast<double>(
-                                            m_vhs->get_scanline_height()),
-                                        callable_mp(
-                                            m_vhs.ptr(),
-                                            &VHSShader::set_scanline_height));
+                              auto scanline_height_container =
+                                  m_vhs_container.add_child<SliderContainer>()
+                                      .slider_container_init(
+                                          "Scanline Height", "Scanline Height",
+                                          1.0, 1.0, 20.0,
+                                          m_vhs->m_scanline_height,
+                                          encapsulated_callable(
+                                              float, m_vhs, m_scanline_height));
 
-                            raw_height = scanline_height_container.get();
+                              raw_height = scanline_height_container.get();
 
-                            auto scanline_intensity_container =
-                                m_vhs_container.add_child<SliderContainer>()
-                                    .slider_container_init(
-                                        "Scanline Intensity",
-                                        "Scanline Intensity", 0.01, 0.0, 1.0,
-                                        static_cast<double>(
-                                            m_vhs->get_scanline_intensity()),
-                                        callable_mp(
-                                            m_vhs.ptr(),
-                                            &VHSShader::
-                                                set_scanline_intensity));
+                              auto scanline_intensity_container =
+                                  m_vhs_container.add_child<SliderContainer>()
+                                      .slider_container_init(
+                                          "Scanline Intensity",
+                                          "Scanline Intensity", 0.01, 0.0, 1.0,
+                                          m_vhs->m_scanline_intensity,
+                                          encapsulated_callable(
+                                              float, m_vhs,
+                                              m_scanline_intensity));
 
-                            raw_intensity = scanline_intensity_container.get();
+                              raw_intensity =
+                                  scanline_intensity_container.get();
 
-                            auto scanline_scroll_container =
-                                m_vhs_container.add_child<SliderContainer>()
-                                    .slider_container_init(
-                                        "Scanline Scroll Speed",
-                                        "Scanline Scroll Speed", 1.0, 0.0,
-                                        100.0,
-                                        static_cast<double>(
-                                            m_vhs->get_scanline_scroll_speed()),
-                                        callable_mp(
-                                            m_vhs.ptr(),
-                                            &VHSShader::
-                                                set_scanline_scroll_speed));
+                              auto scanline_scroll_container =
+                                  m_vhs_container.add_child<SliderContainer>()
+                                      .slider_container_init(
+                                          "Scanline Scroll Speed",
+                                          "Scanline Scroll Speed", 1.0, 0.0,
+                                          100.0, m_vhs->m_scanline_scroll_speed,
+                                          encapsulated_callable(
+                                              float, m_vhs,
+                                              m_scanline_scroll_speed));
 
-                            raw_scroll = scanline_scroll_container.get();
-                        }
-                        else
-                        {
-                            m_vhs_container.try_remove_child(raw_blend);
-                            m_vhs_container.try_remove_child(raw_height);
-                            m_vhs_container.try_remove_child(raw_intensity);
-                            m_vhs_container.try_remove_child(raw_scroll);
-                        }
-                    }),
-                0u);
+                              raw_scroll = scanline_scroll_container.get();
+                          }
+                          else
+                          {
+                              m_vhs_container.try_remove_child(raw_blend);
+                              m_vhs_container.try_remove_child(raw_height);
+                              m_vhs_container.try_remove_child(raw_intensity);
+                              m_vhs_container.try_remove_child(raw_scroll);
+                          }
+                      }),
+                  0u);
 
     auto grain_checkbox =
         m_vhs_container.add_child<CheckBox>()
@@ -631,7 +620,7 @@ void ToolPanel::setup_vhs()
                       this,
                       [&](bool toggled_on)
                       {
-                          m_vhs->set_grain_enabled(toggled_on);
+                          m_vhs->m_grain_enabled->set(toggled_on);
 
                           static SliderContainer *raw_grain = nullptr;
 
@@ -642,11 +631,9 @@ void ToolPanel::setup_vhs()
                                       .slider_container_init(
                                           "Grain Intensity", "Grain Intensity",
                                           0.1, 0.0, 10.0,
-                                          static_cast<double>(
-                                              m_vhs->get_grain_intensity()),
-                                          callable_mp(
-                                              m_vhs.ptr(),
-                                              &VHSShader::set_grain_intensity));
+                                          m_vhs->m_grain_intensity,
+                                          encapsulated_callable(
+                                              float, m_vhs, m_grain_intensity));
                               raw_grain = grain_intensity_container.get();
                           }
                           else
@@ -659,148 +646,127 @@ void ToolPanel::setup_vhs()
     auto vertical_band_checkbox =
         m_vhs_container.add_child<CheckBox>()
             .call(&CheckBox::set_text, "Enable Vertical Bands")
-            .call(
-                &CheckBox::connect, "toggled",
-                create_custom_callable_lambda(
-                    this,
-                    [&](bool toggled_on)
-                    {
-                        m_vhs->set_vertical_band_enabled(toggled_on);
+            .call(&CheckBox::connect, "toggled",
+                  create_custom_callable_lambda(
+                      this,
+                      [&](bool toggled_on)
+                      {
+                          m_vhs->m_vertical_band_enabled->set(toggled_on);
 
-                        static SliderContainer *raw_speed = nullptr;
-                        static SliderContainer *raw_height = nullptr;
-                        static SliderContainer *raw_intensity = nullptr;
-                        static SliderContainer *raw_choppiness = nullptr;
-                        static SliderContainer *raw_static = nullptr;
-                        static SliderContainer *raw_warp = nullptr;
+                          static SliderContainer *raw_speed = nullptr;
+                          static SliderContainer *raw_height = nullptr;
+                          static SliderContainer *raw_intensity = nullptr;
+                          static SliderContainer *raw_choppiness = nullptr;
+                          static SliderContainer *raw_static = nullptr;
+                          static SliderContainer *raw_warp = nullptr;
 
-                        if (toggled_on)
-                        {
-                            auto vertical_band_speed_container =
-                                m_vhs_container.add_child<SliderContainer>()
-                                    .slider_container_init(
-                                        "Vertical Band Speed",
-                                        "Vertical Band Speed", 0.01, 0.0, 5.0,
-                                        static_cast<double>(
-                                            m_vhs->get_vertical_band_speed()),
-                                        callable_mp(
-                                            m_vhs.ptr(),
-                                            &VHSShader::
-                                                set_vertical_band_speed));
+                          if (toggled_on)
+                          {
+                              auto vertical_band_speed_container =
+                                  m_vhs_container.add_child<SliderContainer>()
+                                      .slider_container_init(
+                                          "Vertical Band Speed",
+                                          "Vertical Band Speed", 0.01, 0.0, 5.0,
+                                          m_vhs->m_vertical_band_speed,
+                                          encapsulated_callable(
+                                              float, m_vhs,
+                                              m_vertical_band_speed));
 
-                            raw_speed = vertical_band_speed_container.get();
+                              raw_speed = vertical_band_speed_container.get();
 
-                            auto vertical_band_height_container =
-                                m_vhs_container.add_child<SliderContainer>()
-                                    .slider_container_init(
-                                        "Vertical Band Height",
-                                        "Vertical Band Height", 0.001, 0.001,
-                                        0.1,
-                                        static_cast<double>(
-                                            m_vhs->get_vertical_band_height()),
-                                        callable_mp(
-                                            m_vhs.ptr(),
-                                            &VHSShader::
-                                                set_vertical_band_height));
+                              auto vertical_band_height_container =
+                                  m_vhs_container.add_child<SliderContainer>()
+                                      .slider_container_init(
+                                          "Vertical Band Height",
+                                          "Vertical Band Height", 0.001, 0.001,
+                                          0.1, m_vhs->m_vertical_band_height,
+                                          encapsulated_callable(
+                                              float, m_vhs,
+                                              m_vertical_band_height));
 
-                            raw_height = vertical_band_height_container.get();
+                              raw_height = vertical_band_height_container.get();
 
-                            auto vertical_band_intensity_container =
-                                m_vhs_container.add_child<SliderContainer>()
-                                    .slider_container_init(
-                                        "Vertical Band Intensity",
-                                        "Vertical Band Intensity", 0.01, 0.0,
-                                        1.0,
-                                        static_cast<double>(
-                                            m_vhs
-                                                ->get_vertical_band_intensity()),
-                                        callable_mp(
-                                            m_vhs.ptr(),
-                                            &VHSShader::
-                                                set_vertical_band_intensity));
+                              auto vertical_band_intensity_container =
+                                  m_vhs_container.add_child<SliderContainer>()
+                                      .slider_container_init(
+                                          "Vertical Band Intensity",
+                                          "Vertical Band Intensity", 0.01, 0.0,
+                                          1.0, m_vhs->m_vertical_band_intensity,
+                                          encapsulated_callable(
+                                              float, m_vhs,
+                                              m_vertical_band_intensity));
 
-                            raw_intensity =
-                                vertical_band_intensity_container.get();
+                              raw_intensity =
+                                  vertical_band_intensity_container.get();
 
-                            auto vertical_band_choppiness_container =
-                                m_vhs_container.add_child<SliderContainer>()
-                                    .slider_container_init(
-                                        "Vertical Band Choppiness",
-                                        "Vertical Band Choppiness", 0.01, 0.0,
-                                        1.0,
-                                        static_cast<double>(
-                                            m_vhs
-                                                ->get_vertical_band_choppiness()),
-                                        callable_mp(
-                                            m_vhs.ptr(),
-                                            &VHSShader::
-                                                set_vertical_band_choppiness));
+                              auto vertical_band_choppiness_container =
+                                  m_vhs_container.add_child<SliderContainer>()
+                                      .slider_container_init(
+                                          "Vertical Band Choppiness",
+                                          "Vertical Band Choppiness", 0.01, 0.0,
+                                          1.0,
 
-                            raw_choppiness =
-                                vertical_band_choppiness_container.get();
+                                          m_vhs->m_vertical_band_choppiness,
+                                          encapsulated_callable(
+                                              float, m_vhs,
+                                              m_vertical_band_choppiness));
 
-                            auto vertical_band_static_container =
-                                m_vhs_container.add_child<SliderContainer>()
-                                    .slider_container_init(
-                                        "Vertical Band Static Amount",
-                                        "Vertical Band Static Amount", 0.001,
-                                        0.0, 0.1,
-                                        static_cast<double>(
-                                            m_vhs
-                                                ->get_vertical_band_static_amount()),
-                                        callable_mp(
-                                            m_vhs.ptr(),
-                                            &VHSShader::
-                                                set_vertical_band_static_amount));
+                              raw_choppiness =
+                                  vertical_band_choppiness_container.get();
 
-                            raw_static = vertical_band_static_container.get();
+                              auto vertical_band_static_container =
+                                  m_vhs_container.add_child<SliderContainer>()
+                                      .slider_container_init(
+                                          "Vertical Band Static Amount",
+                                          "Vertical Band Static Amount", 0.001,
+                                          0.0, 0.1,
+                                          m_vhs->m_vertical_band_static_amount,
+                                          encapsulated_callable(
+                                              float, m_vhs,
+                                              m_vertical_band_static_amount));
 
-                            auto vertical_band_warp_container =
-                                m_vhs_container.add_child<SliderContainer>()
-                                    .slider_container_init(
-                                        "Vertical Band Warp Factor",
-                                        "Vertical Band Warp Factor", 0.001, 0.0,
-                                        0.1,
-                                        static_cast<double>(
-                                            m_vhs
-                                                ->get_vertical_band_warp_factor()),
-                                        callable_mp(
-                                            m_vhs.ptr(),
-                                            &VHSShader::
-                                                set_vertical_band_warp_factor));
+                              raw_static = vertical_band_static_container.get();
 
-                            raw_warp = vertical_band_warp_container.get();
-                        }
-                        else
-                        {
-                            m_vhs_container.try_remove_child(raw_speed);
-                            m_vhs_container.try_remove_child(raw_height);
-                            m_vhs_container.try_remove_child(raw_intensity);
-                            m_vhs_container.try_remove_child(raw_choppiness);
-                            m_vhs_container.try_remove_child(raw_static);
-                            m_vhs_container.try_remove_child(raw_warp);
-                        }
-                    }),
-                0u);
+                              auto vertical_band_warp_container =
+                                  m_vhs_container.add_child<SliderContainer>()
+                                      .slider_container_init(
+                                          "Vertical Band Warp Factor",
+                                          "Vertical Band Warp Factor", 0.001,
+                                          0.0, 0.1,
+                                          m_vhs->m_vertical_band_warp_factor,
+                                          encapsulated_callable(
+                                              float, m_vhs,
+                                              m_vertical_band_warp_factor));
+
+                              raw_warp = vertical_band_warp_container.get();
+                          }
+                          else
+                          {
+                              m_vhs_container.try_remove_child(raw_speed);
+                              m_vhs_container.try_remove_child(raw_height);
+                              m_vhs_container.try_remove_child(raw_intensity);
+                              m_vhs_container.try_remove_child(raw_choppiness);
+                              m_vhs_container.try_remove_child(raw_static);
+                              m_vhs_container.try_remove_child(raw_warp);
+                          }
+                      }),
+                  0u);
 }
 
 void ToolPanel::setup_bloom()
 {
     m_bloom_container.call(&VBoxContainer::set_name, "Bloom");
 
-    m_bloom_container.add_child<SliderContainer>()
-        .slider_container_init("Threshold", "Threshold", 0.01, 0.0, 10.0,
-                               static_cast<double>(m_bloom->get_threshold()),
-                               callable_mp(m_bloom.ptr(), &BloomShader::set_threshold));
-    m_bloom_container.add_child<SliderContainer>()
-        .slider_container_init("Radius", "Radius", 0.001, 0.0, 10.0,
-                               static_cast<double>(m_bloom->get_radius()),
-                               callable_mp(m_bloom.ptr(), &BloomShader::set_radius));
+    m_bloom_container.add_child<SliderContainer>().slider_container_init(
+        "Threshold", "Threshold", 0.01, 0.0, 10.0, m_bloom->m_threshold,
+        encapsulated_callable(float, m_bloom, m_threshold));
+    m_bloom_container.add_child<SliderContainer>().slider_container_init(
+        "Radius", "Radius", 0.001, 0.0, 10.0, m_bloom->m_radius,
+        encapsulated_callable(float, m_bloom, m_radius));
 
-    m_bloom_container.add_child<SliderContainer>()
-        .slider_container_init("Strength", "Strength", 0.001, 0.0, 1.0,
-                               static_cast<double>(m_bloom->get_strength()),
-                               callable_mp(m_bloom.ptr(), &BloomShader::set_strength));
+    m_bloom_container.add_child<SliderContainer>().slider_container_init(
+        "Strength", "Strength", 0.001, 0.0, 1.0, m_bloom->m_strength,
+        encapsulated_callable(float, m_bloom, m_strength));
 }
 
 void ToolPanel::set_edited_scene_root(Node *edited_scene_root)

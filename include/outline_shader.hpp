@@ -2,6 +2,7 @@
 
 #include <godot_cpp/core/class_db.hpp>
 #include "base_shader.hpp"
+#include "util/encapsulated_data.hpp"
 #include <godot_cpp/classes/render_data.hpp>
 #include <godot_cpp/classes/rendering_server.hpp>
 
@@ -17,33 +18,21 @@ private:
     RID m_depth_sampler;
 
     Color m_outline_color = Color(0.0f, 0.0f, 0.0f);
-    float m_outline_width = .002f;
-    float m_outline_mul = .04f;
-    float m_jitter_amp = .01f;
-    float m_jitter_freq = .002f;
-    float m_dt = .0f;
-    bool m_jitter_toggle = false;
 protected:
     static void _bind_methods();
 public:
     OutlineShader();
     ~OutlineShader();
-
+    EncapsuledData<float> *m_outline_width = memnew(EncapsuledData<float>(.002f));
+    EncapsuledData<float> *m_outline_mul = memnew(EncapsuledData<float>(.04f));
+    EncapsuledData<float> *m_jitter_amp = memnew(EncapsuledData<float>(.01f));
+    EncapsuledData<float> *m_jitter_freq = memnew(EncapsuledData<float>(.002f));
+    EncapsuledData<float> *m_dt = memnew(EncapsuledData<float>(.0f));
+    EncapsuledData<bool>  *m_jitter_toggle = memnew(EncapsuledData<bool>(false));
+    
     void _notification(int what) override;
     void _render_callback(int32_t, RenderData *) override;
 
     void set_outline_color(Color color);
     Color get_outline_color() const;
-    void set_outline_width(double width);
-    float get_outline_width() const;
-    void set_outline_mul(double mul);
-    float get_outline_mul() const;
-    void set_dt(double dt);
-    float get_dt() const;
-    void set_jitter(bool jitter);
-    bool get_jitter() const;
-    void set_jitter_amp(float amp);
-    float get_jitter_amp() const;
-    void set_jitter_freq(float freq);
-    float get_jitter_freq() const;
 };

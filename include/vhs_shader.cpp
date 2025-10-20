@@ -36,54 +36,23 @@ void VHSShader::_render_callback(int32_t p_effect_callback_type, RenderData *p_r
     ERR_FAIL_COND_MSG(size.x == 0 || size.y == 0, "Buffer size is 0");
     
     PackedFloat32Array push_constant = {(float)size.x, (float)size.y,
-                                        m_scanline_blend_factor,
-                                        m_scanline_height,
-                                        m_scanline_intensity,
-                                        m_scanline_scroll_speed,
-                                        (float)m_scanline_enabled,
-                                        m_grain_intensity,
-                                        (float)m_grain_enabled,
-                                        m_vertical_band_speed,
-                                        m_vertical_band_height,
-                                        m_vertical_band_intensity,
-                                        m_vertical_band_choppiness,
-                                        m_vertical_band_static_amount,
-                                        m_vertical_band_warp_factor,
-                                        (float)m_vertical_band_enabled,
-                                        m_dt,
+                                        m_scanline_blend_factor->get(),
+                                        m_scanline_height->get(),
+                                        m_scanline_intensity->get(),
+                                        m_scanline_scroll_speed->get(),
+                                        (float)m_scanline_enabled->get(),
+                                        m_grain_intensity->get(),
+                                        (float)m_grain_enabled->get(),
+                                        m_vertical_band_speed->get(),
+                                        m_vertical_band_height->get(),
+                                        m_vertical_band_intensity->get(),
+                                        m_vertical_band_choppiness->get(),
+                                        m_vertical_band_static_amount->get(),
+                                        m_vertical_band_warp_factor->get(),
+                                        (float)m_vertical_band_enabled->get(),
+                                        m_dt->get(),
                                         0.0f, 0.0f, 0.0f};
     ERR_FAIL_COND_MSG(push_constant.is_empty(), "Push constant is empty/invalid!");
     
     base_compute_update(p_effect_callback_type, p_render_data, buffers, push_constant, size);
 }
-
-float VHSShader::get_scanline_blend_factor() const { return m_scanline_blend_factor; }
-void  VHSShader::set_scanline_blend_factor(float factor) { m_scanline_blend_factor = factor; }
-float VHSShader::get_scanline_height() const { return m_scanline_height; }
-void  VHSShader::set_scanline_height(float height) { m_scanline_height = height; }
-float VHSShader::get_scanline_intensity() const { return m_scanline_intensity; }
-void  VHSShader::set_scanline_intensity(float intensity) { m_scanline_intensity = intensity; }
-float VHSShader::get_scanline_scroll_speed() const { return m_scanline_scroll_speed; }
-void  VHSShader::set_scanline_scroll_speed(float speed) { m_scanline_scroll_speed = speed; }
-bool  VHSShader::get_scanline_enabled() const { return m_scanline_enabled; }
-void  VHSShader::set_scanline_enabled(bool enabled) { m_scanline_enabled = enabled; }
-float VHSShader::get_grain_intensity() const { return m_grain_intensity; }
-void  VHSShader::set_grain_intensity(float intensity) { m_grain_intensity = intensity; }
-bool  VHSShader::get_grain_enabled() const { return m_grain_enabled; }
-void  VHSShader::set_grain_enabled(bool enabled) { m_grain_enabled = enabled; }
-float VHSShader::get_vertical_band_speed() const { return m_vertical_band_speed; }
-void  VHSShader::set_vertical_band_speed(float speed) { m_vertical_band_speed = speed; }
-float VHSShader::get_vertical_band_height() const { return m_vertical_band_height; }
-void  VHSShader::set_vertical_band_height(float height) { m_vertical_band_height = height; }
-float VHSShader::get_vertical_band_intensity() const { return m_vertical_band_intensity; }
-void  VHSShader::set_vertical_band_intensity(float intensity) { m_vertical_band_intensity = intensity; }
-float VHSShader::get_vertical_band_choppiness() const { return m_vertical_band_choppiness; }
-void  VHSShader::set_vertical_band_choppiness(float choppiness) { m_vertical_band_choppiness = choppiness; }
-float VHSShader::get_vertical_band_static_amount() const { return m_vertical_band_static_amount; }
-void  VHSShader::set_vertical_band_static_amount(float amount) { m_vertical_band_static_amount = amount; }
-float VHSShader::get_vertical_band_warp_factor() const { return m_vertical_band_warp_factor; }
-void  VHSShader::set_vertical_band_warp_factor(float factor) { m_vertical_band_warp_factor = factor; }
-bool  VHSShader::get_vertical_band_enabled() const { return m_vertical_band_enabled; }
-void  VHSShader::set_vertical_band_enabled(bool enabled) { m_vertical_band_enabled = enabled; }
-float VHSShader::get_dt() const { return m_dt; }
-void  VHSShader::set_dt(double dt) { m_dt = (float)dt; }

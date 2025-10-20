@@ -35,15 +35,8 @@ void CRTShader::_render_callback(int32_t p_effect_callback_type, RenderData *p_r
     Vector2i size = get_buffers_internal_size(p_render_data, buffers);
     ERR_FAIL_COND_MSG(size.x == 0 || size.y == 0, "Buffer size is 0");
     
-    PackedFloat32Array push_constant = {(float)size.x, (float)size.y, 0.0f, 0.0f, m_curvature, m_vignette_mul, m_brightness, 0.0f};
+    PackedFloat32Array push_constant = {(float)size.x, (float)size.y, 0.0f, 0.0f, m_curvature->get(), m_vignette_mul->get(), m_brightness->get(), 0.0f};
     ERR_FAIL_COND_MSG(push_constant.is_empty(), "Push constant is empty/invalid!");
     
     base_compute_update(p_effect_callback_type, p_render_data, buffers, push_constant, size);
 }
-
-void  CRTShader::set_curvature(float curvature) { m_curvature = curvature; }
-float CRTShader::get_curvature() const { return m_curvature; }
-void  CRTShader::set_vignette_mul(float vignette_mul) { m_vignette_mul = vignette_mul; }
-float CRTShader::get_vignette_mul() const { return m_vignette_mul; }
-void  CRTShader::set_brightness(float brightness) { m_brightness = brightness; }
-float CRTShader::get_brightness() const { return m_brightness; }

@@ -16,6 +16,8 @@ class SliderContainer : public VBoxContainer
 private:
     Label *m_label = nullptr;
     HSlider *m_slider = nullptr;
+
+    String m_label_text = "";
 protected:
     static void _bind_methods();
 public:
@@ -23,6 +25,7 @@ public:
     ~SliderContainer();
 
     void set_label_text(const String &text);
+    void set_label_value(double value);
 
     void connect_to_slider(const Callable &c);
     void set_slider_value(const double value);

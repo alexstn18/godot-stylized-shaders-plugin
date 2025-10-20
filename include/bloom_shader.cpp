@@ -102,13 +102,13 @@ void BloomShader::_render_callback(int32_t p_effect_callback_type,
             if(!m_mip_finished) // run this only once, but i need size which is gotten from p_render_data..
             {
                 Vector2i resolution = size;
-                for(int32_t i = 0; i < m_num_sampled_mips; i++)
+                for(int32_t i = 0; i < m_num_sampled_mips; ++i)
                 {
                     m_mip_resolutions[i] = resolution;
                     resolution /= 2;
                 }
 
-                for(int32_t i = 0; i < m_num_sampled_mips; i++)
+                for(int32_t i = 0; i < m_num_sampled_mips; ++i)
                 {
                     String downsample_name = "Downsample" + String::num(i, 0);
                     String upsample_name = "Upsample" + String::num(i, 0);
@@ -118,7 +118,7 @@ void BloomShader::_render_callback(int32_t p_effect_callback_type,
                 m_mip_finished = true;
             }
 
-            PackedFloat32Array add_push_constant = {float(size.x), float(size.y), m_strength, 0.0f};
+            PackedFloat32Array add_push_constant = {float(size.x), float(size.y), m_strength->get(), 0.0f};
             
             
             auto view_count = buffers->get_view_count();
@@ -126,7 +126,7 @@ void BloomShader::_render_callback(int32_t p_effect_callback_type,
             {
                 RID input_image = buffers->get_color_layer(i);
                 // downsample
-                for(int32_t mip = 0; mip < m_num_sampled_mips; mip++)
+                for(int32_t mip = 0; mip < m_num_sampled_mips; ++mip)
                 {
                     Vector2i resolution = m_mip_resolutions[mip]; 
                     int gx = (resolution.x + 15) / 16;
@@ -134,13 +134,13 @@ void BloomShader::_render_callback(int32_t p_effect_callback_type,
                     auto downsample_texture = buffers->get_texture_slice("Bloom", "Downsample" + String::num(mip, 0), i, 0, 1, 1);
                     auto compute_list = m_device->compute_list_begin();
                     m_device->compute_list_bind_compute_pipeline(compute_list, m_downsample_pipeline);
-                    auto downsample_in = get_sampler_uniform(input_image, 0);
+                    auto downsample_in = get_sampler_uniform(input_image, m_bilinear_sampler, 0);
                     auto downsample_out = get_image_uniform(downsample_texture, 1);
                     RID uniform_set = UniformSetCacheRD::get_cache(m_downsample_shader, 0, { downsample_in, downsample_out });
                     
                     m_device->compute_list_bind_uniform_set(compute_list, uniform_set, 0);
                     
-                    PackedFloat32Array downsample_push_constant = {float(resolution.x), float(resolution.y), m_threshold, 0.0f}; // replace 1.0f with bloom threshold
+                    PackedFloat32Array downsample_push_constant = {float(resolution.x), float(resolution.y), m_threshold->get(), 0.0f}; // replace 1.0f with bloom threshold
                     m_device->compute_list_set_push_constant(compute_list, downsample_push_constant.to_byte_array(), downsample_push_constant.size() * 4);
                     
                     m_device->compute_list_dispatch(compute_list, gx, gy, 1);
@@ -179,14 +179,14 @@ void BloomShader::_render_callback(int32_t p_effect_callback_type,
                     auto compute_list = m_device->compute_list_begin();
                     m_device->compute_list_bind_compute_pipeline(compute_list, m_upsample_pipeline);
                     
-                    auto upsample_in = get_sampler_uniform(src_texture, 0);              // binding 0
-                    auto downsample_in = get_sampler_uniform(downsample_texture, 1);     // binding 1 (NEW!)
-                    auto upsample_out = get_image_uniform(dst_texture, 2);               // binding 2 (was 1, now 2!)
+                    auto upsample_in = get_sampler_uniform(src_texture, m_bilinear_sampler, 0);
+                    auto downsample_in = get_sampler_uniform(downsample_texture, m_bilinear_sampler, 1);
+                    auto upsample_out = get_image_uniform(dst_texture, 2);
                     
                     RID uniform_set = UniformSetCacheRD::get_cache(m_upsample_shader, 0, { upsample_in, downsample_in, upsample_out });
                     
                     m_device->compute_list_bind_uniform_set(compute_list, uniform_set, 0);
-                    PackedFloat32Array upsample_push_constant = {float(resolution.x), float(resolution.y), m_radius, 0.0f};
+                    PackedFloat32Array upsample_push_constant = {float(resolution.x), float(resolution.y), m_radius->get(), 0.0f};
                     m_device->compute_list_set_push_constant(compute_list, upsample_push_constant.to_byte_array(), upsample_push_constant.size() * 4);
                     m_device->compute_list_dispatch(compute_list, gx, gy, 1);
                     m_device->compute_list_end();
@@ -197,7 +197,7 @@ void BloomShader::_render_callback(int32_t p_effect_callback_type,
                     auto compute_list = m_device->compute_list_begin();
                     m_device->compute_list_bind_compute_pipeline(compute_list, m_add_pipeline);
                     auto add_in1 = get_image_uniform(buffers->get_color_layer(i), 0);
-                    auto add_in2 = get_sampler_uniform(buffers->get_texture_slice("Bloom", "Upsample0", i, 0, 1, 1), 1);
+                    auto add_in2 = get_sampler_uniform(buffers->get_texture_slice("Bloom", "Upsample0", i, 0, 1, 1), m_bilinear_sampler, 1);
                     RID uniform_set = UniformSetCacheRD::get_cache(m_add_shader, 0, { add_in1, add_in2 });
                     m_device->compute_list_bind_uniform_set(compute_list, uniform_set, 0);
                     m_device->compute_list_set_push_constant(compute_list, add_push_constant.to_byte_array(), add_push_constant.size() * 4);
@@ -207,76 +207,4 @@ void BloomShader::_render_callback(int32_t p_effect_callback_type,
             }
         }
     }
-}
-
-void BloomShader::create_shader(const String &shader_path, RID &shader,
-                                RID &pipeline)
-{
-    Ref<RDShaderFile> shader_file =
-        ResourceLoader::get_singleton()->load(shader_path);
-    ERR_FAIL_COND_MSG(!shader_file.is_valid(), "Failed to load shader file!");
-
-    String base_error = shader_file->get_base_error();
-    ERR_FAIL_COND_MSG(!base_error.is_empty(),
-                      "Shader compilation error: " + base_error);
-
-    Ref<RDShaderSPIRV> spirv = shader_file->get_spirv();
-    ERR_FAIL_COND_MSG(!spirv.is_valid(),
-                      "Failed to get SPIRV from shader file!");
-
-    shader = m_device->shader_create_from_spirv(spirv);
-    ERR_FAIL_COND_MSG(!shader.is_valid(),
-                      "Failed to create shader from SPIRV!");
-
-    pipeline = m_device->compute_pipeline_create(shader);
-    UtilityFunctions::print("Shader and pipeline created successfully");
-}
-
-void BloomShader::free_rid(RID &rid)
-{
-    if (rid.is_valid())
-    {
-        m_device->free_rid(rid);
-        rid = RID();
-        UtilityFunctions::print("Freed RID");
-    }
-}
-
-Ref<RDUniform> BloomShader::get_sampler_uniform(const RID &image,
-                                                int32_t binding)
-{
-    Ref<RDUniform> uniform;
-    uniform.instantiate();
-
-    uniform->set_uniform_type(
-        RenderingDevice::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE);
-    uniform->set_binding(binding);
-    uniform->add_id(m_bilinear_sampler);
-    uniform->add_id(image);
-
-    return uniform;
-}
-
-Ref<RDUniform> BloomShader::get_image_uniform(const RID &image, int32_t binding)
-{
-    Ref<RDUniform> uniform;
-    uniform.instantiate();
-
-    uniform->set_uniform_type(RenderingDevice::UNIFORM_TYPE_IMAGE);
-    uniform->set_binding(binding);
-    uniform->add_id(image);
-
-    return uniform;
-}
-
-Ref<RDUniform> BloomShader::get_buffer_uniform(const RID &buffer, int binding)
-{
-    Ref<RDUniform> uniform;
-    uniform.instantiate();
-
-    uniform->set_uniform_type(RenderingDevice::UNIFORM_TYPE_STORAGE_BUFFER);
-    uniform->set_binding(binding);
-    uniform->add_id(buffer);
-
-    return uniform;
 }

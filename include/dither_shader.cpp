@@ -30,11 +30,9 @@ void DitherShader::_render_callback(int32_t p_effect_callback_type, RenderData *
     
     ERR_FAIL_COND_MSG(size.x == 0 || size.y == 0, "Buffer size is 0");
     
-    PackedFloat32Array push_constant = {(float)size.x, (float)size.y, m_gamma_correction, 0.0f};
+    PackedFloat32Array push_constant = {(float)size.x, (float)size.y, m_gamma_correction->get(), 0.0f};
     ERR_FAIL_COND_MSG(push_constant.is_empty(), "Push constant is empty/invalid!");
     
     base_compute_update(p_effect_callback_type, p_render_data, buffers, push_constant, size);
 }
-void DitherShader::set_gamma_correction(float gamma_correction) { m_gamma_correction = gamma_correction; }
-float DitherShader::get_gamma_correction() const { return m_gamma_correction; }
 DitherShader::~DitherShader() {}

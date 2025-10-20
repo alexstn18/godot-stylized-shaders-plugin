@@ -12,22 +12,15 @@ class CRTShader : public BaseShader
 private:
     void init_compute(const String &shader_filename) override;
 
-    float m_curvature = 7.0f;
-    float m_vignette_mul = 2.0f;
-    float m_brightness = 0.9f;
 protected:
     static void _bind_methods();
 public:
     CRTShader();
     ~CRTShader();
+    EncapsuledData<float> *m_curvature = memnew(EncapsuledData<float>(7.0f));
+    EncapsuledData<float> *m_vignette_mul = memnew(EncapsuledData<float>(2.0f));
+    EncapsuledData<float> *m_brightness = memnew(EncapsuledData<float>(0.9f));
 
     void _notification(int what) override;
     void _render_callback(int32_t, RenderData *) override;
-
-    void set_curvature(float curvature);
-    float get_curvature() const;
-    void set_vignette_mul(float vignette_mul);
-    float get_vignette_mul() const;
-    void set_brightness(float brightness);
-    float get_brightness() const;
 };

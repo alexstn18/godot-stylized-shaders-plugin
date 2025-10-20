@@ -17,6 +17,7 @@
 #include "plugin_ui.hpp"
 #include "slider_container.hpp"
 #include "tool_panel.hpp"
+#include "util/encapsulated_data.hpp"
 #include "vhs_shader.hpp"
 #include "bloom_shader.hpp"
 
@@ -28,6 +29,9 @@ void initialize_shader_plugin(ModuleInitializationLevel p_level)
     if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
     {
         GDREGISTER_CLASS(EffectArray);
+        GDREGISTER_CLASS(EncapsuledData<int>);
+        GDREGISTER_CLASS(EncapsuledData<float>);
+        GDREGISTER_CLASS(EncapsuledData<bool>);
         GDREGISTER_CLASS(SliderContainer);
         GDREGISTER_CLASS(ToolPanel);
         GDREGISTER_INTERNAL_CLASS(PluginUI);

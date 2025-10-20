@@ -54,6 +54,28 @@ void BaseShader::init_compute(const String &shader_filename)
     UtilityFunctions::print("Shader and pipeline created successfully");
 }
 
+void BaseShader::create_shader(const String &shader_path, RID &shader, RID &pipeline)
+{
+    Ref<RDShaderFile> shader_file =
+        ResourceLoader::get_singleton()->load(shader_path);
+    ERR_FAIL_COND_MSG(!shader_file.is_valid(), "Failed to load shader file!");
+
+    String base_error = shader_file->get_base_error();
+    ERR_FAIL_COND_MSG(!base_error.is_empty(),
+                      "Shader compilation error: " + base_error);
+
+    Ref<RDShaderSPIRV> spirv = shader_file->get_spirv();
+    ERR_FAIL_COND_MSG(!spirv.is_valid(),
+                      "Failed to get SPIRV from shader file!");
+
+    shader = m_device->shader_create_from_spirv(spirv);
+    ERR_FAIL_COND_MSG(!shader.is_valid(),
+                      "Failed to create shader from SPIRV!");
+
+    pipeline = m_device->compute_pipeline_create(shader);
+    UtilityFunctions::print("Shader and pipeline created successfully");
+}
+
 void BaseShader::free_shader()
 {
     if (m_shader.is_valid())
@@ -68,6 +90,54 @@ void BaseShader::free_shader()
         m_shader = RID();
         UtilityFunctions::print("Freed pipeline");
     }
+}
+
+void BaseShader::free_rid(RID &rid)
+{
+    if (rid.is_valid())
+    {
+        m_device->free_rid(rid);
+        rid = RID();
+        UtilityFunctions::print("Freed RID");
+    }
+}
+
+Ref<RDUniform> BaseShader::get_sampler_uniform(const RID &image, const RID &sampler, int32_t binding) 
+{
+    Ref<RDUniform> uniform;
+    uniform.instantiate();
+
+    uniform->set_uniform_type(
+        RenderingDevice::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE);
+    uniform->set_binding(binding);
+    uniform->add_id(sampler);
+    uniform->add_id(image);
+
+    return uniform;
+}
+
+Ref<RDUniform> BaseShader::get_image_uniform(const RID &image, int32_t binding)
+{
+    Ref<RDUniform> uniform;
+    uniform.instantiate();
+
+    uniform->set_uniform_type(RenderingDevice::UNIFORM_TYPE_IMAGE);
+    uniform->set_binding(binding);
+    uniform->add_id(image);
+
+    return uniform;
+}
+
+Ref<RDUniform> BaseShader::get_buffer_uniform(const RID &buffer, int32_t binding)
+{
+    Ref<RDUniform> uniform;
+    uniform.instantiate();
+
+    uniform->set_uniform_type(RenderingDevice::UNIFORM_TYPE_STORAGE_BUFFER);
+    uniform->set_binding(binding);
+    uniform->add_id(buffer);
+
+    return uniform;
 }
 
 void BaseShader::base_compute_update(int32_t p_effect_callback_type,

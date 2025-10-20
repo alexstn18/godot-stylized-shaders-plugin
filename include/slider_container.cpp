@@ -17,7 +17,16 @@ SliderContainer::~SliderContainer() {}
 
 void SliderContainer::set_label_text(const String &text)
 {
-    if(m_label) m_label->set_text(text);
+    if(m_label)
+    {
+        m_label_text = text;
+        m_label->set_text(m_label_text);
+    } 
+}
+
+void SliderContainer::set_label_value(double value)
+{
+    if(m_label) m_label->set_text(m_label_text + String("(") + String::num(value, 3) + String(")"));
 }
 
 void SliderContainer::connect_to_slider(const Callable &c)
@@ -28,6 +37,7 @@ void SliderContainer::connect_to_slider(const Callable &c)
 void SliderContainer::set_slider_value(const double value)
 {
     if(m_slider) m_slider->set_value(value);
+    set_label_value(value);
 }
 
 void SliderContainer::set_slider_step(const double step) 

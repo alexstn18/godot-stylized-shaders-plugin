@@ -12,19 +12,14 @@ class PixelShader : public BaseShader
 private:
     void init_compute(const String &shader_filename) override;
 
-    int m_target_width = 320;
-    int m_target_height = 180;
 protected:
     static void _bind_methods();
 public:
     PixelShader();
     ~PixelShader() = default;
-
+    EncapsuledData<int> *target_width = memnew(EncapsuledData<int>(320));
+    EncapsuledData<int> *target_height = memnew(EncapsuledData<int>(180));
+    
     void _notification(int what) override;
     void _render_callback(int32_t, RenderData *) override;
-    
-    void set_target_width(int target_width);
-    int get_target_width() const;
-    void set_target_height(int target_height);
-    int get_target_height() const;
 };

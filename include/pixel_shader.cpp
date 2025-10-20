@@ -31,14 +31,9 @@ void PixelShader::_render_callback(int32_t p_effect_callback_type, RenderData *p
     
     PackedFloat32Array push_constant = {(float)size.x,
                                         (float)size.y,
-                                        (float)m_target_width,
-                                        (float)m_target_height};
+                                        (float)target_width->get(),
+                                        (float)target_height->get()};
     ERR_FAIL_COND_MSG(push_constant.is_empty(), "push constant is empty");
     
     base_compute_update(p_effect_callback_type, p_render_data,buffers, push_constant, size);
 }
-
-void PixelShader::set_target_width(int target_width) { m_target_width = target_width; }
-int  PixelShader::get_target_width() const { return m_target_width; }
-void PixelShader::set_target_height(int target_height) { m_target_height = target_height; }
-int  PixelShader::get_target_height() const { return m_target_height; }

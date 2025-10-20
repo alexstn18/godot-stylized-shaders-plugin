@@ -1,5 +1,6 @@
 #pragma once
 
+#include "encapsulated_data.hpp"
 #include <godot_cpp/classes/node.hpp>
 
 using namespace godot;
@@ -35,10 +36,9 @@ template <typename T> class NodeBuilder
         return NodeBuilder<C>(child);
     }
 
-    NodeBuilder<SliderContainer> &
-    slider_container_init(const String &name, const String &label_text,
-                          double step, double min, double max, double value,
-                          const Callable &callable)
+    NodeBuilder<SliderContainer> &slider_container_init(
+        const String &name, const String &label_text, double step, double min,
+        double max, EncapsuledData<float> *value, const Callable &callable)
     {
         static_assert(std::is_same_v<T, SliderContainer>,
                       "slider_container_init() can only be used on "
@@ -48,7 +48,8 @@ template <typename T> class NodeBuilder
         node->set_slider_step(step);
         node->set_slider_min(min);
         node->set_slider_max(max);
-        node->set_slider_value(value);
+        node->set_slider_value(value->get());
+        value->connect_slider(get());
         node->connect_to_slider(callable);
         return *this;
     }

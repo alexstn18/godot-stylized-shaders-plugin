@@ -2,6 +2,7 @@
 
 #include <godot_cpp/core/class_db.hpp>
 #include "base_shader.hpp"
+#include "util/encapsulated_data.hpp"
 
 using namespace godot;
 
@@ -17,34 +18,21 @@ private:
     RID m_upsample_pipeline;
     RID m_add_pipeline;
     RID m_bilinear_sampler;
-
-    float m_threshold = 1.0f;
-    float m_radius = 1.0f;
-    float m_strength = 0.5f;
-
+    
     int32_t m_num_sampled_mips = 0;
     bool m_mip_finished = false;
     std::vector<Vector2i> m_mip_resolutions;
-
+    
     void init_compute();
-    void create_shader(const String &shader_path, RID &shader, RID &pipeline);
-    void free_rid(RID &rid);
-    Ref<RDUniform> get_sampler_uniform(const RID &image, int32_t binding = 0);
-    Ref<RDUniform> get_image_uniform(const RID &image, int32_t binding = 0);
-    Ref<RDUniform> get_buffer_uniform(const RID &buffer, int binding = 0);
 protected:
     static void _bind_methods();
 public:
     BloomShader();
     ~BloomShader();
+    EncapsuledData<float> *m_threshold = memnew(EncapsuledData<float>(1.0f));
+    EncapsuledData<float> *m_radius = memnew(EncapsuledData<float>(1.0f));
+    EncapsuledData<float> *m_strength = memnew(EncapsuledData<float>(0.5f));
 
     void _notification(int what) override;
     void _render_callback(int32_t, RenderData *) override;
-
-    void set_threshold(float threshold) { m_threshold = threshold; }
-    float get_threshold() const { return m_threshold; }
-    void set_radius(float radius) { m_radius = radius; }
-    float get_radius() const { return m_radius; }
-    void set_strength(float strength) { m_strength = strength; }
-    float get_strength() const { return m_strength; }
 };

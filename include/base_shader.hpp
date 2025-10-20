@@ -1,4 +1,5 @@
 #pragma once
+#include "util/encapsulated_data.hpp"
 #include "godot_cpp/classes/render_scene_buffers_rd.hpp"
 #include "godot_cpp/variant/packed_float32_array.hpp"
 #include <godot_cpp/core/class_db.hpp>
@@ -8,6 +9,7 @@
 
 using namespace godot;
 
+// CompositorEffect shader helper class
 class BaseShader : public CompositorEffect 
 {
     GDCLASS(BaseShader, CompositorEffect);
@@ -20,7 +22,13 @@ protected:
     RID m_pipeline;
     RenderingDevice *m_device = nullptr;
 
+    void create_shader(const String &shader_path, RID &shader, RID &pipeline);
     void free_shader();
+    void free_rid(RID &rid);
+    Ref<RDUniform> get_sampler_uniform(const RID &image, const RID &sampler, int32_t binding);
+    Ref<RDUniform> get_image_uniform(const RID &image, int32_t binding);
+    Ref<RDUniform> get_buffer_uniform(const RID &buffer, int32_t binding);
+
     void construct();
     void queue_callable_on_render_thread(const Callable &c);
     void base_compute_update(int32_t p_effect_callback_type, RenderData *p_render_data, Ref<RenderSceneBuffersRD> &buffers, const PackedFloat32Array &push_constant, const Vector2i &size);
