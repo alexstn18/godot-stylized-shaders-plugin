@@ -1,7 +1,11 @@
 #pragma once
 
 #include "encapsulated_data.hpp"
+#include "godot_cpp/classes/v_box_container.hpp"
 #include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/classes/scroll_container.hpp>
+#include <type_traits>
+
 
 using namespace godot;
 
@@ -36,14 +40,14 @@ template <typename T> class NodeBuilder
         return NodeBuilder<C>(child);
     }
 
-    NodeBuilder<SliderContainer> &slider_container_init(
-        const String &name, const String &label_text, double step, double min,
-        double max, EncapsuledData<float> *value, const Callable &callable)
+    NodeBuilder<SliderContainer> &
+    slider_container_init(const String &label_text, double step, double min,
+                          double max, EncapsuledData<float> *value,
+                          const Callable &callable)
     {
         static_assert(std::is_same_v<T, SliderContainer>,
                       "slider_container_init() can only be used on "
                       "SliderContainer builders");
-        node->set_name(name);
         node->set_label_text(label_text);
         node->set_slider_step(step);
         node->set_slider_min(min);
@@ -54,14 +58,36 @@ template <typename T> class NodeBuilder
         return *this;
     }
 
-    static NodeBuilder<T> create(Node *parent = nullptr)
+    static NodeBuilder<T> create(const String &name, Node *parent = nullptr)
     {
         static_assert(std::is_base_of_v<Node, T>,
                       "create() can only be used on Node builders");
         T *node = memnew(T);
         if (parent)
             parent->add_child(node);
-        return NodeBuilder<T>(node);
+
+        NodeBuilder<T> builder(node);
+
+        return builder.call(&Node::set_name, name);
+    }
+
+    static NodeBuilder<VBoxContainer>
+    create_scroll_container(const String &name)
+    {
+        static_assert(std::is_same_v<ScrollContainer, T>,
+                      "create_scroll_container() can only be used on "
+                      "ScrollContainer builders");
+
+        T *node = memnew(T);
+        // no parent here usually
+        NodeBuilder<T> builder(node);
+
+        builder.call(&Node::set_name, name);
+        builder.call(&Control::set_custom_minimum_size, Vector2(300, 400));
+        builder.call(&Control::set_v_size_flags, Control::SIZE_EXPAND_FILL);
+        builder.call(&Control::set_h_size_flags, Control::SIZE_EXPAND_FILL);
+
+        return builder.add_child<VBoxContainer>();
     }
 
     template <typename C> NodeBuilder<T> &remove_child(NodeBuilder<C> &builder)

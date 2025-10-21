@@ -30,8 +30,12 @@
 #include <godot_cpp/classes/spin_box.hpp>
 #include <godot_cpp/variant/callable.hpp>
 
-#define ADD_EFFECT(T) m_effect_arr->add_effect(T); m_array_inspector->set_effects(m_effect_arr->get_effects());
-#define REMOVE_EFFECT(T) m_effect_arr->remove_effect(T); m_array_inspector->set_effects(m_effect_arr->get_effects());
+#define ADD_EFFECT(T)                                                          \
+    m_effect_arr->add_effect(T);                                               \
+    m_array_inspector->set_effects(m_effect_arr->get_effects());
+#define REMOVE_EFFECT(T)                                                       \
+    m_effect_arr->remove_effect(T);                                            \
+    m_array_inspector->set_effects(m_effect_arr->get_effects());
 
 void ToolPanel::_bind_methods()
 {
@@ -54,13 +58,17 @@ void ToolPanel::_bind_methods()
 }
 
 ToolPanel::ToolPanel()
-    : m_posterize_container(NodeBuilder<SliderContainer>::create()),
-      m_dither_container(NodeBuilder<SliderContainer>::create()),
-      m_outline_container(NodeBuilder<VBoxContainer>::create()),
-      m_crt_container(NodeBuilder<VBoxContainer>::create()),
-      m_pixel_container(NodeBuilder<HBoxContainer>::create()),
-      m_vhs_container(NodeBuilder<VBoxContainer>::create()),
-      m_bloom_container(NodeBuilder<VBoxContainer>::create())
+    : m_posterize_container(NodeBuilder<SliderContainer>::create("Posterize")),
+      m_dither_container(NodeBuilder<SliderContainer>::create("Dither")),
+      m_outline_container(
+          NodeBuilder<ScrollContainer>::create_scroll_container("Outline")),
+      m_crt_container(
+          NodeBuilder<ScrollContainer>::create_scroll_container("CRT")),
+      m_pixel_container(NodeBuilder<HBoxContainer>::create("Pixelize")),
+      m_vhs_container(
+          NodeBuilder<ScrollContainer>::create_scroll_container("VHS")),
+      m_bloom_container(
+          NodeBuilder<ScrollContainer>::create_scroll_container("Bloom"))
 {
 }
 
@@ -138,7 +146,9 @@ void ToolPanel::_ready()
     m_pixel_toggle->connect("toggled", Callable(this, "_on_pixel_toggled"));
     m_vhs_toggle->connect("toggled", Callable(this, "_on_vhs_toggled"));
     m_bloom_toggle->connect("toggled", Callable(this, "_on_bloom_toggled"));
-    m_array_inspector->connect("order_changed", callable_mp(m_effect_arr.ptr(), &EffectArray::set_effects));
+    m_array_inspector->connect(
+        "order_changed",
+        callable_mp(m_effect_arr.ptr(), &EffectArray::set_effects));
 }
 
 void ToolPanel::_process(double delta)
@@ -294,7 +304,7 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
     {
         ADD_EFFECT(m_outline);
 
-        m_tab_container->add_child(m_outline_container.get());
+        m_tab_container->add_child(m_outline_container.get()->get_parent());
 
         UtilityFunctions::print("Outline toggled on");
     }
@@ -302,7 +312,7 @@ void ToolPanel::_on_outline_toggled(bool toggled_on)
     {
         REMOVE_EFFECT(m_outline);
 
-        m_tab_container->remove_child(m_outline_container.get());
+        m_tab_container->remove_child(m_outline_container.get()->get_parent());
 
         UtilityFunctions::print("Outline toggled off");
     }
@@ -331,7 +341,7 @@ void ToolPanel::_on_crt_toggled(bool toggled_on)
     {
         ADD_EFFECT(m_crt);
 
-        m_tab_container->add_child(m_crt_container.get());
+        m_tab_container->add_child(m_crt_container.get()->get_parent());
 
         UtilityFunctions::print("CRT toggled on");
     }
@@ -339,7 +349,7 @@ void ToolPanel::_on_crt_toggled(bool toggled_on)
     {
         REMOVE_EFFECT(m_crt);
 
-        m_tab_container->remove_child(m_crt_container.get());
+        m_tab_container->remove_child(m_crt_container.get()->get_parent());
 
         UtilityFunctions::print("CRT toggled off");
     }
@@ -397,7 +407,7 @@ void ToolPanel::_on_vhs_toggled(bool toggled_on)
     {
         ADD_EFFECT(m_vhs);
 
-        m_tab_container->add_child(m_vhs_container.get());
+        m_tab_container->add_child(m_vhs_container.get()->get_parent());
 
         UtilityFunctions::print("VHS effect toggled on");
     }
@@ -405,7 +415,7 @@ void ToolPanel::_on_vhs_toggled(bool toggled_on)
     {
         REMOVE_EFFECT(m_vhs);
 
-        m_tab_container->remove_child(m_vhs_container.get());
+        m_tab_container->remove_child(m_vhs_container.get()->get_parent());
 
         UtilityFunctions::print("VHS effect toggled off");
     }
@@ -419,7 +429,7 @@ void ToolPanel::_on_bloom_toggled(bool toggled_on)
     {
         ADD_EFFECT(m_bloom);
 
-        m_tab_container->add_child(m_bloom_container.get());
+        m_tab_container->add_child(m_bloom_container.get()->get_parent());
 
         UtilityFunctions::print("Bloom effect toggled on");
     }
@@ -427,7 +437,7 @@ void ToolPanel::_on_bloom_toggled(bool toggled_on)
     {
         REMOVE_EFFECT(m_bloom);
 
-        m_tab_container->remove_child(m_bloom_container.get());
+        m_tab_container->remove_child(m_bloom_container.get()->get_parent());
 
         UtilityFunctions::print("Bloom effect toggled off");
     }
@@ -436,23 +446,20 @@ void ToolPanel::_on_bloom_toggled(bool toggled_on)
 void ToolPanel::setup_cel()
 {
     m_posterize_container.slider_container_init(
-        "Posterize", "Levels", 1.0, 2.0, 32.0, m_cel->m_levels,
+        "Levels", 1.0, 2.0, 32.0, m_cel->m_levels,
         encapsulated_callable(float, m_cel, m_levels));
 }
 
 void ToolPanel::setup_outline()
 {
-    m_outline_container.call(&VBoxContainer::set_name, "Outline");
     auto width_container =
         m_outline_container.add_child<SliderContainer>().slider_container_init(
-            "Outline Width", "Outline Width", 0.001, 0.0, 0.01,
-            m_outline->m_outline_width,
+            "Outline Width", 0.001, 0.0, 0.01, m_outline->m_outline_width,
             encapsulated_callable(float, m_outline, m_outline_width));
 
     auto mul_container =
         m_outline_container.add_child<SliderContainer>().slider_container_init(
-            "Outline Width Step", "Outline Width Step", 0.01, 0.01, 1.0,
-            m_outline->m_outline_mul,
+            "Outline Width Step", 0.01, 0.01, 1.0, m_outline->m_outline_mul,
             encapsulated_callable(float, m_outline, m_outline_mul));
 
     m_outline_container.add_child<CheckBox>()
@@ -462,13 +469,11 @@ void ToolPanel::setup_outline()
 
     auto amp_container =
         m_outline_container.add_child<SliderContainer>().slider_container_init(
-            "Jitter Amplitude", "Jitter Amplitude", 0.01, 0.01, 0.1,
-            m_outline->m_jitter_amp,
+            "Jitter Amplitude", 0.01, 0.01, 0.1, m_outline->m_jitter_amp,
             encapsulated_callable(float, m_outline, m_jitter_amp));
     auto freq_container =
         m_outline_container.add_child<SliderContainer>().slider_container_init(
-            "Jitter Frequency", "Jitter Frequency", 0.01, 0.01, 0.1,
-            m_outline->m_jitter_freq,
+            "Jitter Frequency", 0.01, 0.01, 0.1, m_outline->m_jitter_freq,
             encapsulated_callable(float, m_outline, m_jitter_freq));
     auto color_container = m_outline_container.add_child<HBoxContainer>();
 
@@ -486,30 +491,27 @@ void ToolPanel::setup_crt()
     m_crt_container.call(&VBoxContainer::set_name, "CRT");
     auto curvature_container =
         m_crt_container.add_child<SliderContainer>().slider_container_init(
-            "Curvature", "Curvature", 1.0, 0.0, 10.0, m_crt->m_curvature,
+            "Curvature", 1.0, 0.0, 10.0, m_crt->m_curvature,
             encapsulated_callable(float, m_crt, m_curvature));
     auto vignette_mul_container =
         m_crt_container.add_child<SliderContainer>().slider_container_init(
-            "Vignette Multiplier", "Vignette Multiplier", 1.0, 0.0, 10.0,
-            m_crt->m_vignette_mul,
+            "Vignette Multiplier", 1.0, 0.0, 10.0, m_crt->m_vignette_mul,
             encapsulated_callable(float, m_crt, m_vignette_mul));
     auto brightness_container =
         m_crt_container.add_child<SliderContainer>().slider_container_init(
-            "Brightness", "Brightness", 0.1, 0.0, 10.0, m_crt->m_brightness,
+            "Brightness", 0.1, 0.0, 10.0, m_crt->m_brightness,
             encapsulated_callable(float, m_crt, m_brightness));
 }
 
 void ToolPanel::setup_dither()
 {
     m_dither_container.slider_container_init(
-        "Dither", "Gamma Correction Amount", 0.1, 0.0, 10.0,
-        m_dither->m_gamma_correction,
+        "Gamma Correction Amount", 0.1, 0.0, 10.0, m_dither->m_gamma_correction,
         encapsulated_callable(float, m_dither, m_gamma_correction));
 }
 
 void ToolPanel::setup_pixel()
 {
-    m_pixel_container.call(&HBoxContainer::set_name, "Pixelize");
     auto label = m_pixel_container.add_child<Label>().call(
         &Label::set_text, "Target Width and Height");
 
@@ -563,7 +565,6 @@ void ToolPanel::setup_vhs()
                               auto scanline_blend_container =
                                   m_vhs_container.add_child<SliderContainer>()
                                       .slider_container_init(
-                                          "Scanline Blend Factor",
                                           "Scanline Blend Factor", 0.01, 0.0,
                                           1.0, m_vhs->m_scanline_blend_factor,
                                           encapsulated_callable(
@@ -575,8 +576,7 @@ void ToolPanel::setup_vhs()
                               auto scanline_height_container =
                                   m_vhs_container.add_child<SliderContainer>()
                                       .slider_container_init(
-                                          "Scanline Height", "Scanline Height",
-                                          1.0, 1.0, 20.0,
+                                          "Scanline Height", 1.0, 1.0, 20.0,
                                           m_vhs->m_scanline_height,
                                           encapsulated_callable(
                                               float, m_vhs, m_scanline_height));
@@ -586,7 +586,6 @@ void ToolPanel::setup_vhs()
                               auto scanline_intensity_container =
                                   m_vhs_container.add_child<SliderContainer>()
                                       .slider_container_init(
-                                          "Scanline Intensity",
                                           "Scanline Intensity", 0.01, 0.0, 1.0,
                                           m_vhs->m_scanline_intensity,
                                           encapsulated_callable(
@@ -599,7 +598,6 @@ void ToolPanel::setup_vhs()
                               auto scanline_scroll_container =
                                   m_vhs_container.add_child<SliderContainer>()
                                       .slider_container_init(
-                                          "Scanline Scroll Speed",
                                           "Scanline Scroll Speed", 1.0, 0.0,
                                           100.0, m_vhs->m_scanline_scroll_speed,
                                           encapsulated_callable(
@@ -635,8 +633,7 @@ void ToolPanel::setup_vhs()
                               auto grain_intensity_container =
                                   m_vhs_container.add_child<SliderContainer>()
                                       .slider_container_init(
-                                          "Grain Intensity", "Grain Intensity",
-                                          0.1, 0.0, 10.0,
+                                          "Grain Intensity", 0.1, 0.0, 10.0,
                                           m_vhs->m_grain_intensity,
                                           encapsulated_callable(
                                               float, m_vhs, m_grain_intensity));
@@ -671,7 +668,6 @@ void ToolPanel::setup_vhs()
                               auto vertical_band_speed_container =
                                   m_vhs_container.add_child<SliderContainer>()
                                       .slider_container_init(
-                                          "Vertical Band Speed",
                                           "Vertical Band Speed", 0.01, 0.0, 5.0,
                                           m_vhs->m_vertical_band_speed,
                                           encapsulated_callable(
@@ -683,7 +679,6 @@ void ToolPanel::setup_vhs()
                               auto vertical_band_height_container =
                                   m_vhs_container.add_child<SliderContainer>()
                                       .slider_container_init(
-                                          "Vertical Band Height",
                                           "Vertical Band Height", 0.001, 0.001,
                                           0.1, m_vhs->m_vertical_band_height,
                                           encapsulated_callable(
@@ -695,7 +690,6 @@ void ToolPanel::setup_vhs()
                               auto vertical_band_intensity_container =
                                   m_vhs_container.add_child<SliderContainer>()
                                       .slider_container_init(
-                                          "Vertical Band Intensity",
                                           "Vertical Band Intensity", 0.01, 0.0,
                                           1.0, m_vhs->m_vertical_band_intensity,
                                           encapsulated_callable(
@@ -708,7 +702,6 @@ void ToolPanel::setup_vhs()
                               auto vertical_band_choppiness_container =
                                   m_vhs_container.add_child<SliderContainer>()
                                       .slider_container_init(
-                                          "Vertical Band Choppiness",
                                           "Vertical Band Choppiness", 0.01, 0.0,
                                           1.0,
 
@@ -723,7 +716,6 @@ void ToolPanel::setup_vhs()
                               auto vertical_band_static_container =
                                   m_vhs_container.add_child<SliderContainer>()
                                       .slider_container_init(
-                                          "Vertical Band Static Amount",
                                           "Vertical Band Static Amount", 0.001,
                                           0.0, 0.1,
                                           m_vhs->m_vertical_band_static_amount,
@@ -736,7 +728,6 @@ void ToolPanel::setup_vhs()
                               auto vertical_band_warp_container =
                                   m_vhs_container.add_child<SliderContainer>()
                                       .slider_container_init(
-                                          "Vertical Band Warp Factor",
                                           "Vertical Band Warp Factor", 0.001,
                                           0.0, 0.1,
                                           m_vhs->m_vertical_band_warp_factor,
@@ -764,14 +755,14 @@ void ToolPanel::setup_bloom()
     m_bloom_container.call(&VBoxContainer::set_name, "Bloom");
 
     m_bloom_container.add_child<SliderContainer>().slider_container_init(
-        "Threshold", "Threshold", 0.01, 0.0, 10.0, m_bloom->m_threshold,
+        "Threshold", 0.01, 0.0, 10.0, m_bloom->m_threshold,
         encapsulated_callable(float, m_bloom, m_threshold));
     m_bloom_container.add_child<SliderContainer>().slider_container_init(
-        "Radius", "Radius", 0.001, 0.0, 10.0, m_bloom->m_radius,
+        "Radius", 0.001, 0.0, 10.0, m_bloom->m_radius,
         encapsulated_callable(float, m_bloom, m_radius));
 
     m_bloom_container.add_child<SliderContainer>().slider_container_init(
-        "Strength", "Strength", 0.001, 0.0, 1.0, m_bloom->m_strength,
+        "Strength", 0.001, 0.0, 1.0, m_bloom->m_strength,
         encapsulated_callable(float, m_bloom, m_strength));
 }
 
