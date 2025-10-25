@@ -19,14 +19,20 @@ private:
     RID m_horizontal_blur_pipeline;
     RID m_vertical_blur_pipeline;
     RID m_composite_pipeline;
+    RID m_billinear_sampler;
 
-
+    void init_compute();
 protected:
     static void _bind_methods();
 public:
     KuwaharaShader();
     ~KuwaharaShader();
-    EncapsuledData<float> *m_radius = memnew(EncapsuledData<float>(1.0f));
+    EncapsuledData<float> *radius = memnew(EncapsuledData<float>(1.0f));
+    EncapsuledData<float> *kernel_size = memnew(EncapsuledData<float>(1.0f));
+    EncapsuledData<float> *alpha = memnew(EncapsuledData<float>(1.0f));
+    EncapsuledData<float> *zero_crossing = memnew(EncapsuledData<float>(1.0f));
+    EncapsuledData<float> *sectors = memnew(EncapsuledData<float>(1.0f));
+    EncapsuledData<float> *sharpness = memnew(EncapsuledData<float>(1.0f));
 
     void _notification(int what) override;
     void _render_callback(int32_t, RenderData *) override;

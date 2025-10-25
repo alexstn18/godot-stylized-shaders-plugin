@@ -21,6 +21,7 @@
 #include "util/encapsulated_data.hpp"
 #include "vhs_shader.hpp"
 #include "bloom_shader.hpp"
+#include "kuwahara_shader.hpp"
 
 using namespace godot;
 
@@ -54,6 +55,7 @@ void initialize_shader_plugin(ModuleInitializationLevel p_level)
     GDREGISTER_CLASS(PixelShader);
     GDREGISTER_CLASS(VHSShader);
     GDREGISTER_CLASS(BloomShader);
+    GDREGISTER_CLASS(KuwaharaShader);
 }
 
 void uninitialize_shader_plugin(ModuleInitializationLevel p_level)

@@ -68,7 +68,9 @@ ToolPanel::ToolPanel()
       m_vhs_container(
           NodeBuilder<ScrollContainer>::create_scroll_container("VHS")),
       m_bloom_container(
-          NodeBuilder<ScrollContainer>::create_scroll_container("Bloom"))
+          NodeBuilder<ScrollContainer>::create_scroll_container("Bloom")),
+      m_kuwahara_container(
+          NodeBuilder<ScrollContainer>::create_scroll_container("Kuwahara"))
 {
 }
 
@@ -86,6 +88,7 @@ void ToolPanel::_ready()
     m_pixel.instantiate();
     m_vhs.instantiate();
     m_bloom.instantiate();
+    m_kuwahara.instantiate();
 
     /// Get UI nodes
     // ApplyToContainer
@@ -100,6 +103,7 @@ void ToolPanel::_ready()
     m_pixel_toggle = get_node<CheckButton>("ToggleContainer/PixelToggle");
     m_vhs_toggle = get_node<CheckButton>("ToggleContainer/VHSToggle");
     m_bloom_toggle = get_node<CheckButton>("ToggleContainer/BloomToggle");
+    m_kuwahara_toggle = get_node<CheckButton>("ToggleContainer/KuwaharaToggle");
 
     // root
     m_array_inspector = get_node<ManualArrayInspector>("ArrayOrder");
@@ -121,6 +125,10 @@ void ToolPanel::_ready()
     ERR_FAIL_COND_MSG(!m_vhs_toggle, "ERROR: Could not find VHSToggle node!");
     ERR_FAIL_COND_MSG(!m_bloom_toggle,
                       "ERROR: Could not find BloomToggle node!");
+    ERR_FAIL_COND_MSG(!m_kuwahara_toggle,
+                      "ERROR: Could not find KuwaharaToggle node!");
+    ERR_FAIL_COND_MSG(!m_bloom_toggle,
+                      "ERROR: Could not find BloomToggle node!");
     ERR_FAIL_COND_MSG(!m_array_inspector,
                       "ERROR: Could not find ManualArrayInspector node!");
     ERR_FAIL_COND_MSG(!m_tab_container,
@@ -134,6 +142,7 @@ void ToolPanel::_ready()
     setup_pixel();
     setup_vhs();
     setup_bloom();
+    setup_kuwahara();
 
     m_array_inspector->set_effects(m_effect_arr->get_effects());
 
@@ -146,6 +155,8 @@ void ToolPanel::_ready()
     m_pixel_toggle->connect("toggled", Callable(this, "_on_pixel_toggled"));
     m_vhs_toggle->connect("toggled", Callable(this, "_on_vhs_toggled"));
     m_bloom_toggle->connect("toggled", Callable(this, "_on_bloom_toggled"));
+    m_kuwahara_toggle->connect("toggled",
+                               Callable(this, "_on_kuwahara_toggled"));
     m_array_inspector->connect(
         "order_changed",
         callable_mp(m_effect_arr.ptr(), &EffectArray::set_effects));
@@ -438,6 +449,28 @@ void ToolPanel::_on_bloom_toggled(bool toggled_on)
         REMOVE_EFFECT(m_bloom);
 
         m_tab_container->remove_child(m_bloom_container.get()->get_parent());
+
+        UtilityFunctions::print("Bloom effect toggled off");
+    }
+}
+
+void ToolPanel::_on_kuwahara_toggled(bool toggled_on)
+{
+    m_kuwahara->set_enabled(toggled_on);
+
+    if (toggled_on)
+    {
+        ADD_EFFECT(m_kuwahara);
+
+        m_tab_container->add_child(m_kuwahara_container.get()->get_parent());
+
+        UtilityFunctions::print("Bloom effect toggled on");
+    }
+    else
+    {
+        REMOVE_EFFECT(m_kuwahara);
+
+        m_tab_container->remove_child(m_kuwahara_container.get()->get_parent());
 
         UtilityFunctions::print("Bloom effect toggled off");
     }
@@ -764,6 +797,33 @@ void ToolPanel::setup_bloom()
     m_bloom_container.add_child<SliderContainer>().slider_container_init(
         "Strength", 0.001, 0.0, 1.0, m_bloom->m_strength,
         encapsulated_callable(float, m_bloom, m_strength));
+}
+
+void ToolPanel::setup_kuwahara()
+{
+    m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
+        "Radius", 0.1, 0.1, 1.0, m_kuwahara->radius,
+        encapsulated_callable(float, m_kuwahara, radius));
+
+    m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
+        "Kernel Size", 0.1, 0.1, 1.0, m_kuwahara->kernel_size,
+        encapsulated_callable(float, m_kuwahara, kernel_size));
+
+    m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
+        "Alpha", 0.1, 0.1, 1.0, m_kuwahara->alpha,
+        encapsulated_callable(float, m_kuwahara, alpha));
+
+    m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
+        "Zero Crossing", 0.1, 0.1, 1.0, m_kuwahara->zero_crossing,
+        encapsulated_callable(float, m_kuwahara, zero_crossing));
+
+    m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
+        "Sectors", 0.1, 0.1, 1.0, m_kuwahara->sectors,
+        encapsulated_callable(float, m_kuwahara, sectors));
+
+    m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
+        "Sharpness", 0.1, 0.1, 1.0, m_kuwahara->sharpness,
+        encapsulated_callable(float, m_kuwahara, sharpness));
 }
 
 void ToolPanel::set_edited_scene_root(Node *edited_scene_root)

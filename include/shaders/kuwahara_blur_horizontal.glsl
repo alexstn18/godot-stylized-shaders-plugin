@@ -30,7 +30,8 @@ void main()
     float sigma = 2.;
     vec4 sum = vec4(0.);
     float ksum = 0.;
-    for(int dx = -params.radius; dx <= params.radius; ++dx)
+    int radius = int(params.radius);
+    for(int dx = -radius; dx <= radius; ++dx)
     {
         vec2 sample_uv = clamp(uv + vec2(float(dx), 0.) * texel, vec2(0.), vec2(1.));
         vec4 v = texture(input_image, sample_uv);

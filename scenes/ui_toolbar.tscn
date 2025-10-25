@@ -59,6 +59,10 @@ text = "VHS Effect"
 layout_mode = 2
 text = "HDR Bloom Effect"
 
+[node name="KuwaharaToggle" type="CheckButton" parent="ToggleContainer"]
+layout_mode = 2
+text = "Kuwahara Effect"
+
 [node name="HSeparator2" type="HSeparator" parent="."]
 layout_mode = 2
 
