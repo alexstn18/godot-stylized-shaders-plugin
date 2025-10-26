@@ -35,17 +35,21 @@ class KuwaharaShader : public BaseShader
     RID m_horizontal_blur_shader;
     RID m_vertical_blur_shader;
     RID m_composite_shader;
-    RID m_final_shader;
+    RID m_downsample_shader;
+    RID m_upsample_shader;
     RID m_structure_tensor_pipeline;
     RID m_horizontal_blur_pipeline;
     RID m_vertical_blur_pipeline;
     RID m_composite_pipeline;
-    RID m_final_pipeline;
+    RID m_downsample_pipeline;
+    RID m_upsample_pipeline;
     RID m_billinear_sampler;
 
-    float m_zero_crossing = 1.6F;
+    Vector2i m_last_work_size = Vector2i(0, 0);
 
-    KuwaharaPreset m_preset = KuwaharaPreset::SUBTLE;
+    static constexpr float ZERO_CROSSING = 1.6F;
+
+    KuwaharaPreset m_preset = KuwaharaPreset::FAST;
 
     std::vector<KuwaharaPresetConfig> m_preset_configs;
 
@@ -59,6 +63,7 @@ class KuwaharaShader : public BaseShader
   public:
     KuwaharaShader();
     ~KuwaharaShader();
+    EncapsuledData<int>   *downsample_factor = memnew(EncapsuledData<int>(2));
     EncapsuledData<float> *radius = memnew(EncapsuledData<float>(3.0f));
     EncapsuledData<float> *kernel_size = memnew(EncapsuledData<float>(7.0f));
     EncapsuledData<float> *alpha = memnew(EncapsuledData<float>(1.0f));

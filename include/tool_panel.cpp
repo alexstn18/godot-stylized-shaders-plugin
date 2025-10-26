@@ -22,14 +22,15 @@
 #include <godot_cpp/classes/editor_selection.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/environment.hpp>
+#include <godot_cpp/classes/h_separator.hpp>
 #include <godot_cpp/classes/h_slider.hpp>
 #include <godot_cpp/classes/node3d.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/random_number_generator.hpp>
-#include <godot_cpp/classes/h_separator.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/spin_box.hpp>
 #include <godot_cpp/variant/callable.hpp>
+
 
 #define ADD_EFFECT(T)                                                          \
     m_effect_arr->add_effect(T);                                               \
@@ -156,8 +157,8 @@ void ToolPanel::_ready()
     m_pixel_toggle->connect("toggled", Callable(this, "_on_pixel_toggled"));
     m_vhs_toggle->connect("toggled", Callable(this, "_on_vhs_toggled"));
     m_bloom_toggle->connect("toggled", Callable(this, "_on_bloom_toggled"));
-    m_kuwahara_toggle->connect("toggled",
-                               callable_mp(this, &ToolPanel::_on_kuwahara_toggled));
+    m_kuwahara_toggle->connect(
+        "toggled", callable_mp(this, &ToolPanel::_on_kuwahara_toggled));
     m_array_inspector->connect(
         "order_changed",
         callable_mp(m_effect_arr.ptr(), &EffectArray::set_effects));
@@ -802,20 +803,35 @@ void ToolPanel::setup_bloom()
 
 void ToolPanel::setup_kuwahara()
 {
-    auto h_box = m_kuwahara_container.add_child<HBoxContainer>();
-    h_box.add_child<Label>().call(&Label::set_text, "Preset");
-    auto option_button = h_box.add_child<OptionButton>();
+    auto preset_box = m_kuwahara_container.add_child<HBoxContainer>();
+    preset_box.add_child<Label>().call(&Label::set_text, "Preset");
+    auto option_button = preset_box.add_child<OptionButton>();
 
-    for(size_t i = 0; i < m_kuwahara->get_preset_configs().size(); ++i)
+    for (size_t i = 0; i < m_kuwahara->get_preset_configs().size(); ++i)
     {
         const auto &preset = m_kuwahara->get_preset_configs()[i];
-        
+
         option_button.call(&OptionButton::add_item, preset.label_text, i);
     }
 
-    option_button.call(&OptionButton::connect, "item_selected", callable_mp(m_kuwahara.ptr(), &KuwaharaShader::set_preset_as_selected), 0U);
+    option_button.call(
+        &OptionButton::connect, "item_selected",
+        callable_mp(m_kuwahara.ptr(), &KuwaharaShader::set_preset_as_selected),
+        0U);
 
     m_kuwahara_container.add_child<HSeparator>();
+
+    auto downsample_box = m_kuwahara_container.add_child<HBoxContainer>();
+    downsample_box.add_child<Label>().call(&Label::set_text,
+                                           "Downsample Factor");
+    downsample_box.add_child<SpinBox>()
+        .call(&SpinBox::set_step, 1.0)
+        .call(&SpinBox::set_min, 1.0)
+        .call(&SpinBox::set_max, 12.0)
+        .call(&SpinBox::set_value,
+              static_cast<double>(m_kuwahara->downsample_factor->get()))
+        .call(&SpinBox::connect, "value_changed",
+              encapsulated_callable(int, m_kuwahara, downsample_factor), 0u);
 
     m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
         "Radius", 1.0, 3.0, 7.0, m_kuwahara->radius,
