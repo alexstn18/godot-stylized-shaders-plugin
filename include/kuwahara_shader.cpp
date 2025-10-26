@@ -37,6 +37,7 @@ void KuwaharaShader::init_compute()
     String horizontal_blur_path = addon_path + "kuwahara_blur_horizontal.glsl";
     String vertical_blur_path = addon_path + "kuwahara_blur_vertical.glsl";
     String comp_path = addon_path + "kuwahara_comp.glsl";
+    String final_path = addon_path + "kuwahara_final.glsl";
 
     create_shader(tensor_path, m_structure_tensor_shader,
                   m_structure_tensor_pipeline);
@@ -45,6 +46,7 @@ void KuwaharaShader::init_compute()
     create_shader(vertical_blur_path, m_vertical_blur_shader,
                   m_vertical_blur_pipeline);
     create_shader(comp_path, m_composite_shader, m_composite_pipeline);
+    create_shader(final_path, m_final_shader, m_final_pipeline);
 
     Ref<RDSamplerState> sampler_state;
     sampler_state.instantiate();
@@ -63,17 +65,21 @@ void KuwaharaShader::_notification(int what)
         free_rid(m_horizontal_blur_shader);
         free_rid(m_vertical_blur_shader);
         free_rid(m_composite_shader);
+        free_rid(m_final_shader);
     }
 }
 
 void KuwaharaShader::_render_callback(int32_t p_effect_callback_type,
                                       RenderData *p_render_data)
 {
-    if (m_device && m_structure_tensor_pipeline.is_valid() &&
-        m_horizontal_blur_pipeline.is_valid() &&
-        m_vertical_blur_pipeline.is_valid() &&
-        m_composite_pipeline.is_valid() &&
-        p_effect_callback_type == EFFECT_CALLBACK_TYPE_POST_TRANSPARENT)
+    ERR_FAIL_COND_MSG(!m_device, "No device in KuwaharaShader::_render_callback");
+    ERR_FAIL_COND_MSG(!m_structure_tensor_pipeline.is_valid(), "No structure tensor pipeline in KuwaharaShader::_render_callback");
+    ERR_FAIL_COND_MSG(!m_horizontal_blur_pipeline.is_valid(), "No horizontal blur pipeline in KuwaharaShader::_render_callback");
+    ERR_FAIL_COND_MSG(!m_vertical_blur_pipeline.is_valid(), "No vertical blur pipeline in KuwaharaShader::_render_callback");
+    ERR_FAIL_COND_MSG(!m_composite_pipeline.is_valid(), "No composite pipeline in KuwaharaShader::_render_callback");
+    ERR_FAIL_COND_MSG(!m_final_pipeline.is_valid(), "No final pipeline in KuwaharaShader::_render_callback");
+
+    if (p_effect_callback_type == EFFECT_CALLBACK_TYPE_POST_TRANSPARENT)
     {
         Ref<RenderSceneBuffersRD> buffers =
             p_render_data->get_render_scene_buffers();
@@ -83,10 +89,10 @@ void KuwaharaShader::_render_callback(int32_t p_effect_callback_type,
         Vector2i size = get_buffers_internal_size(p_render_data, buffers);
         ERR_FAIL_COND_MSG(size.x == 0 || size.y == 0, "Buffer size is 0");
         RenderSceneData *scene_data = p_render_data->get_render_scene_data();
-        if (buffers.is_valid() || !scene_data)
+        if (buffers.is_valid() && scene_data)
         {
-            const int x_groups = (size.x + 15 / 16);
-            const int y_groups = (size.y + 15 / 16);
+            const int x_groups = (size.x + 15) / 16;
+            const int y_groups = (size.y + 15) / 16;
 
             auto view_count = buffers->get_view_count();
             auto usage = RenderingDevice::TEXTURE_USAGE_SAMPLING_BIT |
@@ -97,19 +103,28 @@ void KuwaharaShader::_render_callback(int32_t p_effect_callback_type,
             {
                 RID input_image = buffers->get_color_layer(i);
 
-                buffers->create_texture("Kuwahara", "Tensor", RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT,
-                                        usage, RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true, false);
-                buffers->create_texture("Kuwahara", "BlurH", RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT,
-                                        usage, RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true, false);
-                buffers->create_texture("Kuwahara", "BlurV", RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT,
-                                        usage, RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true, false);
-                buffers->create_texture("Kuwahara", "Output", RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT,
-                                        usage, RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true, false);
+                static bool test = false;
+
+                if(!test)
+                {
+                    buffers->create_texture("Kuwahara", "Tensor", RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT,
+                                            usage, RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true, false);
+                    buffers->create_texture("Kuwahara", "BlurH", RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT,
+                                            usage, RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true, false);
+                    buffers->create_texture("Kuwahara", "BlurV", RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT,
+                                            usage, RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true, false);
+                    buffers->create_texture("Kuwahara", "Output", RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT,
+                                            usage, RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true, false);
+                    buffers->create_texture("Kuwahara", "Final", RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT,
+                                            usage, RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true, false);
+                    test = true;
+                }
 
                 RID tensor_tex = buffers->get_texture_slice("Kuwahara", "Tensor", i, 0, 1, 1);
                 RID blur_h_tex = buffers->get_texture_slice("Kuwahara", "BlurH", i, 0, 1, 1);
                 RID blur_v_tex = buffers->get_texture_slice("Kuwahara", "BlurV", i, 0, 1, 1);
                 RID output_tex = buffers->get_texture_slice("Kuwahara", "Output", i, 0, 1, 1);
+                RID final_tex = buffers->get_texture_slice("Kuwahara", "Final", i, 0, 1, 1);
 
                 // structure tensor pass
                 {
@@ -159,7 +174,7 @@ void KuwaharaShader::_render_callback(int32_t p_effect_callback_type,
                     m_device->compute_list_end();
                 }
 
-                // composite pass
+                // weighting pass
                 {
                     auto list = m_device->compute_list_begin();
                     m_device->compute_list_bind_compute_pipeline(list, m_composite_pipeline);
@@ -175,6 +190,25 @@ void KuwaharaShader::_render_callback(int32_t p_effect_callback_type,
                         kernel_size->get(), alpha->get(),
                         zero_crossing->get(), sectors->get(),
                         sharpness->get(), 0.0f
+                    };
+                    m_device->compute_list_set_push_constant(list, pc.to_byte_array(), pc.size() * 4);
+                    m_device->compute_list_dispatch(list, x_groups, y_groups, 1);
+                    m_device->compute_list_end();
+                }
+
+                // final pass
+                {
+                    auto list = m_device->compute_list_begin();
+                    m_device->compute_list_bind_compute_pipeline(list, m_final_pipeline);
+
+                    auto u_main = get_image_uniform(input_image, 0);
+                    auto u_prev = get_sampler_uniform(output_tex, m_billinear_sampler, 1);
+                    RID set = UniformSetCacheRD::get_cache(m_final_shader, 0, {u_main, u_prev});
+                    m_device->compute_list_bind_uniform_set(list, set, 0);
+
+                    PackedFloat32Array pc = {
+                        float(size.x), float(size.y),
+                        0.0f, 0.0f
                     };
                     m_device->compute_list_set_push_constant(list, pc.to_byte_array(), pc.size() * 4);
                     m_device->compute_list_dispatch(list, x_groups, y_groups, 1);

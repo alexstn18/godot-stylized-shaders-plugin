@@ -156,7 +156,7 @@ void ToolPanel::_ready()
     m_vhs_toggle->connect("toggled", Callable(this, "_on_vhs_toggled"));
     m_bloom_toggle->connect("toggled", Callable(this, "_on_bloom_toggled"));
     m_kuwahara_toggle->connect("toggled",
-                               Callable(this, "_on_kuwahara_toggled"));
+                               callable_mp(this, &ToolPanel::_on_kuwahara_toggled));
     m_array_inspector->connect(
         "order_changed",
         callable_mp(m_effect_arr.ptr(), &EffectArray::set_effects));
@@ -464,7 +464,7 @@ void ToolPanel::_on_kuwahara_toggled(bool toggled_on)
 
         m_tab_container->add_child(m_kuwahara_container.get()->get_parent());
 
-        UtilityFunctions::print("Bloom effect toggled on");
+        UtilityFunctions::print("Kuwahara effect toggled on");
     }
     else
     {
@@ -472,7 +472,7 @@ void ToolPanel::_on_kuwahara_toggled(bool toggled_on)
 
         m_tab_container->remove_child(m_kuwahara_container.get()->get_parent());
 
-        UtilityFunctions::print("Bloom effect toggled off");
+        UtilityFunctions::print("Kuwahara effect toggled off");
     }
 }
 
@@ -802,11 +802,11 @@ void ToolPanel::setup_bloom()
 void ToolPanel::setup_kuwahara()
 {
     m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
-        "Radius", 0.1, 0.1, 1.0, m_kuwahara->radius,
+        "Radius", 1.0, 3.0, 7.0, m_kuwahara->radius,
         encapsulated_callable(float, m_kuwahara, radius));
 
     m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
-        "Kernel Size", 0.1, 0.1, 1.0, m_kuwahara->kernel_size,
+        "Kernel Size", 1.0, 7.0, 15.0, m_kuwahara->kernel_size,
         encapsulated_callable(float, m_kuwahara, kernel_size));
 
     m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
@@ -814,15 +814,15 @@ void ToolPanel::setup_kuwahara()
         encapsulated_callable(float, m_kuwahara, alpha));
 
     m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
-        "Zero Crossing", 0.1, 0.1, 1.0, m_kuwahara->zero_crossing,
+        "Zero Crossing", 0.1, 0.5, 2.0, m_kuwahara->zero_crossing,
         encapsulated_callable(float, m_kuwahara, zero_crossing));
 
     m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
-        "Sectors", 0.1, 0.1, 1.0, m_kuwahara->sectors,
+        "Sectors", 1.0, 4.0, 8.0, m_kuwahara->sectors,
         encapsulated_callable(float, m_kuwahara, sectors));
 
     m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
-        "Sharpness", 0.1, 0.1, 1.0, m_kuwahara->sharpness,
+        "Sharpness", 1.0, 6.0, 12.0, m_kuwahara->sharpness,
         encapsulated_callable(float, m_kuwahara, sharpness));
 }
 
