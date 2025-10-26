@@ -24,6 +24,7 @@ KuwaharaShader::KuwaharaShader()
     queue_callable_on_render_thread(
         callable_mp(this, &KuwaharaShader::init_compute));
 
+    m_preset_configs.push_back({"Fast", 3.0F, 7.0F, 1.0F, 4.0F, 8.0F});
     m_preset_configs.push_back({"Subtle", 3.0F, 7.0F, 1.0F, 8.0F, 8.0F});
     m_preset_configs.push_back({"Oil", 5.0F, 13.0F, 1.5F, 8.0F, 10.0F});
     m_preset_configs.push_back({"Anime", 4.0F, 9.0F, 0.8F, 4.0F, 12.0F});
@@ -298,6 +299,11 @@ void KuwaharaShader::set_preset(KuwaharaPreset p)
 void KuwaharaShader::set_preset(const KuwaharaPresetConfig &config)
 {
     apply_config(config);
+}
+
+void KuwaharaShader::set_preset_as_selected(int32_t index)
+{
+    apply_config(m_preset_configs[index]);
 }
 
 void KuwaharaShader::add_preset_config(const KuwaharaPresetConfig &config)

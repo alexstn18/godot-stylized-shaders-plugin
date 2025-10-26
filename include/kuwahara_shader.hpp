@@ -10,7 +10,8 @@ using namespace godot;
 // Default presets
 enum class KuwaharaPreset : uint8_t
 {
-    SUBTLE = 0U,
+    FAST = 0U,
+    SUBTLE,
     OIL,
     ANIME
 };
@@ -70,6 +71,7 @@ class KuwaharaShader : public BaseShader
     KuwaharaPreset get_preset() const { return m_preset; }
     void set_preset(KuwaharaPreset p);
     void set_preset(const KuwaharaPresetConfig &config);
+    void set_preset_as_selected(int32_t index);
 
     const std::vector<KuwaharaPresetConfig> &get_preset_configs() const
     {

@@ -801,6 +801,17 @@ void ToolPanel::setup_bloom()
 
 void ToolPanel::setup_kuwahara()
 {
+    auto option_button = m_kuwahara_container.add_child<OptionButton>();
+
+    for(size_t i = 0; i < m_kuwahara->get_preset_configs().size(); ++i)
+    {
+        const auto &preset = m_kuwahara->get_preset_configs()[i];
+        
+        option_button.call(&OptionButton::add_item, preset.label_text, i);
+    }
+
+    option_button.call(&OptionButton::connect, "item_selected", callable_mp(m_kuwahara.ptr(), &KuwaharaShader::set_preset_as_selected), 0U);
+
     m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
         "Radius", 1.0, 3.0, 7.0, m_kuwahara->radius,
         encapsulated_callable(float, m_kuwahara, radius));
