@@ -23,6 +23,10 @@ KuwaharaShader::KuwaharaShader()
 
     queue_callable_on_render_thread(
         callable_mp(this, &KuwaharaShader::init_compute));
+
+    m_preset_configs.push_back({"Subtle", 3.0F, 7.0F, 1.0F, 8.0F, 8.0F});
+    m_preset_configs.push_back({"Oil", 5.0F, 13.0F, 1.5F, 8.0F, 10.0F});
+    m_preset_configs.push_back({"Anime", 4.0F, 9.0F, 0.8F, 4.0F, 12.0F});
 }
 
 KuwaharaShader::~KuwaharaShader() {}
@@ -72,12 +76,22 @@ void KuwaharaShader::_notification(int what)
 void KuwaharaShader::_render_callback(int32_t p_effect_callback_type,
                                       RenderData *p_render_data)
 {
-    ERR_FAIL_COND_MSG(!m_device, "No device in KuwaharaShader::_render_callback");
-    ERR_FAIL_COND_MSG(!m_structure_tensor_pipeline.is_valid(), "No structure tensor pipeline in KuwaharaShader::_render_callback");
-    ERR_FAIL_COND_MSG(!m_horizontal_blur_pipeline.is_valid(), "No horizontal blur pipeline in KuwaharaShader::_render_callback");
-    ERR_FAIL_COND_MSG(!m_vertical_blur_pipeline.is_valid(), "No vertical blur pipeline in KuwaharaShader::_render_callback");
-    ERR_FAIL_COND_MSG(!m_composite_pipeline.is_valid(), "No composite pipeline in KuwaharaShader::_render_callback");
-    ERR_FAIL_COND_MSG(!m_final_pipeline.is_valid(), "No final pipeline in KuwaharaShader::_render_callback");
+    ERR_FAIL_COND_MSG(!m_device,
+                      "No device in KuwaharaShader::_render_callback");
+    ERR_FAIL_COND_MSG(
+        !m_structure_tensor_pipeline.is_valid(),
+        "No structure tensor pipeline in KuwaharaShader::_render_callback");
+    ERR_FAIL_COND_MSG(
+        !m_horizontal_blur_pipeline.is_valid(),
+        "No horizontal blur pipeline in KuwaharaShader::_render_callback");
+    ERR_FAIL_COND_MSG(
+        !m_vertical_blur_pipeline.is_valid(),
+        "No vertical blur pipeline in KuwaharaShader::_render_callback");
+    ERR_FAIL_COND_MSG(
+        !m_composite_pipeline.is_valid(),
+        "No composite pipeline in KuwaharaShader::_render_callback");
+    ERR_FAIL_COND_MSG(!m_final_pipeline.is_valid(),
+                      "No final pipeline in KuwaharaShader::_render_callback");
 
     if (p_effect_callback_type == EFFECT_CALLBACK_TYPE_POST_TRANSPARENT)
     {
@@ -105,116 +119,188 @@ void KuwaharaShader::_render_callback(int32_t p_effect_callback_type,
 
                 static bool test = false;
 
-                if(!test)
+                if (!test)
                 {
-                    buffers->create_texture("Kuwahara", "Tensor", RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT,
-                                            usage, RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true, false);
-                    buffers->create_texture("Kuwahara", "BlurH", RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT,
-                                            usage, RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true, false);
-                    buffers->create_texture("Kuwahara", "BlurV", RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT,
-                                            usage, RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true, false);
-                    buffers->create_texture("Kuwahara", "Output", RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT,
-                                            usage, RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true, false);
-                    buffers->create_texture("Kuwahara", "Final", RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT,
-                                            usage, RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true, false);
+                    buffers->create_texture(
+                        "Kuwahara", "Tensor",
+                        RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT, usage,
+                        RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true,
+                        false);
+                    buffers->create_texture(
+                        "Kuwahara", "BlurH",
+                        RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT, usage,
+                        RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true,
+                        false);
+                    buffers->create_texture(
+                        "Kuwahara", "BlurV",
+                        RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT, usage,
+                        RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true,
+                        false);
+                    buffers->create_texture(
+                        "Kuwahara", "Output",
+                        RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT, usage,
+                        RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true,
+                        false);
+                    buffers->create_texture(
+                        "Kuwahara", "Final",
+                        RenderingDevice::DATA_FORMAT_R16G16B16A16_SFLOAT, usage,
+                        RenderingDevice::TEXTURE_SAMPLES_1, size, 1, 1, true,
+                        false);
                     test = true;
                 }
 
-                RID tensor_tex = buffers->get_texture_slice("Kuwahara", "Tensor", i, 0, 1, 1);
-                RID blur_h_tex = buffers->get_texture_slice("Kuwahara", "BlurH", i, 0, 1, 1);
-                RID blur_v_tex = buffers->get_texture_slice("Kuwahara", "BlurV", i, 0, 1, 1);
-                RID output_tex = buffers->get_texture_slice("Kuwahara", "Output", i, 0, 1, 1);
-                RID final_tex = buffers->get_texture_slice("Kuwahara", "Final", i, 0, 1, 1);
+                RID tensor_tex = buffers->get_texture_slice(
+                    "Kuwahara", "Tensor", i, 0, 1, 1);
+                RID blur_h_tex =
+                    buffers->get_texture_slice("Kuwahara", "BlurH", i, 0, 1, 1);
+                RID blur_v_tex =
+                    buffers->get_texture_slice("Kuwahara", "BlurV", i, 0, 1, 1);
+                RID output_tex = buffers->get_texture_slice(
+                    "Kuwahara", "Output", i, 0, 1, 1);
+                RID final_tex =
+                    buffers->get_texture_slice("Kuwahara", "Final", i, 0, 1, 1);
 
                 // structure tensor pass
                 {
                     auto compute_list = m_device->compute_list_begin();
-                    m_device->compute_list_bind_compute_pipeline(compute_list, m_structure_tensor_pipeline);
+                    m_device->compute_list_bind_compute_pipeline(
+                        compute_list, m_structure_tensor_pipeline);
 
-                    auto u_in = get_sampler_uniform(input_image, m_billinear_sampler, 0);
+                    auto u_in = get_sampler_uniform(input_image,
+                                                    m_billinear_sampler, 0);
                     auto u_out = get_image_uniform(tensor_tex, 1);
-                    RID set = UniformSetCacheRD::get_cache(m_structure_tensor_shader, 0, {u_in, u_out});
-                    m_device->compute_list_bind_uniform_set(compute_list, set, 0);
-                
-                    PackedFloat32Array push_constant = {float(size.x), float(size.y), 0.0f, 0.0f};
-                    m_device->compute_list_set_push_constant(compute_list, push_constant.to_byte_array(), push_constant.size() * 4);
-                    m_device->compute_list_dispatch(compute_list, x_groups, y_groups, 1);
+                    RID set = UniformSetCacheRD::get_cache(
+                        m_structure_tensor_shader, 0, {u_in, u_out});
+                    m_device->compute_list_bind_uniform_set(compute_list, set,
+                                                            0);
+
+                    PackedFloat32Array push_constant = {
+                        float(size.x), float(size.y), 0.0f, 0.0f};
+                    m_device->compute_list_set_push_constant(
+                        compute_list, push_constant.to_byte_array(),
+                        push_constant.size() * 4);
+                    m_device->compute_list_dispatch(compute_list, x_groups,
+                                                    y_groups, 1);
                     m_device->compute_list_end();
                 }
 
                 // horiz blur pass
                 {
                     auto list = m_device->compute_list_begin();
-                    m_device->compute_list_bind_compute_pipeline(list, m_horizontal_blur_pipeline);
+                    m_device->compute_list_bind_compute_pipeline(
+                        list, m_horizontal_blur_pipeline);
 
-                    auto u_in = get_sampler_uniform(tensor_tex, m_billinear_sampler, 0);
+                    auto u_in =
+                        get_sampler_uniform(tensor_tex, m_billinear_sampler, 0);
                     auto u_out = get_image_uniform(blur_h_tex, 1);
-                    RID set = UniformSetCacheRD::get_cache(m_horizontal_blur_shader, 0, {u_in, u_out});
+                    RID set = UniformSetCacheRD::get_cache(
+                        m_horizontal_blur_shader, 0, {u_in, u_out});
                     m_device->compute_list_bind_uniform_set(list, set, 0);
 
-                    PackedFloat32Array pc = {float(size.x), float(size.y), 0.0f, 0.0f};
-                    m_device->compute_list_set_push_constant(list, pc.to_byte_array(), pc.size() * 4);
-                    m_device->compute_list_dispatch(list, x_groups, y_groups, 1);
+                    PackedFloat32Array pc = {float(size.x), float(size.y), 0.0f,
+                                             0.0f};
+                    m_device->compute_list_set_push_constant(
+                        list, pc.to_byte_array(), pc.size() * 4);
+                    m_device->compute_list_dispatch(list, x_groups, y_groups,
+                                                    1);
                     m_device->compute_list_end();
                 }
 
                 // vert blur pass
                 {
                     auto list = m_device->compute_list_begin();
-                    m_device->compute_list_bind_compute_pipeline(list, m_vertical_blur_pipeline);
+                    m_device->compute_list_bind_compute_pipeline(
+                        list, m_vertical_blur_pipeline);
 
-                    auto u_in = get_sampler_uniform(blur_h_tex, m_billinear_sampler, 0);
+                    auto u_in =
+                        get_sampler_uniform(blur_h_tex, m_billinear_sampler, 0);
                     auto u_out = get_image_uniform(blur_v_tex, 1);
-                    RID set = UniformSetCacheRD::get_cache(m_vertical_blur_shader, 0, {u_in, u_out});
+                    RID set = UniformSetCacheRD::get_cache(
+                        m_vertical_blur_shader, 0, {u_in, u_out});
                     m_device->compute_list_bind_uniform_set(list, set, 0);
 
-                    PackedFloat32Array pc = {float(size.x), float(size.y), 0.0f, 0.0f};
-                    m_device->compute_list_set_push_constant(list, pc.to_byte_array(), pc.size() * 4);
-                    m_device->compute_list_dispatch(list, x_groups, y_groups, 1);
+                    PackedFloat32Array pc = {float(size.x), float(size.y), 0.0f,
+                                             0.0f};
+                    m_device->compute_list_set_push_constant(
+                        list, pc.to_byte_array(), pc.size() * 4);
+                    m_device->compute_list_dispatch(list, x_groups, y_groups,
+                                                    1);
                     m_device->compute_list_end();
                 }
 
                 // weighting pass
                 {
                     auto list = m_device->compute_list_begin();
-                    m_device->compute_list_bind_compute_pipeline(list, m_composite_pipeline);
+                    m_device->compute_list_bind_compute_pipeline(
+                        list, m_composite_pipeline);
 
-                    auto u_color = get_sampler_uniform(input_image, m_billinear_sampler, 0);
-                    auto u_blur = get_sampler_uniform(blur_v_tex, m_billinear_sampler, 1);
+                    auto u_color = get_sampler_uniform(input_image,
+                                                       m_billinear_sampler, 0);
+                    auto u_blur =
+                        get_sampler_uniform(blur_v_tex, m_billinear_sampler, 1);
                     auto u_out = get_image_uniform(output_tex, 2);
-                    RID set = UniformSetCacheRD::get_cache(m_composite_shader, 0, {u_color, u_blur, u_out});
+                    RID set = UniformSetCacheRD::get_cache(
+                        m_composite_shader, 0, {u_color, u_blur, u_out});
                     m_device->compute_list_bind_uniform_set(list, set, 0);
 
-                    PackedFloat32Array pc = {
-                        float(size.x), float(size.y),
-                        kernel_size->get(), alpha->get(),
-                        zero_crossing->get(), sectors->get(),
-                        sharpness->get(), 0.0f
-                    };
-                    m_device->compute_list_set_push_constant(list, pc.to_byte_array(), pc.size() * 4);
-                    m_device->compute_list_dispatch(list, x_groups, y_groups, 1);
+                    PackedFloat32Array pc = {float(size.x),      float(size.y),
+                                             kernel_size->get(), alpha->get(),
+                                             m_zero_crossing,    sectors->get(),
+                                             sharpness->get(),   0.0f};
+                    m_device->compute_list_set_push_constant(
+                        list, pc.to_byte_array(), pc.size() * 4);
+                    m_device->compute_list_dispatch(list, x_groups, y_groups,
+                                                    1);
                     m_device->compute_list_end();
                 }
 
                 // final pass
                 {
                     auto list = m_device->compute_list_begin();
-                    m_device->compute_list_bind_compute_pipeline(list, m_final_pipeline);
+                    m_device->compute_list_bind_compute_pipeline(
+                        list, m_final_pipeline);
 
                     auto u_main = get_image_uniform(input_image, 0);
-                    auto u_prev = get_sampler_uniform(output_tex, m_billinear_sampler, 1);
-                    RID set = UniformSetCacheRD::get_cache(m_final_shader, 0, {u_main, u_prev});
+                    auto u_prev =
+                        get_sampler_uniform(output_tex, m_billinear_sampler, 1);
+                    RID set = UniformSetCacheRD::get_cache(m_final_shader, 0,
+                                                           {u_main, u_prev});
                     m_device->compute_list_bind_uniform_set(list, set, 0);
 
-                    PackedFloat32Array pc = {
-                        float(size.x), float(size.y),
-                        0.0f, 0.0f
-                    };
-                    m_device->compute_list_set_push_constant(list, pc.to_byte_array(), pc.size() * 4);
-                    m_device->compute_list_dispatch(list, x_groups, y_groups, 1);
+                    PackedFloat32Array pc = {float(size.x), float(size.y), 0.0f,
+                                             0.0f};
+                    m_device->compute_list_set_push_constant(
+                        list, pc.to_byte_array(), pc.size() * 4);
+                    m_device->compute_list_dispatch(list, x_groups, y_groups,
+                                                    1);
                     m_device->compute_list_end();
                 }
             }
         }
     }
+}
+
+void KuwaharaShader::apply_config(const KuwaharaPresetConfig &config)
+{
+    radius->set(config.radius);
+    kernel_size->set(config.kernel_size);
+    alpha->set(config.alpha);
+    sectors->set(config.sectors);
+    sharpness->set(config.sharpness);
+}
+
+void KuwaharaShader::set_preset(KuwaharaPreset p)
+{
+    m_preset = p;
+    apply_config(m_preset_configs[static_cast<uint8_t>(p)]);
+}
+
+void KuwaharaShader::set_preset(const KuwaharaPresetConfig &config)
+{
+    apply_config(config);
+}
+
+void KuwaharaShader::add_preset_config(const KuwaharaPresetConfig &config)
+{
+    m_preset_configs.push_back(config);
 }

@@ -814,10 +814,6 @@ void ToolPanel::setup_kuwahara()
         encapsulated_callable(float, m_kuwahara, alpha));
 
     m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
-        "Zero Crossing", 0.1, 0.5, 2.0, m_kuwahara->zero_crossing,
-        encapsulated_callable(float, m_kuwahara, zero_crossing));
-
-    m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
         "Sectors", 1.0, 4.0, 8.0, m_kuwahara->sectors,
         encapsulated_callable(float, m_kuwahara, sectors));
 
