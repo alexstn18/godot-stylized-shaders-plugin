@@ -27,6 +27,13 @@ void main()
         return;
     
     vec2 uv = pixel / size;
+    if (params.kernel_size < 3.0) 
+    {
+        vec3 center = texture(base_image, uv).rgb;
+        imageStore(output_image, pixel, vec4(center, 1.0));
+        return;
+    }
+    
     vec2 texel = 1. / size;
 
     vec4 t = texture(prev_pass, uv);
@@ -44,9 +51,10 @@ void main()
 
     int max_x = int(ceil(sqrt(a*a*cos_phi*cos_phi+b*b*sin_phi*sin_phi)));
     int max_y = int(ceil(sqrt(a*a*sin_phi*sin_phi+b*b*cos_phi*cos_phi)));
-    const int HARD_MAX_RADIUS = 128;
+    const int HARD_MAX_RADIUS = 32;
     max_x = min(max_x, HARD_MAX_RADIUS);
     max_y = min(max_y, HARD_MAX_RADIUS);
+
 
     float zeta = 2. / (params.kernel_size / 2.);
     float zero_cross = params.zero_crossing;
