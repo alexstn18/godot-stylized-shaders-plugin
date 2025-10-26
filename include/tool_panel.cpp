@@ -26,6 +26,7 @@
 #include <godot_cpp/classes/node3d.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/random_number_generator.hpp>
+#include <godot_cpp/classes/h_separator.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/spin_box.hpp>
 #include <godot_cpp/variant/callable.hpp>
@@ -801,7 +802,9 @@ void ToolPanel::setup_bloom()
 
 void ToolPanel::setup_kuwahara()
 {
-    auto option_button = m_kuwahara_container.add_child<OptionButton>();
+    auto h_box = m_kuwahara_container.add_child<HBoxContainer>();
+    h_box.add_child<Label>().call(&Label::set_text, "Preset");
+    auto option_button = h_box.add_child<OptionButton>();
 
     for(size_t i = 0; i < m_kuwahara->get_preset_configs().size(); ++i)
     {
@@ -811,6 +814,8 @@ void ToolPanel::setup_kuwahara()
     }
 
     option_button.call(&OptionButton::connect, "item_selected", callable_mp(m_kuwahara.ptr(), &KuwaharaShader::set_preset_as_selected), 0U);
+
+    m_kuwahara_container.add_child<HSeparator>();
 
     m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
         "Radius", 1.0, 3.0, 7.0, m_kuwahara->radius,
