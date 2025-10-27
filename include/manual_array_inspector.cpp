@@ -1,4 +1,5 @@
 #include "manual_array_inspector.hpp"
+#include <godot_cpp/classes/editor_interface.hpp>
 
 void ManualArrayInspector::_bind_methods() 
 {
@@ -73,4 +74,9 @@ void ManualArrayInspector::_on_move_pressed(int from_index, int to_index)
     _refresh_ui();
 
     emit_signal("order_changed", m_effects);
+
+    if (EditorInterface* editor = EditorInterface::get_singleton())
+    {
+        editor->mark_scene_as_unsaved();
+    }
 }

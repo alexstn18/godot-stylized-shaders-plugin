@@ -49,7 +49,7 @@ class KuwaharaShader : public BaseShader
 
     static constexpr float ZERO_CROSSING = 1.6F;
 
-    KuwaharaPreset m_preset = KuwaharaPreset::FAST;
+    KuwaharaPreset m_preset = KuwaharaPreset::OIL;
 
     std::vector<KuwaharaPresetConfig> m_preset_configs;
 

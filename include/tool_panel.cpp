@@ -155,12 +155,17 @@ void ToolPanel::_ready()
     m_bloom_toggle->connect("toggled", Callable(this, "_on_bloom_toggled"));
     m_kuwahara_toggle->connect(
         "toggled", callable_mp(this, &ToolPanel::_on_kuwahara_toggled));
-    m_array_inspector->connect(
-        "order_changed",
-        callable_mp(m_effect_arr.ptr(), &EffectArray::set_effects));
     m_apply_option_btn->connect(
         "item_selected",
         callable_mp(this, &ToolPanel::_on_apply_option_selected));
+    m_array_inspector->connect(
+        "order_changed", create_custom_callable_lambda(
+                             this,
+                             [this](const TypedArray<BaseShader> &effects)
+                             {
+                                 m_effect_arr->set_effects(effects);
+                                 reapply_compositor_effects("Reorder Effects");
+                             }));
 }
 
 void ToolPanel::_process(double delta)
@@ -811,14 +816,28 @@ void ToolPanel::reapply_compositor_effects(const String &action_name)
         undo_redo->add_undo_method(m_camera3d_compositor,
                                    "set_compositor_effects", old_effects);
 
+        // Keep references alive
+        undo_redo->add_do_reference(m_camera3d_compositor);
+        undo_redo->add_undo_reference(m_camera3d_compositor);
+
         if (m_world_environment_compositor)
         {
             undo_redo->add_do_method(m_world_environment_compositor,
                                      "set_compositor_effects",
                                      TypedArray<CompositorEffect>());
+            undo_redo->add_do_reference(m_world_environment_compositor);
+            undo_redo->add_undo_reference(m_world_environment_compositor);
         }
 
         undo_redo->commit_action();
+
+        // Apply immediately
+        m_camera3d_compositor->set_compositor_effects(new_effects);
+        if (m_world_environment_compositor)
+        {
+            m_world_environment_compositor->set_compositor_effects(
+                TypedArray<CompositorEffect>());
+        }
     }
     else if (selected_idx == m_world_environment_option_index &&
              m_world_environment_compositor)
@@ -833,14 +852,28 @@ void ToolPanel::reapply_compositor_effects(const String &action_name)
         undo_redo->add_undo_method(m_world_environment_compositor,
                                    "set_compositor_effects", old_effects);
 
+        // Keep references alive
+        undo_redo->add_do_reference(m_world_environment_compositor);
+        undo_redo->add_undo_reference(m_world_environment_compositor);
+
         if (m_camera3d_compositor)
         {
             undo_redo->add_do_method(m_camera3d_compositor,
                                      "set_compositor_effects",
                                      TypedArray<CompositorEffect>());
+            undo_redo->add_do_reference(m_camera3d_compositor);
+            undo_redo->add_undo_reference(m_camera3d_compositor);
         }
 
         undo_redo->commit_action();
+
+        // Apply immediately
+        m_world_environment_compositor->set_compositor_effects(new_effects);
+        if (m_camera3d_compositor)
+        {
+            m_camera3d_compositor->set_compositor_effects(
+                TypedArray<CompositorEffect>());
+        }
     }
 
     editor->mark_scene_as_unsaved();
