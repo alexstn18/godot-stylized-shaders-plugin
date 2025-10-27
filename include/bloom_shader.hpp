@@ -30,7 +30,7 @@ public:
     BloomShader();
     ~BloomShader();
     EncapsuledData<float> *m_threshold = memnew(EncapsuledData<float>(1.0f));
-    EncapsuledData<float> *m_radius = memnew(EncapsuledData<float>(1.0f));
+    EncapsuledData<float> *m_radius = memnew(EncapsuledData<float>(2.5f));
     EncapsuledData<float> *m_strength = memnew(EncapsuledData<float>(0.5f));
 
     void _notification(int what) override;

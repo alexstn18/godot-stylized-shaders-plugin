@@ -65,8 +65,17 @@ void main()
     float l12 = luminance(c12);
     float l22 = luminance(c22);
 
-    float sobel_x = ( l00 + 2.0 * l01 + l02 - l20 - 2.0 * l21 - l22 ) * 0.25;
-    float sobel_y = ( l00 + 2.0 * l10 + l20 - l02 - 2.0 * l12 - l22 ) * 0.25;
+    float sobel_x = (
+        -1.0 * l00 + 0.0 * l10 + 1.0 * l20 +
+        -2.0 * l01 + 0.0 * l11 + 2.0 * l21 +
+        -1.0 * l02 + 0.0 * l12 + 1.0 * l22
+    ) * 0.25;
+
+    float sobel_y = (
+        -1.0 * l00 + -2.0 * l10 + -1.0 * l20 +
+        0.0 * l01 +  0.0 * l11 +  0.0 * l21 +
+        1.0 * l02 +  2.0 * l12 +  1.0 * l22
+    ) * 0.25;
 
     float sxx = sobel_x * sobel_x;
     float syy = sobel_y * sobel_y;

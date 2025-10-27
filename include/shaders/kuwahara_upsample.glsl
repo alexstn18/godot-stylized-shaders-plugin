@@ -22,5 +22,6 @@ void main()
     vec2 uv = (vec2(pixel) + .5) / out_size;
 
     vec3 color = texture(input_image, uv).rgb;
+    
     imageStore(output_image, pixel, vec4(color, 1.));
 }

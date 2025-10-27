@@ -1,4 +1,6 @@
 #include "tool_panel.hpp"
+#include "bloom_shader.hpp"
+#include "crt_shader.hpp"
 #include "effect_array.hpp"
 #include "ext/callable_lambda.hpp"
 #include "godot_cpp/classes/check_button.hpp"
@@ -14,12 +16,14 @@
 #include "slider_container.hpp"
 #include "util/encapsulated_data.hpp"
 #include "util/node_builder.hpp"
+#include "vhs_shader.hpp"
 
 #include <godot_cpp/classes/check_box.hpp>
 #include <godot_cpp/classes/color_picker_button.hpp>
 #include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/editor_selection.hpp>
+#include <godot_cpp/classes/editor_undo_redo_manager.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/environment.hpp>
 #include <godot_cpp/classes/h_separator.hpp>
@@ -30,14 +34,6 @@
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/spin_box.hpp>
 #include <godot_cpp/variant/callable.hpp>
-
-
-#define ADD_EFFECT(T)                                                          \
-    m_effect_arr->add_effect(T);                                               \
-    m_array_inspector->set_effects(m_effect_arr->get_effects());
-#define REMOVE_EFFECT(T)                                                       \
-    m_effect_arr->remove_effect(T);                                            \
-    m_array_inspector->set_effects(m_effect_arr->get_effects());
 
 void ToolPanel::_bind_methods()
 {
@@ -162,13 +158,29 @@ void ToolPanel::_ready()
     m_array_inspector->connect(
         "order_changed",
         callable_mp(m_effect_arr.ptr(), &EffectArray::set_effects));
+    m_apply_option_btn->connect(
+        "item_selected",
+        callable_mp(this, &ToolPanel::_on_apply_option_selected));
 }
 
 void ToolPanel::_process(double delta)
 {
     if (Engine::get_singleton()->is_editor_hint())
     {
-        if (m_edited_scene_root)
+        EditorInterface *editor = EditorInterface::get_singleton();
+        if (editor)
+        {
+            Node *current_scene = editor->get_edited_scene_root();
+
+            if (current_scene != m_last_edited_scene_root)
+            {
+                m_last_edited_scene_root = current_scene;
+                m_edited_scene_root = current_scene;
+                m_scene_changed = true;
+            }
+        }
+
+        if (m_scene_changed && m_edited_scene_root)
         {
             if (m_apply_option_btn)
             {
@@ -180,32 +192,7 @@ void ToolPanel::_process(double delta)
             m_camera3d_option_index = -1;
             m_world_environment_option_index = -1;
 
-            // Traverse the current edited scene's children
-            for (const auto &child : m_edited_scene_root->get_children())
-            {
-                Object *child_obj = child.get_validated_object();
-                ERR_CONTINUE_MSG(!child_obj,
-                                 "ERROR: Could not get valid object from node");
-
-                // Checking to see if a Camera3D Object is a child in the tree
-                // scene, as we need it
-                if (Camera3D *c3d = Object::cast_to<Camera3D>(child_obj))
-                {
-                    m_camera3d = c3d;
-                    UtilityFunctions::print(
-                        "Found Camera3D node in edited scene!");
-                }
-
-                // Checking to see if a WorldEnvironment Object is a child in
-                // the tree scene, as we need it
-                if (WorldEnvironment *w_env =
-                        Object::cast_to<WorldEnvironment>(child_obj))
-                {
-                    m_world_environment = w_env;
-                    UtilityFunctions::print(
-                        "Found WorldEnvironment node in edited scene!");
-                }
-            }
+            find_nodes_recursive(m_edited_scene_root);
 
             if (m_apply_option_btn)
             {
@@ -254,34 +241,10 @@ void ToolPanel::_process(double delta)
                 }
             }
 
-            m_edited_scene_root = nullptr;
-        }
-        if (m_apply_option_btn)
-        {
-            int32_t selected_idx = m_apply_option_btn->get_selected();
-            if (selected_idx == m_camera3d_option_index)
-            {
-                if (m_camera3d_compositor)
-                {
-                    m_camera3d_compositor->set_compositor_effects(
-                        m_effect_arr->get_effects());
-                    if (m_world_environment_compositor)
-                        m_world_environment_compositor->set_compositor_effects(
-                            {});
-                }
-            }
-            else if (selected_idx == m_world_environment_option_index)
-            {
-                if (m_world_environment_compositor)
-                {
-                    m_world_environment_compositor->set_compositor_effects(
-                        m_effect_arr->get_effects());
-                    if (m_camera3d_compositor)
-                        m_camera3d_compositor->set_compositor_effects({});
-                }
-            }
+            m_scene_changed = false;
         }
     }
+
     if (m_outline.is_valid())
         m_outline->m_dt->set(delta);
     if (m_vhs.is_valid())
@@ -290,45 +253,14 @@ void ToolPanel::_process(double delta)
 
 void ToolPanel::_on_cel_toggled(bool toggled_on)
 {
-    m_cel->set_enabled(toggled_on);
-
-    if (toggled_on)
-    {
-        ADD_EFFECT(m_cel);
-
-        m_tab_container->add_child(m_posterize_container.get());
-
-        UtilityFunctions::print("Posterize toggled on");
-    }
-    else
-    {
-        REMOVE_EFFECT(m_cel);
-
-        m_tab_container->remove_child(m_posterize_container.get());
-
-        UtilityFunctions::print("Posterize toggled off");
-    }
+    effect_toggle<CelShader, SliderContainer>(
+        "Posterize", m_cel, m_posterize_container, toggled_on);
 }
 
 void ToolPanel::_on_outline_toggled(bool toggled_on)
 {
-    m_outline->set_enabled(toggled_on);
-    if (toggled_on)
-    {
-        ADD_EFFECT(m_outline);
-
-        m_tab_container->add_child(m_outline_container.get()->get_parent());
-
-        UtilityFunctions::print("Outline toggled on");
-    }
-    else
-    {
-        REMOVE_EFFECT(m_outline);
-
-        m_tab_container->remove_child(m_outline_container.get()->get_parent());
-
-        UtilityFunctions::print("Outline toggled off");
-    }
+    effect_toggle<OutlineShader, VBoxContainer>(
+        "Outline", m_outline, m_outline_container, toggled_on);
 }
 
 void ToolPanel::_on_invert_toggled(bool toggled_on)
@@ -344,138 +276,43 @@ void ToolPanel::_on_invert_toggled(bool toggled_on)
         REMOVE_EFFECT(m_invert);
         UtilityFunctions::print("Invert toggled off");
     }
+    reapply_compositor_effects("Invert");
 }
 
 void ToolPanel::_on_crt_toggled(bool toggled_on)
 {
-    m_crt->set_enabled(toggled_on);
-
-    if (toggled_on)
-    {
-        ADD_EFFECT(m_crt);
-
-        m_tab_container->add_child(m_crt_container.get()->get_parent());
-
-        UtilityFunctions::print("CRT toggled on");
-    }
-    else
-    {
-        REMOVE_EFFECT(m_crt);
-
-        m_tab_container->remove_child(m_crt_container.get()->get_parent());
-
-        UtilityFunctions::print("CRT toggled off");
-    }
+    effect_toggle<CRTShader, VBoxContainer>("CRT", m_crt, m_crt_container,
+                                            toggled_on);
 }
 
 void ToolPanel::_on_dither_toggled(bool toggled_on)
 {
-    m_dither->set_enabled(toggled_on);
-
-    if (toggled_on)
-    {
-        ADD_EFFECT(m_dither);
-
-        m_tab_container->add_child(m_dither_container.get());
-
-        UtilityFunctions::print("Dither toggled on");
-    }
-    else
-    {
-        REMOVE_EFFECT(m_dither);
-
-        m_tab_container->remove_child(m_dither_container.get());
-
-        UtilityFunctions::print("Dither toggled off");
-    }
+    effect_toggle<DitherShader, SliderContainer>(
+        "Dither", m_dither, m_dither_container, toggled_on);
 }
 
 void ToolPanel::_on_pixel_toggled(bool toggled_on)
 {
-    m_pixel->set_enabled(toggled_on);
-
-    if (toggled_on)
-    {
-        ADD_EFFECT(m_pixel);
-
-        m_tab_container->add_child(m_pixel_container.get());
-
-        UtilityFunctions::print("Pixelization effect toggled on");
-    }
-    else
-    {
-        REMOVE_EFFECT(m_pixel);
-
-        m_tab_container->remove_child(m_pixel_container.get());
-
-        UtilityFunctions::print("Pixelization effect toggled off");
-    }
+    effect_toggle<PixelShader, HBoxContainer>("Pixelize", m_pixel,
+                                              m_pixel_container, toggled_on);
 }
 
 void ToolPanel::_on_vhs_toggled(bool toggled_on)
 {
-    m_vhs->set_enabled(toggled_on);
-
-    if (toggled_on)
-    {
-        ADD_EFFECT(m_vhs);
-
-        m_tab_container->add_child(m_vhs_container.get()->get_parent());
-
-        UtilityFunctions::print("VHS effect toggled on");
-    }
-    else
-    {
-        REMOVE_EFFECT(m_vhs);
-
-        m_tab_container->remove_child(m_vhs_container.get()->get_parent());
-
-        UtilityFunctions::print("VHS effect toggled off");
-    }
+    effect_toggle<VHSShader, VBoxContainer>("VHS", m_vhs, m_vhs_container,
+                                            toggled_on);
 }
 
 void ToolPanel::_on_bloom_toggled(bool toggled_on)
 {
-    m_bloom->set_enabled(toggled_on);
-
-    if (toggled_on)
-    {
-        ADD_EFFECT(m_bloom);
-
-        m_tab_container->add_child(m_bloom_container.get()->get_parent());
-
-        UtilityFunctions::print("Bloom effect toggled on");
-    }
-    else
-    {
-        REMOVE_EFFECT(m_bloom);
-
-        m_tab_container->remove_child(m_bloom_container.get()->get_parent());
-
-        UtilityFunctions::print("Bloom effect toggled off");
-    }
+    effect_toggle<BloomShader, VBoxContainer>("Bloom", m_bloom,
+                                              m_bloom_container, toggled_on);
 }
 
 void ToolPanel::_on_kuwahara_toggled(bool toggled_on)
 {
-    m_kuwahara->set_enabled(toggled_on);
-
-    if (toggled_on)
-    {
-        ADD_EFFECT(m_kuwahara);
-
-        m_tab_container->add_child(m_kuwahara_container.get()->get_parent());
-
-        UtilityFunctions::print("Kuwahara effect toggled on");
-    }
-    else
-    {
-        REMOVE_EFFECT(m_kuwahara);
-
-        m_tab_container->remove_child(m_kuwahara_container.get()->get_parent());
-
-        UtilityFunctions::print("Kuwahara effect toggled off");
-    }
+    effect_toggle<KuwaharaShader, VBoxContainer>(
+        "Kuwahara", m_kuwahara, m_kuwahara_container, toggled_on);
 }
 
 void ToolPanel::setup_cel()
@@ -483,6 +320,7 @@ void ToolPanel::setup_cel()
     m_posterize_container.slider_container_init(
         "Levels", 1.0, 2.0, 32.0, m_cel->m_levels,
         encapsulated_callable(float, m_cel, m_levels));
+    notify_with_check();
 }
 
 void ToolPanel::setup_outline()
@@ -519,6 +357,7 @@ void ToolPanel::setup_outline()
         .call(&ColorPickerButton::connect, "color_changed",
               callable_mp(m_outline.ptr(), &OutlineShader::set_outline_color),
               0u);
+    notify_with_check();
 }
 
 void ToolPanel::setup_crt()
@@ -536,6 +375,7 @@ void ToolPanel::setup_crt()
         m_crt_container.add_child<SliderContainer>().slider_container_init(
             "Brightness", 0.1, 0.0, 10.0, m_crt->m_brightness,
             encapsulated_callable(float, m_crt, m_brightness));
+    notify_with_check();
 }
 
 void ToolPanel::setup_dither()
@@ -543,6 +383,7 @@ void ToolPanel::setup_dither()
     m_dither_container.slider_container_init(
         "Gamma Correction Amount", 0.1, 0.0, 10.0, m_dither->m_gamma_correction,
         encapsulated_callable(float, m_dither, m_gamma_correction));
+    notify_with_check();
 }
 
 void ToolPanel::setup_pixel()
@@ -573,6 +414,7 @@ void ToolPanel::setup_pixel()
                   static_cast<double>(m_pixel->target_height->get()))
             .call(&SpinBox::connect, "value_changed",
                   encapsulated_callable(int, m_pixel, target_height), 0u);
+    notify_with_check();
 }
 
 // TODO: refactor this function and get rid of the static raw pointers, 200
@@ -648,6 +490,7 @@ void ToolPanel::setup_vhs()
                               m_vhs_container.try_remove_child(raw_intensity);
                               m_vhs_container.try_remove_child(raw_scroll);
                           }
+                          notify_with_check();
                       }),
                   0u);
 
@@ -678,6 +521,7 @@ void ToolPanel::setup_vhs()
                           {
                               m_vhs_container.try_remove_child(raw_grain);
                           }
+                          notify_with_check();
                       }),
                   0u);
 
@@ -771,6 +615,7 @@ void ToolPanel::setup_vhs()
                                               m_vertical_band_warp_factor));
 
                               raw_warp = vertical_band_warp_container.get();
+                              notify_with_check();
                           }
                           else
                           {
@@ -780,9 +625,11 @@ void ToolPanel::setup_vhs()
                               m_vhs_container.try_remove_child(raw_choppiness);
                               m_vhs_container.try_remove_child(raw_static);
                               m_vhs_container.try_remove_child(raw_warp);
+                              notify_with_check();
                           }
                       }),
                   0u);
+    notify_with_check();
 }
 
 void ToolPanel::setup_bloom()
@@ -790,15 +637,15 @@ void ToolPanel::setup_bloom()
     m_bloom_container.call(&VBoxContainer::set_name, "Bloom");
 
     m_bloom_container.add_child<SliderContainer>().slider_container_init(
-        "Threshold", 0.01, 0.0, 10.0, m_bloom->m_threshold,
+        "Threshold", 0.1, 0.0, 2.0, m_bloom->m_threshold,
         encapsulated_callable(float, m_bloom, m_threshold));
     m_bloom_container.add_child<SliderContainer>().slider_container_init(
-        "Radius", 0.001, 0.0, 10.0, m_bloom->m_radius,
+        "Radius", 0.1, 0.1, 8.0, m_bloom->m_radius,
         encapsulated_callable(float, m_bloom, m_radius));
-
     m_bloom_container.add_child<SliderContainer>().slider_container_init(
-        "Strength", 0.001, 0.0, 1.0, m_bloom->m_strength,
+        "Strength", 0.05, 0.0, 2.0, m_bloom->m_strength,
         encapsulated_callable(float, m_bloom, m_strength));
+    notify_with_check();
 }
 
 void ToolPanel::setup_kuwahara()
@@ -852,9 +699,149 @@ void ToolPanel::setup_kuwahara()
     m_kuwahara_container.add_child<SliderContainer>().slider_container_init(
         "Sharpness", 1.0, 6.0, 12.0, m_kuwahara->sharpness,
         encapsulated_callable(float, m_kuwahara, sharpness));
+
+    notify_with_check();
 }
 
 void ToolPanel::set_edited_scene_root(Node *edited_scene_root)
 {
     m_edited_scene_root = edited_scene_root;
+}
+
+void ToolPanel::find_nodes_recursive(Node *node)
+{
+    if (!node)
+        return;
+
+    if (Camera3D *c3d = Object::cast_to<Camera3D>(node))
+    {
+        m_camera3d = c3d;
+        UtilityFunctions::print("Found Camera3D node in edited scene!");
+    }
+
+    if (WorldEnvironment *w_env = Object::cast_to<WorldEnvironment>(node))
+    {
+        m_world_environment = w_env;
+        UtilityFunctions::print("Found WorldEnvironment node in edited scene!");
+    }
+
+    for (int i = 0; i < node->get_child_count(); i++)
+    {
+        find_nodes_recursive(node->get_child(i));
+    }
+}
+
+void ToolPanel::_on_apply_option_selected(int index)
+{
+    EditorInterface *editor = EditorInterface::get_singleton();
+    if (!editor)
+        return;
+
+    EditorUndoRedoManager *undo_redo = editor->get_editor_undo_redo();
+    if (!undo_redo)
+        return;
+
+    if (index == m_camera3d_option_index && m_camera3d_compositor)
+    {
+        TypedArray<CompositorEffect> effects = m_effect_arr->get_effects();
+
+        undo_redo->create_action("Apply Compositor Effects to Camera3D");
+        undo_redo->add_do_method(m_camera3d_compositor,
+                                 "set_compositor_effects", effects);
+        undo_redo->add_undo_method(
+            m_camera3d_compositor, "set_compositor_effects",
+            m_camera3d_compositor->get_compositor_effects());
+
+        if (m_world_environment_compositor)
+        {
+            undo_redo->add_do_method(m_world_environment_compositor,
+                                     "set_compositor_effects",
+                                     TypedArray<CompositorEffect>());
+        }
+
+        undo_redo->commit_action();
+    }
+    else if (index == m_world_environment_option_index &&
+             m_world_environment_compositor)
+    {
+        TypedArray<CompositorEffect> effects = m_effect_arr->get_effects();
+
+        undo_redo->create_action(
+            "Apply Compositor Effects to WorldEnvironment");
+        undo_redo->add_do_method(m_world_environment_compositor,
+                                 "set_compositor_effects", effects);
+        undo_redo->add_undo_method(
+            m_world_environment_compositor, "set_compositor_effects",
+            m_world_environment_compositor->get_compositor_effects());
+
+        if (m_camera3d_compositor)
+        {
+            undo_redo->add_do_method(m_camera3d_compositor,
+                                     "set_compositor_effects",
+                                     TypedArray<CompositorEffect>());
+        }
+
+        undo_redo->commit_action();
+    }
+
+    editor->mark_scene_as_unsaved();
+}
+
+void ToolPanel::reapply_compositor_effects(const String &action_name)
+{
+    EditorInterface *editor = EditorInterface::get_singleton();
+    if (!editor || !m_apply_option_btn)
+        return;
+
+    EditorUndoRedoManager *undo_redo = editor->get_editor_undo_redo();
+    if (!undo_redo)
+        return;
+
+    int32_t selected_idx = m_apply_option_btn->get_selected();
+
+    if (selected_idx == m_camera3d_option_index && m_camera3d_compositor)
+    {
+        TypedArray<CompositorEffect> old_effects =
+            m_camera3d_compositor->get_compositor_effects();
+        TypedArray<CompositorEffect> new_effects = m_effect_arr->get_effects();
+
+        undo_redo->create_action(action_name);
+        undo_redo->add_do_method(m_camera3d_compositor,
+                                 "set_compositor_effects", new_effects);
+        undo_redo->add_undo_method(m_camera3d_compositor,
+                                   "set_compositor_effects", old_effects);
+
+        if (m_world_environment_compositor)
+        {
+            undo_redo->add_do_method(m_world_environment_compositor,
+                                     "set_compositor_effects",
+                                     TypedArray<CompositorEffect>());
+        }
+
+        undo_redo->commit_action();
+    }
+    else if (selected_idx == m_world_environment_option_index &&
+             m_world_environment_compositor)
+    {
+        TypedArray<CompositorEffect> old_effects =
+            m_world_environment_compositor->get_compositor_effects();
+        TypedArray<CompositorEffect> new_effects = m_effect_arr->get_effects();
+
+        undo_redo->create_action(action_name);
+        undo_redo->add_do_method(m_world_environment_compositor,
+                                 "set_compositor_effects", new_effects);
+        undo_redo->add_undo_method(m_world_environment_compositor,
+                                   "set_compositor_effects", old_effects);
+
+        if (m_camera3d_compositor)
+        {
+            undo_redo->add_do_method(m_camera3d_compositor,
+                                     "set_compositor_effects",
+                                     TypedArray<CompositorEffect>());
+        }
+
+        undo_redo->commit_action();
+    }
+
+    editor->mark_scene_as_unsaved();
 }

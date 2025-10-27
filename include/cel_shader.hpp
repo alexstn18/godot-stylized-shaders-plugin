@@ -13,6 +13,10 @@ private:
     void init_compute(const String &shader_filename) override;
 protected:
     static void _bind_methods();
+
+    // void _get_property_list(List<PropertyInfo> *p_list) const;
+    // bool _get(const StringName &p_name, Variant &r_ret) const;
+    // bool _set(const StringName &p_name, const Variant &p_value);
 public:
     CelShader();
     ~CelShader();

@@ -16,6 +16,7 @@
 #include <godot_cpp/classes/compositor.hpp>
 #include <godot_cpp/classes/compositor_effect.hpp>
 #include <godot_cpp/classes/editor_property.hpp>
+#include <type_traits>
 
 #include "effect_array.hpp"
 #include "invert_shader.hpp"
@@ -33,6 +34,13 @@
 #include "util/node_builder.hpp"
 
 using namespace godot;
+
+#define ADD_EFFECT(T)                                                          \
+    m_effect_arr->add_effect(T);                                               \
+    m_array_inspector->set_effects(m_effect_arr->get_effects());
+#define REMOVE_EFFECT(T)                                                       \
+    m_effect_arr->remove_effect(T);                                            \
+    m_array_inspector->set_effects(m_effect_arr->get_effects());
 
 // Convention:
 // Please name the Control derived vars similar to their names as nodes
@@ -84,10 +92,12 @@ private:
 
     // Other
     Node *m_edited_scene_root = nullptr;
+    Node *m_last_edited_scene_root = nullptr;
     Camera3D *m_camera3d = nullptr;
     WorldEnvironment *m_world_environment = nullptr;
     int32_t m_camera3d_option_index = 0;
     int32_t m_world_environment_option_index = 0;
+    bool m_scene_changed = false;
 
     void setup_cel();
     void setup_outline();
@@ -98,6 +108,15 @@ private:
     void setup_vhs();
     void setup_bloom();
     void setup_kuwahara();
+
+    void find_nodes_recursive(Node *node);
+    void reapply_compositor_effects(const String &action_name);
+    inline void notify_with_check()
+    {
+        if(m_edited_scene_root) m_edited_scene_root->notify_property_list_changed();
+    }
+    template <typename ShaderType, typename ControlType>
+    void effect_toggle(const String &effect_name, Ref<ShaderType> &effect, const NodeBuilder<ControlType> &node_builder, bool toggled_on);
 protected:
     static void _bind_methods();
 public:
@@ -115,5 +134,36 @@ public:
     void _on_vhs_toggled(bool toggled_on);
     void _on_bloom_toggled(bool toggled_on);
     void _on_kuwahara_toggled(bool toggled_on);
+    void _on_apply_option_selected(int index);
     void set_edited_scene_root(Node *edited_scene_root);
 };
+
+template <typename ShaderType, typename ControlType>
+void ToolPanel::effect_toggle(const String &effect_name, Ref<ShaderType> &effect, const NodeBuilder<ControlType> &node_builder, bool toggled_on)
+{
+    static_assert(std::is_base_of_v<BaseShader, ShaderType>, "ToolPanel: ShaderType in effect_toggle is not derived from BaseShader!");
+    static_assert(std::is_base_of_v<Control, ControlType>, "ToolPanel: ControlType in effect_toggle is not derived from Control!");
+
+    Node *node = node_builder.get();
+    if constexpr (std::is_same_v<ControlType, VBoxContainer>)
+    {
+        node = node->get_parent();
+        ERR_FAIL_COND_MSG(!node, "ToolPanel: parent node is null!");
+    }
+    ERR_FAIL_COND_MSG(!node, "ToolPanel: effect_toggle invalid node!");
+
+    effect->set_enabled(toggled_on);
+    if(toggled_on)
+    {
+        ADD_EFFECT(effect);
+        m_tab_container->add_child(node);
+    }
+    else
+    {
+        REMOVE_EFFECT(effect);
+        m_tab_container->remove_child(node);
+    }
+    
+    const String action_name = "Toggle " + effect_name + " Effect";
+    reapply_compositor_effects(action_name);
+}

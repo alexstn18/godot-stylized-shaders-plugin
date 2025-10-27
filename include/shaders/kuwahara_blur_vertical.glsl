@@ -43,16 +43,19 @@ void main()
 
     // eigen values
     float trace = g.x + g.y;
-    float detpart = sqrt(max(0.0, (g.x - g.y)*(g.x - g.y) + 4.0*g.z*g.z));
+    float det_term = (g.x - g.y) * (g.x - g.y) + 4.0 * g.z * g.z;
+    float detpart = sqrt(max(0.0, det_term));
     float lambda1 = 0.5 * (trace + detpart);
     float lambda2 = 0.5 * (trace - detpart);
 
-    // eigen vector
     vec2 v = vec2(lambda1 - g.x, -g.z);
-    vec2 t = (length(v) > 0.0) ? normalize(v) : vec2(0.0, 1.0);
+    float v_len = length(v);
+    vec2 t = (v_len > 1e-6) ? (v / v_len) : vec2(0.0, 1.0);
+
     float phi = -atan(t.y, t.x);
 
-    float A = (lambda1 + lambda2 > 0.0) ? (lambda1 - lambda2) / (lambda1 + lambda2) : 0.0;
+    float denom = lambda1 + lambda2;
+    float A = (abs(denom) > 1e-6) ? (lambda1 - lambda2) / denom : 0.0;
 
     imageStore(output_image, pixel, vec4(t, phi, A));
 }

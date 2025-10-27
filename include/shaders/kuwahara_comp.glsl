@@ -131,7 +131,12 @@ void main()
         out_color.rgb += mk * w;
         wsum += w;
     }
-    out_color.rgb /= max(wsum, 1e-6);
+    if (wsum > 1e-6) {
+        out_color.rgb /= wsum;
+    } else {
+        out_color.rgb = texture(base_image, uv).rgb;
+    }
     out_color.a = 1.;
+    out_color = clamp(out_color, 0.0, 1.0);
     imageStore(output_image, pixel, out_color);
 }

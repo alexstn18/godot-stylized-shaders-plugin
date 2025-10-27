@@ -86,6 +86,7 @@ template <typename T> class NodeBuilder
         builder.call(&Control::set_custom_minimum_size, Vector2(300, 400));
         builder.call(&Control::set_v_size_flags, Control::SIZE_EXPAND_FILL);
         builder.call(&Control::set_h_size_flags, Control::SIZE_EXPAND_FILL);
+        builder.call(&ScrollContainer::set_horizontal_scroll_mode, ScrollContainer::SCROLL_MODE_DISABLED);
 
         return builder.add_child<VBoxContainer>();
     }

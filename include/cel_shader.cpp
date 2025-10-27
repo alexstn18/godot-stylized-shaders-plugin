@@ -47,3 +47,18 @@ void CelShader::_render_callback(int32_t p_effect_callback_type, RenderData *p_r
     
     base_compute_update(p_effect_callback_type, p_render_data,buffers, push_constant, size);
 }
+
+// void CelShader::_get_property_list(List<PropertyInfo> *p_list) const
+// {
+//     p_list->push_back(PropertyInfo(Variant::FLOAT, "levels", PROPERTY_HINT_RANGE, "1.0,32.0,1.0"));
+// }
+
+// bool CelShader::_get(const StringName &p_name, Variant &r_ret) const
+// {
+
+// }
+
+// bool CelShader::_set(const StringName &p_name, const Variant &p_value)
+// {
+
+// }
