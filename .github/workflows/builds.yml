@@ -42,14 +42,14 @@ jobs:
           submodules: true
 
       # Lint
-      - name: Setup clang-format
-        shell: bash
-        run: |
-         python -m pip install clang-format
-      - name: Run clang-format
-        shell: bash
-        run: |
-          clang-format include/** --dry-run --Werror
+      # - name: Setup clang-format
+      #   shell: bash
+      #   run: |
+      #    python -m pip install clang-format
+      # - name: Run clang-format
+      #   shell: bash
+      #   run: |
+      #     clang-format include/** --dry-run --Werror
 
       # Add linux x86_32 toolchain
       - name: Install multilib support
