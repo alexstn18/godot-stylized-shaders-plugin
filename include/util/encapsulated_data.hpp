@@ -6,17 +6,16 @@
 #include <godot_cpp/variant/callable.hpp>
 #include <godot_cpp/variant/callable_method_pointer.hpp>
 
-
 using namespace godot;
 
 #define encapsulated_callable(type, object, variable)                          \
     callable_mp(object->variable, &EncapsuledData<type>::set)
 
-template <typename T> class EncapsuledData : public Object
+template <typename Type> class EncapsuledData : public Object
 {
     GDCLASS(EncapsuledData, Object);
 
-    T data;
+    Type data;
     SliderContainer *m_linked_slider = nullptr;
 
   protected:
@@ -24,10 +23,10 @@ template <typename T> class EncapsuledData : public Object
 
   public:
     EncapsuledData() = default;
-    EncapsuledData(const T &initial_value) : data(initial_value) {}
+    EncapsuledData(const Type &initial_value) : data(initial_value) {}
 
     float get() const { return data; }
-    void set(const T &value)
+    void set(const Type &value)
     {
         data = value;
         if (m_linked_slider)
