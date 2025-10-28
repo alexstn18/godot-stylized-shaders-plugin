@@ -6,13 +6,15 @@
 #include <godot_cpp/godot.hpp>
 
 #include "base_shader.hpp"
+#include "bloom_shader.hpp"
 #include "cel_shader.hpp"
 #include "crt_shader.hpp"
 #include "dither_shader.hpp"
 #include "effect_array.hpp"
-#include "manual_array_inspector.hpp"
 #include "godot_cpp/classes/editor_plugin.hpp"
 #include "invert_shader.hpp"
+#include "kuwahara_shader.hpp"
+#include "manual_array_inspector.hpp"
 #include "outline_shader.hpp"
 #include "pixel_shader.hpp"
 #include "plugin_ui.hpp"
@@ -20,8 +22,6 @@
 #include "tool_panel.hpp"
 #include "util/encapsulated_data.hpp"
 #include "vhs_shader.hpp"
-#include "bloom_shader.hpp"
-#include "kuwahara_shader.hpp"
 
 using namespace godot;
 

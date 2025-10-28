@@ -1,20 +1,23 @@
 #pragma once
 
-#include <godot_cpp/core/class_db.hpp>
-#include <godot_cpp/classes/resource.hpp>
 #include "base_shader.hpp"
+#include <godot_cpp/classes/resource.hpp>
+#include <godot_cpp/core/class_db.hpp>
+
 
 using namespace godot;
 
-class EffectArray : public Resource 
+class EffectArray : public Resource
 {
     GDCLASS(EffectArray, Resource);
 
-private:
+  private:
     TypedArray<BaseShader> m_effects;
-protected:
+
+  protected:
     static void _bind_methods();
-public:
+
+  public:
     void add_effect(const Ref<BaseShader> &effect);
     void remove_effect(const Ref<BaseShader> &effect);
     void remove_effect(int64_t index);

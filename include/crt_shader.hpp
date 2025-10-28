@@ -1,20 +1,22 @@
 #pragma once
 
-#include <godot_cpp/core/class_db.hpp>
 #include "base_shader.hpp"
+#include <godot_cpp/core/class_db.hpp>
+
 
 using namespace godot;
 
-class CRTShader : public BaseShader 
+class CRTShader : public BaseShader
 {
     GDCLASS(CRTShader, BaseShader);
 
-private:
+  private:
     void init_compute(const String &shader_filename) override;
 
-protected:
+  protected:
     static void _bind_methods();
-public:
+
+  public:
     CRTShader();
     ~CRTShader();
     EncapsuledData<float> *m_curvature = memnew(EncapsuledData<float>(7.0f));

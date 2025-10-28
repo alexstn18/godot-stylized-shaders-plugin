@@ -10,15 +10,17 @@ class DitherShader : public BaseShader
 {
     GDCLASS(DitherShader, BaseShader);
 
-private:
+  private:
     void init_compute(const String &shader_filename) override;
 
-protected:
+  protected:
     static void _bind_methods();
-public:
+
+  public:
     DitherShader();
     ~DitherShader();
-    EncapsuledData<float> *m_gamma_correction = memnew(EncapsuledData<float>(2.2f));
+    EncapsuledData<float> *m_gamma_correction =
+        memnew(EncapsuledData<float>(2.2f));
 
     void _notification(int what) override;
     void _render_callback(int32_t, RenderData *) override;

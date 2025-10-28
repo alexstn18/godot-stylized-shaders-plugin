@@ -1,8 +1,8 @@
 #pragma once
 
-#include <godot_cpp/core/class_db.hpp>
-#include <godot_cpp/classes/editor_plugin.hpp>
 #include <godot_cpp/classes/button.hpp>
+#include <godot_cpp/classes/editor_plugin.hpp>
+#include <godot_cpp/core/class_db.hpp>
 
 #include "tool_panel.hpp"
 
@@ -12,15 +12,17 @@ class PluginUI : public EditorPlugin
 {
     GDCLASS(PluginUI, EditorPlugin);
 
-private:
+  private:
     ToolPanel *m_panel = nullptr;
-protected:
+
+  protected:
     static void _bind_methods();
-public:
+
+  public:
     PluginUI() {}
     ~PluginUI();
 
     void _enter_tree() override;
     void _exit_tree() override;
-    void _on_scene_changed(Node* scene_root);
+    void _on_scene_changed(Node *scene_root);
 };

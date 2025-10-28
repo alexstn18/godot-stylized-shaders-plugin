@@ -63,7 +63,7 @@ class KuwaharaShader : public BaseShader
   public:
     KuwaharaShader();
     ~KuwaharaShader();
-    EncapsuledData<int>   *downsample_factor = memnew(EncapsuledData<int>(2));
+    EncapsuledData<int> *downsample_factor = memnew(EncapsuledData<int>(2));
     EncapsuledData<float> *radius = memnew(EncapsuledData<float>(3.0f));
     EncapsuledData<float> *kernel_size = memnew(EncapsuledData<float>(7.0f));
     EncapsuledData<float> *alpha = memnew(EncapsuledData<float>(1.0f));
