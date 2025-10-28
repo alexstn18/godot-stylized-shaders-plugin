@@ -14,9 +14,7 @@ void DitherShader::init_compute(const String &shader_filename)
 }
 
 void DitherShader::_notification(int what)
-{
-    UtilityFunctions::print("PostProcessShader notification: " + String::num(what));
-    
+{    
     if (what == NOTIFICATION_PREDELETE && m_device)
     {
         free_shader();

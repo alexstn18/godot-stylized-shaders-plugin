@@ -74,13 +74,13 @@ void KuwaharaShader::_notification(int what)
         return;
     if (what == NOTIFICATION_PREDELETE)
     {
-        free_rid(m_structure_tensor_shader);
-        free_rid(m_horizontal_blur_shader);
-        free_rid(m_vertical_blur_shader);
-        free_rid(m_composite_shader);
-        // free_rid(m_final_shader);
-        free_rid(m_downsample_shader);
-        free_rid(m_upsample_shader);
+        free_shader();
+        free_rid(m_upsample_shader);         // 6
+        free_rid(m_downsample_shader);       // 5
+        free_rid(m_composite_shader);        // 4
+        free_rid(m_vertical_blur_shader);    // 3
+        free_rid(m_horizontal_blur_shader);  // 2
+        free_rid(m_structure_tensor_shader); // 1
     }
 }
 

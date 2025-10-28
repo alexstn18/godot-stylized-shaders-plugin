@@ -24,7 +24,6 @@ void BaseShader::queue_callable_on_render_thread(const Callable &c)
     if (auto *rs = RenderingServer::get_singleton())
     {
         rs->call_on_render_thread(c);
-        UtilityFunctions::print("Queued function on render thread");
     }
 }
 
@@ -36,7 +35,8 @@ void BaseShader::init_compute(const String &shader_filename)
     String shader_path = m_addon_path + shader_filename;
     Ref<RDShaderFile> shader_file =
         ResourceLoader::get_singleton()->load(shader_path);
-    ERR_FAIL_COND_MSG(!shader_file.is_valid(), "Failed to load shader file!");
+    ERR_FAIL_COND_MSG(!shader_file.is_valid(),
+                      "Failed to load shader file from path: " + shader_path);
 
     String base_error = shader_file->get_base_error();
     ERR_FAIL_COND_MSG(!base_error.is_empty(),
@@ -51,10 +51,10 @@ void BaseShader::init_compute(const String &shader_filename)
                       "Failed to create shader from SPIRV!");
 
     m_pipeline = m_device->compute_pipeline_create(m_shader);
-    UtilityFunctions::print("Shader and pipeline created successfully");
 }
 
-void BaseShader::create_shader(const String &shader_path, RID &shader, RID &pipeline)
+void BaseShader::create_shader(const String &shader_path, RID &shader,
+                               RID &pipeline)
 {
     Ref<RDShaderFile> shader_file =
         ResourceLoader::get_singleton()->load(shader_path);
@@ -73,7 +73,6 @@ void BaseShader::create_shader(const String &shader_path, RID &shader, RID &pipe
                       "Failed to create shader from SPIRV!");
 
     pipeline = m_device->compute_pipeline_create(shader);
-    UtilityFunctions::print("Shader and pipeline created successfully");
 }
 
 void BaseShader::free_shader()
@@ -82,13 +81,6 @@ void BaseShader::free_shader()
     {
         m_device->free_rid(m_shader);
         m_shader = RID();
-        UtilityFunctions::print("Freed shader");
-    }
-    if (m_pipeline.is_valid())
-    {
-        m_device->free_rid(m_pipeline);
-        m_shader = RID();
-        UtilityFunctions::print("Freed pipeline");
     }
 }
 
@@ -98,11 +90,12 @@ void BaseShader::free_rid(RID &rid)
     {
         m_device->free_rid(rid);
         rid = RID();
-        UtilityFunctions::print("Freed RID");
     }
 }
 
-Ref<RDUniform> BaseShader::get_sampler_uniform(const RID &image, const RID &sampler, int32_t binding) 
+Ref<RDUniform> BaseShader::get_sampler_uniform(const RID &image,
+                                               const RID &sampler,
+                                               int32_t binding)
 {
     Ref<RDUniform> uniform;
     uniform.instantiate();
@@ -128,7 +121,8 @@ Ref<RDUniform> BaseShader::get_image_uniform(const RID &image, int32_t binding)
     return uniform;
 }
 
-Ref<RDUniform> BaseShader::get_buffer_uniform(const RID &buffer, int32_t binding)
+Ref<RDUniform> BaseShader::get_buffer_uniform(const RID &buffer,
+                                              int32_t binding)
 {
     Ref<RDUniform> uniform;
     uniform.instantiate();
@@ -184,11 +178,6 @@ void BaseShader::base_compute_update(int32_t p_effect_callback_type,
                     "Failed to create color image uniform set for view " +
                         String::num(i));
 
-                // uniform.instantiate();
-                // uniform->set_uniform_type(
-                //     RenderingDevice::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE);
-                // uniform->set_binding(0);
-
                 auto compute_list = m_device->compute_list_begin();
                 m_device->compute_list_bind_compute_pipeline(compute_list,
                                                              m_pipeline);
@@ -222,6 +211,5 @@ BaseShader::get_buffers_internal_size(RenderData *p_render_data,
                                       Ref<RenderSceneBuffersRD> &buffers) const
 {
     buffers = p_render_data->get_render_scene_buffers();
-    uint32_t view_count = buffers->get_view_count();
     return buffers->get_internal_size();
 }

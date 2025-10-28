@@ -20,9 +20,7 @@ VHSShader::~VHSShader() {}
 void VHSShader::init_compute(const String &shader_filename) { BaseShader::init_compute(shader_filename); }
 
 void VHSShader::_notification(int what)
-{
-    UtilityFunctions::print("PostProcessShader notification: " + String::num(what));
-    
+{    
     if (what == NOTIFICATION_PREDELETE && m_device)
     {
         free_shader();

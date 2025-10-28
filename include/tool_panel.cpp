@@ -792,6 +792,7 @@ void ToolPanel::_on_apply_option_selected(int index)
     editor->mark_scene_as_unsaved();
 }
 
+// Function generated with ChatGPT due to time constraints
 void ToolPanel::reapply_compositor_effects(const String &action_name)
 {
     EditorInterface *editor = EditorInterface::get_singleton();

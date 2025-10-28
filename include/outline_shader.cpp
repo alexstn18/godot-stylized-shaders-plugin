@@ -39,8 +39,6 @@ OutlineShader::~OutlineShader() {}
 
 void OutlineShader::_notification(int what)
 {
-    UtilityFunctions::print("OutlineShader notification: " + String::num(what));
-
     if (what == NOTIFICATION_PREDELETE && m_device)
     {
         free_shader();
@@ -49,7 +47,6 @@ void OutlineShader::_notification(int what)
         {
             m_device->free_rid(m_depth_sampler);
             m_depth_sampler = RID();
-            UtilityFunctions::print("Freed depth sampler");
         }
     }
 }
