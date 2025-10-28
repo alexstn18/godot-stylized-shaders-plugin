@@ -4,7 +4,6 @@
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
-
 using namespace godot;
 
 class EffectArray : public Resource
