@@ -49,7 +49,7 @@ struct ExpandPack<std::tuple<Args...>> {
 #ifdef DEBUG_METHODS_ENABLED
 	l(VariantCasterAndValidate<Args>::cast(p_arguments, Is, r_call_error)...);
 #else
-	l(VariantCaster<Args>::cast(*p_args[Is])...);
+	l(VariantCaster<Args>::cast(*p_arguments[Is])...);
 #endif
 		(void)(p_arguments); // Avoid warning.
 	}
