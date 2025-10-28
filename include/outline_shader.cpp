@@ -81,7 +81,7 @@ void OutlineShader::_render_callback(int32_t p_effect_callback_type,
 
     push_back_callable(create_custom_callable_lambda(
         this,
-        [&, buffers](RenderingDevice *device, Ref<RDUniform> &uniform,
+        [&, buffers](RenderingDevice *device, Ref<RDUniform> uniform,
                      const int64_t &compute_list, int32_t i)
         {
             RID depth_texture = buffers->get_depth_layer(i);
