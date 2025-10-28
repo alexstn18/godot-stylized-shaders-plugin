@@ -4,7 +4,6 @@
 #include <godot_cpp/classes/render_scene_buffers_rd.hpp>
 #include <godot_cpp/classes/uniform_set_cache_rd.hpp>
 
-
 void CelShader::_bind_methods() {}
 
 CelShader::CelShader()

@@ -7,7 +7,6 @@
 #include <godot_cpp/classes/rendering_server.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
-
 using namespace godot;
 
 // CompositorEffect shader helper class
