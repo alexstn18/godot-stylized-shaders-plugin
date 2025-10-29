@@ -29,7 +29,7 @@ class SliderContainer : public VBoxContainer
 
   public:
     SliderContainer();
-    ~SliderContainer();
+    ~SliderContainer() = default;
 
     void set_label_text(const String &text);
     void set_label_value(double value);

@@ -4,6 +4,7 @@
 #include "godot_cpp/core/error_macros.hpp"
 #include "godot_cpp/core/method_bind.hpp"
 #include "godot_cpp/variant/packed_float32_array.hpp"
+#include "util/encapsulated_data.hpp"
 
 #include <godot_cpp/classes/compositor_effect.hpp>
 #include <godot_cpp/classes/display_server.hpp>
@@ -36,7 +37,12 @@ BloomShader::BloomShader()
         callable_mp(this, &BloomShader::init_compute));
 }
 
-BloomShader::~BloomShader() {}
+BloomShader::~BloomShader()
+{
+    try_delete_encapsulated(m_threshold);
+    try_delete_encapsulated(m_radius);
+    try_delete_encapsulated(m_strength);
+}
 
 void BloomShader::init_compute()
 {

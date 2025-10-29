@@ -1,4 +1,5 @@
 #include "crt_shader.hpp"
+#include "util/encapsulated_data.hpp"
 #include <godot_cpp/classes/compositor_effect.hpp>
 #include <godot_cpp/classes/rd_uniform.hpp>
 #include <godot_cpp/classes/render_scene_buffers_rd.hpp>
@@ -13,7 +14,12 @@ CRTShader::CRTShader()
         callable_mp(this, &CRTShader::init_compute).bind("crt.glsl"));
 }
 
-CRTShader::~CRTShader() {}
+CRTShader::~CRTShader()
+{
+    try_delete_encapsulated(m_curvature);
+    try_delete_encapsulated(m_vignette_mul);
+    try_delete_encapsulated(m_brightness);
+}
 
 void CRTShader::init_compute(const String &shader_filename)
 {

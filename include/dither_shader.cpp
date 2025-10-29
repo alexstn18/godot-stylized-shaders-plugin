@@ -1,4 +1,5 @@
 #include "dither_shader.hpp"
+#include "util/encapsulated_data.hpp"
 
 void DitherShader::_bind_methods() {}
 
@@ -8,6 +9,8 @@ DitherShader::DitherShader()
     queue_callable_on_render_thread(
         callable_mp(this, &DitherShader::init_compute).bind("dither.glsl"));
 }
+
+DitherShader::~DitherShader() { try_delete_encapsulated(m_gamma_correction); }
 
 void DitherShader::init_compute(const String &shader_filename)
 {
@@ -39,4 +42,3 @@ void DitherShader::_render_callback(int32_t p_effect_callback_type,
     base_compute_update(p_effect_callback_type, p_render_data, buffers,
                         push_constant, size);
 }
-DitherShader::~DitherShader() {}

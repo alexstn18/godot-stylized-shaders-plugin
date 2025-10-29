@@ -13,7 +13,24 @@ VHSShader::VHSShader()
         callable_mp(this, &VHSShader::init_compute).bind("vhs.glsl"));
 }
 
-VHSShader::~VHSShader() {}
+VHSShader::~VHSShader()
+{
+    try_delete_encapsulated(m_scanline_blend_factor);
+    try_delete_encapsulated(m_scanline_height);
+    try_delete_encapsulated(m_scanline_intensity);
+    try_delete_encapsulated(m_scanline_scroll_speed);
+    try_delete_encapsulated(m_scanline_enabled);
+    try_delete_encapsulated(m_grain_intensity);
+    try_delete_encapsulated(m_grain_enabled);
+    try_delete_encapsulated(m_vertical_band_speed);
+    try_delete_encapsulated(m_vertical_band_height);
+    try_delete_encapsulated(m_vertical_band_intensity);
+    try_delete_encapsulated(m_vertical_band_choppiness);
+    try_delete_encapsulated(m_vertical_band_static_amount);
+    try_delete_encapsulated(m_vertical_band_warp_factor);
+    try_delete_encapsulated(m_vertical_band_enabled);
+    try_delete_encapsulated(m_dt);
+}
 
 void VHSShader::init_compute(const String &shader_filename)
 {

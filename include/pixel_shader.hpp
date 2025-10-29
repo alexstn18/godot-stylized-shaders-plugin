@@ -17,7 +17,7 @@ class PixelShader : public BaseShader
 
   public:
     PixelShader();
-    ~PixelShader() = default;
+    ~PixelShader();
     EncapsuledData<int> *target_width = memnew(EncapsuledData<int>(320));
     EncapsuledData<int> *target_height = memnew(EncapsuledData<int>(180));
 

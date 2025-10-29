@@ -11,6 +11,10 @@ using namespace godot;
 #define encapsulated_callable(type, object, variable)                          \
     callable_mp(object->variable, &EncapsuledData<type>::set)
 
+#define try_delete_encapsulated(encapsulated)                                  \
+    if (encapsulated)                                                          \
+    memdelete(encapsulated)
+
 template <typename Type> class EncapsuledData : public Object
 {
     GDCLASS(EncapsuledData, Object);

@@ -1,7 +1,5 @@
 #include "slider_container.hpp"
 
-// #define CONTROL_QUEUE_FREE(T) if(T) { T->queue_free(); T = nullptr; }
-
 void SliderContainer::_bind_methods() {}
 
 SliderContainer::SliderContainer()
@@ -12,8 +10,6 @@ SliderContainer::SliderContainer()
     add_child(m_label);
     add_child(m_slider);
 }
-
-SliderContainer::~SliderContainer() {}
 
 void SliderContainer::set_label_text(const String &text)
 {

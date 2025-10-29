@@ -1,4 +1,5 @@
 #include "kuwahara_shader.hpp"
+#include "util/encapsulated_data.hpp"
 #include <godot_cpp/classes/rd_sampler_state.hpp>
 #include <godot_cpp/classes/rd_uniform.hpp>
 #include <godot_cpp/classes/uniform_set_cache_rd.hpp>
@@ -34,7 +35,15 @@ KuwaharaShader::KuwaharaShader()
     m_preset_configs.push_back({"Anime", 4.0F, 9.0F, 0.8F, 4.0F, 12.0F});
 }
 
-KuwaharaShader::~KuwaharaShader() {}
+KuwaharaShader::~KuwaharaShader()
+{
+    try_delete_encapsulated(downsample_factor);
+    try_delete_encapsulated(radius);
+    try_delete_encapsulated(kernel_size);
+    try_delete_encapsulated(alpha);
+    try_delete_encapsulated(sectors);
+    try_delete_encapsulated(sharpness);
+}
 
 void KuwaharaShader::init_compute()
 {

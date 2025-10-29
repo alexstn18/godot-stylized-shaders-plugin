@@ -76,6 +76,19 @@ class ToolPanel : public VBoxContainer
     NodeBuilder<VBoxContainer> m_kuwahara_container;
     NodeBuilder<HBoxContainer> m_pixel_container;
 
+    // VHS effect
+    SliderContainer* m_scanline_blend = nullptr;
+    SliderContainer* m_scanline_height = nullptr;
+    SliderContainer* m_scanline_intensity = nullptr;
+    SliderContainer* m_scanline_scroll = nullptr;
+    SliderContainer* m_grain_intensity = nullptr;
+    SliderContainer* m_vband_speed = nullptr;
+    SliderContainer* m_vband_height = nullptr;
+    SliderContainer* m_vband_intensity = nullptr;
+    SliderContainer* m_vband_choppiness = nullptr;
+    SliderContainer* m_vband_static = nullptr;
+    SliderContainer* m_vband_warp = nullptr;
+
     // Compositor-related
     Compositor *m_camera3d_compositor = nullptr;
     Compositor *m_world_environment_compositor = nullptr;

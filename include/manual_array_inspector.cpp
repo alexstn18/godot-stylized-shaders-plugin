@@ -14,6 +14,11 @@ void ManualArrayInspector::_bind_methods()
         MethodInfo("order_changed", PropertyInfo(Variant::ARRAY, "effects")));
 }
 
+ManualArrayInspector::~ManualArrayInspector()
+{
+    queue_free();
+}
+
 void ManualArrayInspector::_refresh_ui()
 {
     for (auto &child : get_children())

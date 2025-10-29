@@ -24,6 +24,8 @@ class ManualArrayInspector : public VBoxContainer
     static void _bind_methods();
 
   public:
+    ManualArrayInspector() = default;
+    ~ManualArrayInspector();
     TypedArray<BaseShader> get_effects() const { return m_effects; }
     void set_effects(const TypedArray<BaseShader> &effects);
 };

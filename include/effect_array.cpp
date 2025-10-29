@@ -9,7 +9,7 @@ void EffectArray::_bind_methods()
 
     ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "effects",
                               PROPERTY_HINT_ARRAY_TYPE, "BaseShader"),
-                 "set_shaders", "get_shaders");
+                 "set_effects", "get_effects");
 }
 
 void EffectArray::set_effects(const TypedArray<BaseShader> &effects)

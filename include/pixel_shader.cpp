@@ -1,4 +1,5 @@
 #include "pixel_shader.hpp"
+#include "util/encapsulated_data.hpp"
 
 void PixelShader::_bind_methods() {}
 
@@ -8,6 +9,12 @@ PixelShader::PixelShader()
 
     queue_callable_on_render_thread(
         callable_mp(this, &PixelShader::init_compute).bind("pixel.glsl"));
+}
+
+PixelShader::~PixelShader()
+{
+    try_delete_encapsulated(target_width);
+    try_delete_encapsulated(target_height);
 }
 
 void PixelShader::init_compute(const String &shader_filename)

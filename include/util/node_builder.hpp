@@ -6,12 +6,7 @@
 #include <godot_cpp/classes/scroll_container.hpp>
 #include <type_traits>
 
-
 using namespace godot;
-
-// None of the allocated memory (using "memnew") needs to be freed using this
-// As in Godot's node trees, once you delete the parent the children get
-// automatically freed too
 
 class SliderContainer;
 
@@ -86,7 +81,8 @@ template <typename T> class NodeBuilder
         builder.call(&Control::set_custom_minimum_size, Vector2(300, 400));
         builder.call(&Control::set_v_size_flags, Control::SIZE_EXPAND_FILL);
         builder.call(&Control::set_h_size_flags, Control::SIZE_EXPAND_FILL);
-        builder.call(&ScrollContainer::set_horizontal_scroll_mode, ScrollContainer::SCROLL_MODE_DISABLED);
+        builder.call(&ScrollContainer::set_horizontal_scroll_mode,
+                     ScrollContainer::SCROLL_MODE_DISABLED);
 
         return builder.add_child<VBoxContainer>();
     }
@@ -95,10 +91,10 @@ template <typename T> class NodeBuilder
     {
         static_assert(std::is_base_of_v<Node, C>,
                       "remove_child() can only be used on Node builders");
-
-        if (Node *child = builder.get(); child->get_parent() == node)
+        Node *child = builder.get();
+        if (child && child->get_parent() == node)
         {
-            node->remove_child(builder.get());
+            child->queue_free();
         }
         return *this;
     }
@@ -107,10 +103,26 @@ template <typename T> class NodeBuilder
     {
         static_assert(std::is_base_of_v<Node, C>,
                       "remove_child() can only be used on Node children");
-
-        if (child && child->get_parent() == node)
+        if (child)
         {
-            node->remove_child(child);
+            if (child->get_parent() == node)
+            {
+                child->queue_free();
+            }
+        }
+        return *this;
+    }
+
+    NodeBuilder<T> &clear_children()
+    {
+        TypedArray<Node> children = node->get_children();
+        for (int i = 0; i < children.size(); i++)
+        {
+            Node *child = Object::cast_to<Node>(children[i]);
+            if (child)
+            {
+                child->queue_free();
+            }
         }
         return *this;
     }

@@ -427,20 +427,16 @@ void ToolPanel::setup_pixel()
 void ToolPanel::setup_vhs()
 {
     m_vhs_container.call(&VBoxContainer::set_name, "VHS");
+
     auto scanline_checkbox =
         m_vhs_container.add_child<CheckBox>()
             .call(&CheckBox::set_text, "Enable Scanlines")
             .call(&CheckBox::connect, "toggled",
                   create_custom_callable_lambda(
                       this,
-                      [&](bool toggled_on)
+                      [this](bool toggled_on)
                       {
                           m_vhs->m_scanline_enabled->set(toggled_on);
-
-                          static SliderContainer *raw_blend = nullptr;
-                          static SliderContainer *raw_height = nullptr;
-                          static SliderContainer *raw_intensity = nullptr;
-                          static SliderContainer *raw_scroll = nullptr;
 
                           if (toggled_on)
                           {
@@ -453,7 +449,7 @@ void ToolPanel::setup_vhs()
                                               float, m_vhs,
                                               m_scanline_blend_factor));
 
-                              raw_blend = scanline_blend_container.get();
+                              m_scanline_blend = scanline_blend_container.get();
 
                               auto scanline_height_container =
                                   m_vhs_container.add_child<SliderContainer>()
@@ -463,7 +459,8 @@ void ToolPanel::setup_vhs()
                                           encapsulated_callable(
                                               float, m_vhs, m_scanline_height));
 
-                              raw_height = scanline_height_container.get();
+                              m_scanline_height =
+                                  scanline_height_container.get();
 
                               auto scanline_intensity_container =
                                   m_vhs_container.add_child<SliderContainer>()
@@ -474,7 +471,7 @@ void ToolPanel::setup_vhs()
                                               float, m_vhs,
                                               m_scanline_intensity));
 
-                              raw_intensity =
+                              m_scanline_intensity =
                                   scanline_intensity_container.get();
 
                               auto scanline_scroll_container =
@@ -486,14 +483,31 @@ void ToolPanel::setup_vhs()
                                               float, m_vhs,
                                               m_scanline_scroll_speed));
 
-                              raw_scroll = scanline_scroll_container.get();
+                              m_scanline_scroll =
+                                  scanline_scroll_container.get();
                           }
                           else
                           {
-                              m_vhs_container.try_remove_child(raw_blend);
-                              m_vhs_container.try_remove_child(raw_height);
-                              m_vhs_container.try_remove_child(raw_intensity);
-                              m_vhs_container.try_remove_child(raw_scroll);
+                              if (m_scanline_blend)
+                              {
+                                  m_scanline_blend->queue_free();
+                                  m_scanline_blend = nullptr;
+                              }
+                              if (m_scanline_height)
+                              {
+                                  m_scanline_height->queue_free();
+                                  m_scanline_height = nullptr;
+                              }
+                              if (m_scanline_intensity)
+                              {
+                                  m_scanline_intensity->queue_free();
+                                  m_scanline_intensity = nullptr;
+                              }
+                              if (m_scanline_scroll)
+                              {
+                                  m_scanline_scroll->queue_free();
+                                  m_scanline_scroll = nullptr;
+                              }
                           }
                           notify_with_check();
                       }),
@@ -505,11 +519,9 @@ void ToolPanel::setup_vhs()
             .call(&CheckBox::connect, "toggled",
                   create_custom_callable_lambda(
                       this,
-                      [&](bool toggled_on)
+                      [this](bool toggled_on)
                       {
                           m_vhs->m_grain_enabled->set(toggled_on);
-
-                          static SliderContainer *raw_grain = nullptr;
 
                           if (toggled_on)
                           {
@@ -520,11 +532,16 @@ void ToolPanel::setup_vhs()
                                           m_vhs->m_grain_intensity,
                                           encapsulated_callable(
                                               float, m_vhs, m_grain_intensity));
-                              raw_grain = grain_intensity_container.get();
+                              m_grain_intensity =
+                                  grain_intensity_container.get();
                           }
                           else
                           {
-                              m_vhs_container.try_remove_child(raw_grain);
+                              if (m_grain_intensity)
+                              {
+                                  m_grain_intensity->queue_free();
+                                  m_grain_intensity = nullptr;
+                              }
                           }
                           notify_with_check();
                       }),
@@ -533,107 +550,123 @@ void ToolPanel::setup_vhs()
     auto vertical_band_checkbox =
         m_vhs_container.add_child<CheckBox>()
             .call(&CheckBox::set_text, "Enable Vertical Bands")
-            .call(&CheckBox::connect, "toggled",
-                  create_custom_callable_lambda(
-                      this,
-                      [&](bool toggled_on)
-                      {
-                          m_vhs->m_vertical_band_enabled->set(toggled_on);
+            .call(
+                &CheckBox::connect, "toggled",
+                create_custom_callable_lambda(
+                    this,
+                    [this](bool toggled_on)
+                    {
+                        m_vhs->m_vertical_band_enabled->set(toggled_on);
 
-                          static SliderContainer *raw_speed = nullptr;
-                          static SliderContainer *raw_height = nullptr;
-                          static SliderContainer *raw_intensity = nullptr;
-                          static SliderContainer *raw_choppiness = nullptr;
-                          static SliderContainer *raw_static = nullptr;
-                          static SliderContainer *raw_warp = nullptr;
+                        if (toggled_on)
+                        {
+                            auto vertical_band_speed_container =
+                                m_vhs_container.add_child<SliderContainer>()
+                                    .slider_container_init(
+                                        "Vertical Band Speed", 0.01, 0.0, 5.0,
+                                        m_vhs->m_vertical_band_speed,
+                                        encapsulated_callable(
+                                            float, m_vhs,
+                                            m_vertical_band_speed));
 
-                          if (toggled_on)
-                          {
-                              auto vertical_band_speed_container =
-                                  m_vhs_container.add_child<SliderContainer>()
-                                      .slider_container_init(
-                                          "Vertical Band Speed", 0.01, 0.0, 5.0,
-                                          m_vhs->m_vertical_band_speed,
-                                          encapsulated_callable(
-                                              float, m_vhs,
-                                              m_vertical_band_speed));
+                            m_vband_speed = vertical_band_speed_container.get();
 
-                              raw_speed = vertical_band_speed_container.get();
+                            auto vertical_band_height_container =
+                                m_vhs_container.add_child<SliderContainer>()
+                                    .slider_container_init(
+                                        "Vertical Band Height", 0.001, 0.001,
+                                        0.1, m_vhs->m_vertical_band_height,
+                                        encapsulated_callable(
+                                            float, m_vhs,
+                                            m_vertical_band_height));
 
-                              auto vertical_band_height_container =
-                                  m_vhs_container.add_child<SliderContainer>()
-                                      .slider_container_init(
-                                          "Vertical Band Height", 0.001, 0.001,
-                                          0.1, m_vhs->m_vertical_band_height,
-                                          encapsulated_callable(
-                                              float, m_vhs,
-                                              m_vertical_band_height));
+                            m_vband_height =
+                                vertical_band_height_container.get();
 
-                              raw_height = vertical_band_height_container.get();
+                            auto vertical_band_intensity_container =
+                                m_vhs_container.add_child<SliderContainer>()
+                                    .slider_container_init(
+                                        "Vertical Band Intensity", 0.01, 0.0,
+                                        1.0, m_vhs->m_vertical_band_intensity,
+                                        encapsulated_callable(
+                                            float, m_vhs,
+                                            m_vertical_band_intensity));
 
-                              auto vertical_band_intensity_container =
-                                  m_vhs_container.add_child<SliderContainer>()
-                                      .slider_container_init(
-                                          "Vertical Band Intensity", 0.01, 0.0,
-                                          1.0, m_vhs->m_vertical_band_intensity,
-                                          encapsulated_callable(
-                                              float, m_vhs,
-                                              m_vertical_band_intensity));
+                            m_vband_intensity =
+                                vertical_band_intensity_container.get();
 
-                              raw_intensity =
-                                  vertical_band_intensity_container.get();
+                            auto vertical_band_choppiness_container =
+                                m_vhs_container.add_child<SliderContainer>()
+                                    .slider_container_init(
+                                        "Vertical Band Choppiness", 0.01, 0.0,
+                                        1.0, m_vhs->m_vertical_band_choppiness,
+                                        encapsulated_callable(
+                                            float, m_vhs,
+                                            m_vertical_band_choppiness));
 
-                              auto vertical_band_choppiness_container =
-                                  m_vhs_container.add_child<SliderContainer>()
-                                      .slider_container_init(
-                                          "Vertical Band Choppiness", 0.01, 0.0,
-                                          1.0,
+                            m_vband_choppiness =
+                                vertical_band_choppiness_container.get();
 
-                                          m_vhs->m_vertical_band_choppiness,
-                                          encapsulated_callable(
-                                              float, m_vhs,
-                                              m_vertical_band_choppiness));
+                            auto vertical_band_static_container =
+                                m_vhs_container.add_child<SliderContainer>()
+                                    .slider_container_init(
+                                        "Vertical Band Static Amount", 0.001,
+                                        0.0, 0.1,
+                                        m_vhs->m_vertical_band_static_amount,
+                                        encapsulated_callable(
+                                            float, m_vhs,
+                                            m_vertical_band_static_amount));
 
-                              raw_choppiness =
-                                  vertical_band_choppiness_container.get();
+                            m_vband_static =
+                                vertical_band_static_container.get();
 
-                              auto vertical_band_static_container =
-                                  m_vhs_container.add_child<SliderContainer>()
-                                      .slider_container_init(
-                                          "Vertical Band Static Amount", 0.001,
-                                          0.0, 0.1,
-                                          m_vhs->m_vertical_band_static_amount,
-                                          encapsulated_callable(
-                                              float, m_vhs,
-                                              m_vertical_band_static_amount));
+                            auto vertical_band_warp_container =
+                                m_vhs_container.add_child<SliderContainer>()
+                                    .slider_container_init(
+                                        "Vertical Band Warp Factor", 0.001, 0.0,
+                                        0.1, m_vhs->m_vertical_band_warp_factor,
+                                        encapsulated_callable(
+                                            float, m_vhs,
+                                            m_vertical_band_warp_factor));
 
-                              raw_static = vertical_band_static_container.get();
-
-                              auto vertical_band_warp_container =
-                                  m_vhs_container.add_child<SliderContainer>()
-                                      .slider_container_init(
-                                          "Vertical Band Warp Factor", 0.001,
-                                          0.0, 0.1,
-                                          m_vhs->m_vertical_band_warp_factor,
-                                          encapsulated_callable(
-                                              float, m_vhs,
-                                              m_vertical_band_warp_factor));
-
-                              raw_warp = vertical_band_warp_container.get();
-                              notify_with_check();
-                          }
-                          else
-                          {
-                              m_vhs_container.try_remove_child(raw_speed);
-                              m_vhs_container.try_remove_child(raw_height);
-                              m_vhs_container.try_remove_child(raw_intensity);
-                              m_vhs_container.try_remove_child(raw_choppiness);
-                              m_vhs_container.try_remove_child(raw_static);
-                              m_vhs_container.try_remove_child(raw_warp);
-                              notify_with_check();
-                          }
-                      }),
-                  0u);
+                            m_vband_warp = vertical_band_warp_container.get();
+                        }
+                        else
+                        {
+                            if (m_vband_speed)
+                            {
+                                m_vband_speed->queue_free();
+                                m_vband_speed = nullptr;
+                            }
+                            if (m_vband_height)
+                            {
+                                m_vband_height->queue_free();
+                                m_vband_height = nullptr;
+                            }
+                            if (m_vband_intensity)
+                            {
+                                m_vband_intensity->queue_free();
+                                m_vband_intensity = nullptr;
+                            }
+                            if (m_vband_choppiness)
+                            {
+                                m_vband_choppiness->queue_free();
+                                m_vband_choppiness = nullptr;
+                            }
+                            if (m_vband_static)
+                            {
+                                m_vband_static->queue_free();
+                                m_vband_static = nullptr;
+                            }
+                            if (m_vband_warp)
+                            {
+                                m_vband_warp->queue_free();
+                                m_vband_warp = nullptr;
+                            }
+                        }
+                        notify_with_check();
+                    }),
+                0u);
     notify_with_check();
 }
 

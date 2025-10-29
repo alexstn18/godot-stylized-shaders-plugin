@@ -1,5 +1,6 @@
 #include "outline_shader.hpp"
 #include "ext/callable_lambda.hpp"
+#include "util/encapsulated_data.hpp"
 #include <godot_cpp/classes/compositor_effect.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/file_access.hpp>
@@ -35,7 +36,15 @@ OutlineShader::OutlineShader()
         callable_mp(this, &OutlineShader::init_compute).bind("outline.glsl"));
 }
 
-OutlineShader::~OutlineShader() {}
+OutlineShader::~OutlineShader()
+{
+    try_delete_encapsulated(m_outline_width);
+    try_delete_encapsulated(m_outline_mul);
+    try_delete_encapsulated(m_jitter_amp);
+    try_delete_encapsulated(m_jitter_freq);
+    try_delete_encapsulated(m_dt);
+    try_delete_encapsulated(m_jitter_toggle);
+}
 
 void OutlineShader::_notification(int what)
 {
@@ -111,6 +120,8 @@ void OutlineShader::_render_callback(int32_t p_effect_callback_type,
 void OutlineShader::init_compute(const String &shader_filename)
 {
     BaseShader::init_compute(shader_filename);
+
+    ERR_FAIL_COND_MSG(!m_device, "No device in OutlineShader::init_compute");
 
     Ref<RDSamplerState> state;
     state.instantiate();

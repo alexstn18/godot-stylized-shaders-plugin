@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ManualArrayInspector" inherits="VBoxContainer" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_effects" qualifiers="const">
+			<return type="BaseShader[]" />
+			<description>
+			</description>
+		</method>
+		<method name="set_effects">
+			<return type="void" />
+			<param index="0" name="effects" type="BaseShader[]" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<signals>
+		<signal name="order_changed">
+			<param index="0" name="effects" type="Array" />
+			<description>
+			</description>
+		</signal>
+	</signals>
+</class>
